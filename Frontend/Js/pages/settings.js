@@ -9,8 +9,12 @@
     // QUEUE STATUS UI
     // ============================================
     window.updateQueueStatusUI = function () {
+        console.log('🔄 updateQueueStatusUI called');
         const queuedXPEl = document.getElementById('queuedXPAmount');
-        if (!queuedXPEl) return;
+        if (!queuedXPEl) {
+            console.warn('⚠️ queuedXPAmount element not found');
+            return;
+        }
 
         const queue = JSON.parse(localStorage.getItem('xpPendingQueue') || '[]');
         const totalQueuedXP = queue.reduce((sum, item) => sum + (item.xp || 0), 0);
@@ -59,19 +63,44 @@
                 queueMessageEl.innerHTML = `<i class="fas fa-check-circle"></i> No pending XP in queue`;
             }
         }
+        console.log(`✅ Queue UI updated: queued=${totalQueuedXP}, today=${todayXP}`);
     };
 
+    // Enhanced initialization – updates immediately and listens for DOM insertion
     function initQueueStatusUI() {
-        const queueCard = document.querySelector('.queue-status-card');
-        if (!queueCard) return;
-        window.updateQueueStatusUI();
+        // Always set up the interval (30 seconds)
         setInterval(() => {
             const settingsPage = document.getElementById('settings-page');
             if (settingsPage && settingsPage.classList.contains('active')) {
-                window.updateQueueStatusUI();
+                if (document.querySelector('.queue-status-card')) {
+                    window.updateQueueStatusUI();
+                }
             }
         }, 30000);
+
+        // Immediate update if element already exists
+        if (document.querySelector('.queue-status-card')) {
+            window.updateQueueStatusUI();
+        }
+
+        // MutationObserver to catch later insertion (e.g., dynamic loading)
+        const observer = new MutationObserver(() => {
+            if (document.querySelector('.queue-status-card')) {
+                window.updateQueueStatusUI();
+                observer.disconnect();
+            }
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+        setTimeout(() => observer.disconnect(), 10000);
     }
+
+    // Listen for cloud data loads (from dual-storage)
+    document.addEventListener('cloudDataLoaded', function () {
+        const settingsPage = document.getElementById('settings-page');
+        if (settingsPage && settingsPage.classList.contains('active')) {
+            window.updateQueueStatusUI();
+        }
+    });
 
     // ============================================
     // SYNC UI
@@ -147,6 +176,10 @@
                     content.classList.toggle('active', contentId === tabName);
                 });
                 localStorage.setItem('settingsActiveTab', tabName);
+                // Refresh queue UI when switching to experience tab
+                if (tabName === 'experience') {
+                    setTimeout(window.updateQueueStatusUI, 100);
+                }
             });
         });
         console.log('✅ Settings tabs initialized');
@@ -202,10 +235,10 @@
             socialsContainer.innerHTML = '';
             const social = userProfile.social || {};
             const icons = {
-                anilist: 'fa-list-ul',      
-                myanimelist: 'fa-book',  
-                twitter: 'fa-twitter',      
-                instagram: 'fa-instagram'   
+                anilist: 'fa-list-ul',
+                myanimelist: 'fa-book',
+                twitter: 'fa-twitter',
+                instagram: 'fa-instagram'
             };
             Object.keys(social).forEach(key => {
                 if (social[key]) {
@@ -213,7 +246,6 @@
                     a.href = `https://${key}.com/${social[key]}`;
                     a.target = '_blank';
                     a.rel = 'noopener';
-                    // Use 'fab' for brands (twitter, instagram) and 'fas' for regular icons
                     const iconClass = (key === 'twitter' || key === 'instagram')
                         ? `fab ${icons[key]}`
                         : `fas ${icons[key]}`;
@@ -223,12 +255,11 @@
             });
         }
 
-        // 🔁 Update member since date in preview (if element exists)
         updateMemberSinceDisplay(userProfile);
     }
 
     // ============================================
-    // PROFILE PREVIEW – updates avatar + cover image
+    // PROFILE PREVIEW
     // ============================================
     function refreshProfilePreview() {
         const userProfile = JSON.parse(localStorage.getItem('userProfile') || {});
@@ -239,7 +270,6 @@
         if (previewName) previewName.textContent = name;
         if (previewAvatar) previewAvatar.src = avatar;
 
-        // Cover image (banner)
         const coverImg = document.getElementById('coverPreviewImage');
         if (coverImg) {
             if (userProfile.cover) {
@@ -251,7 +281,6 @@
             }
         }
 
-        // Also update the cover preview (in the settings item)
         const coverPreviewImg = document.getElementById('coverPreviewImg');
         const coverPreviewDiv = document.getElementById('coverPreview');
         const removeCoverBtn = document.getElementById('removeCoverBtn');
@@ -266,30 +295,24 @@
             }
         }
 
-        // Update details (bio, status, favs, socials)
         updatePreviewDetails();
-
-        // Ensure member since is set and displayed
         ensureMemberSince();
     }
 
     // ============================================
-    // MEMBER SINCE – dynamic and saved
+    // MEMBER SINCE
     // ============================================
     function ensureMemberSince() {
         const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
-        // If no memberSince, set it to the current month/year
         if (!userProfile.memberSince) {
             const now = new Date();
             const monthYear = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
             userProfile.memberSince = monthYear;
             localStorage.setItem('userProfile', JSON.stringify(userProfile));
-            // Also sync to cloud if logged in
             if (window.dualStorage && window.dualStorage.isLoggedIn()) {
                 window.dualStorage.syncToCloud();
             }
         }
-        // Update the display
         updateMemberSinceDisplay(userProfile);
     }
 
@@ -320,7 +343,7 @@
     };
 
     // ============================================
-    // PERSISTENT AUTO‑BACKUP
+    // PERSISTENT AUTO‑BACKUP (unchanged)
     // ============================================
     (function setupPersistentAutoBackup() {
         if (!('showSaveFilePicker' in window)) {
@@ -512,7 +535,7 @@
     })();
 
     // ============================================
-    // HELPER: Save a single profile field (with cloud sync)
+    // HELPER: Save a single profile field
     // ============================================
     function saveProfileField(key, value) {
         const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
@@ -556,13 +579,9 @@
             if (el) el.value = fields[id];
         });
 
-        // Load favorite tags (handled by the tag input component)
         loadFavoriteTags();
-
         updateBioCharCount();
         refreshProfilePreview();
-
-        // 🔁 Ensure member since is set and displayed
         ensureMemberSince();
     }
 
@@ -575,7 +594,7 @@
     }
 
     // ============================================
-    // COVER IMAGE UPLOAD WITH CROP (16:5 ratio)
+    // COVER IMAGE UPLOAD WITH CROP
     // ============================================
     async function uploadCoverWithCrop(file) {
         if (!file) return false;
@@ -601,10 +620,8 @@
                 throw new Error('Crop modal not available. Please check avatar.js.');
             }
 
-            // AniList banner ratio: 16:5 (1200×375)
             const croppedDataUrl = await window.openCropModal(dataUrl, 16 / 5, 1200, 375);
 
-            // Compress to max 500KB
             let compressedDataUrl;
             if (typeof window.compressImageFromDataUrl === 'function') {
                 compressedDataUrl = await window.compressImageFromDataUrl(croppedDataUrl, 500, 1200, 375);
@@ -623,7 +640,6 @@
         }
     }
 
-    // Fallback compression
     async function compressFallback(dataUrl, maxWidth, maxHeight) {
         return new Promise((resolve, reject) => {
             const img = new Image();
@@ -674,7 +690,6 @@
         const tagInput = document.getElementById('favTagInput');
         if (!tagContainer || !tagInput) return;
 
-        // Remove existing tags (keep the input)
         const tags = tagContainer.querySelectorAll('.tag-item');
         tags.forEach(tag => tag.remove());
 
@@ -706,7 +721,6 @@
 
     function saveFavoriteAnime() {
         saveProfileField('favoriteAnime', selectedAnimeIds);
-        // Also update the text input for manual entry
         const textInput = document.getElementById('favoriteAnime');
         if (textInput) {
             const animeMap = {};
@@ -714,7 +728,6 @@
             const titles = selectedAnimeIds.map(id => animeMap[id]?.title || '').filter(Boolean);
             textInput.value = titles.join(', ');
         }
-        // Update preview tags
         updatePreviewDetails();
     }
 
@@ -784,7 +797,6 @@
                 saveFavoriteAnime();
                 renderTags();
                 updateDropdownState();
-                // Keep dropdown open and refocus
                 document.getElementById('favTagInput')?.focus();
                 searchAnimeForTags(document.getElementById('favTagInput')?.value || '');
             });
@@ -796,11 +808,8 @@
     // ============================================
     window.initSettings = function () {
         initSettingsTabs();
-
-        // ---- Load profile data into form ----
         loadProfileForm();
 
-        // ---- Display name ----
         const usernameInput = document.getElementById('usernameInput');
         if (usernameInput) {
             usernameInput.addEventListener('change', function () {
@@ -813,10 +822,8 @@
             });
         }
 
-        // ---- Sync UI ----
         window.initSyncUI();
 
-        // ---- Clear data ----
         const clearBtn = document.getElementById('clearDataBtn');
         if (clearBtn) {
             clearBtn.addEventListener('click', function () {
@@ -828,15 +835,13 @@
             });
         }
 
-        // ---- Export data ----
         document.getElementById('exportDataBtn')?.addEventListener('click', function () {
             if (typeof window.exportData === 'function') window.exportData();
         });
 
-        // ---- Queue status ----
+        // ✅ Queue status initialization (fixed)
         initQueueStatusUI();
 
-        // ---- Bio ----
         const bio = document.getElementById('profileBio');
         if (bio) {
             bio.addEventListener('input', updateBioCharCount);
@@ -846,7 +851,6 @@
             });
         }
 
-        // ---- Custom Status ----
         const statusInput = document.getElementById('profileStatus');
         if (statusInput) {
             statusInput.addEventListener('change', function () {
@@ -855,7 +859,6 @@
             });
         }
 
-        // ---- Social Links ----
         const socialFields = ['socialAnilist', 'socialMAL', 'socialTwitter', 'socialInstagram'];
         socialFields.forEach(id => {
             const el = document.getElementById(id);
@@ -875,7 +878,6 @@
             }
         });
 
-        // ---- Cover Image ----
         const coverInput = document.getElementById('coverInput');
         if (coverInput) {
             const newCoverInput = coverInput.cloneNode(true);
@@ -889,7 +891,6 @@
             });
         }
 
-        // ---- Remove Cover ----
         document.getElementById('removeCoverBtn')?.addEventListener('click', function () {
             saveProfileField('cover', null);
             document.getElementById('coverPreview').style.display = 'none';
@@ -899,15 +900,12 @@
             if (typeof showToast === 'function') showToast('Cover removed', 'info');
         });
 
-        // ---- Favorite Anime (Tag Input) ----
         const tagInput = document.getElementById('favTagInput');
         const tagDropdown = document.getElementById('favTagDropdown');
 
         if (tagInput && tagDropdown) {
-            // Load initial tags
             loadFavoriteTags();
 
-            // Search on input
             tagInput.addEventListener('input', function () {
                 const query = this.value;
                 if (query.trim().length > 0) {
@@ -918,7 +916,6 @@
                 }
             });
 
-            // Focus: show dropdown if query exists
             tagInput.addEventListener('focus', function () {
                 if (this.value.trim().length > 0) {
                     searchAnimeForTags(this.value);
@@ -928,7 +925,6 @@
                 }
             });
 
-            // Click outside to close dropdown
             document.addEventListener('click', function (e) {
                 const wrapper = document.querySelector('.tag-input-wrapper');
                 if (wrapper && !wrapper.contains(e.target)) {
@@ -936,7 +932,6 @@
                 }
             });
 
-            // Enter key: add first result if any
             tagInput.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -954,7 +949,6 @@
             });
         }
 
-        // ---- Manual text input (sync with tag input) ----
         const favText = document.getElementById('favoriteAnime');
         if (favText) {
             favText.addEventListener('change', function () {
@@ -968,14 +962,12 @@
                     saveFavoriteAnime();
                     renderTags();
                     updateDropdownState();
-                    // Clear search input if any
                     if (tagInput) tagInput.value = '';
                     if (tagDropdown) tagDropdown.classList.remove('open');
                 }
             });
         }
 
-        // ---- Save Profile Button ----
         document.getElementById('saveProfileBtn')?.addEventListener('click', function () {
             ['profileBio', 'profileStatus', ...socialFields].forEach(id => {
                 const el = document.getElementById(id);
@@ -985,12 +977,10 @@
             });
             if (favText) favText.dispatchEvent(new Event('change'));
             if (usernameInput) usernameInput.dispatchEvent(new Event('change'));
-            // The tag input already saves on change, but we also save here
             saveFavoriteAnime();
             if (typeof showToast === 'function') showToast('Profile saved!', 'success');
         });
 
-        // ---- Reset Profile Button ----
         document.getElementById('resetProfileBtn')?.addEventListener('click', function () {
             if (!confirm('Reset all profile details (bio, status, social links, cover) to defaults?')) return;
             const defaults = {
@@ -999,10 +989,8 @@
                 favoriteAnime: [],
                 social: {},
                 cover: null
-                // memberSince is NOT reset – it stays as the original join date
             };
             const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
-            // Keep memberSince intact
             const memberSince = userProfile.memberSince;
             Object.keys(defaults).forEach(key => {
                 userProfile[key] = defaults[key];
@@ -1017,7 +1005,6 @@
             if (typeof showToast === 'function') showToast('Profile reset to defaults', 'info');
         });
 
-        // ---- Listen for profile changes from other tabs ----
         window.addEventListener('storage', function (e) {
             if (e.key === 'userProfile') {
                 loadProfileForm();
@@ -1025,10 +1012,14 @@
             }
         });
 
-        // ---- Also listen for cloud load events ----
         document.addEventListener('cloudDataLoaded', function () {
             loadProfileForm();
             refreshProfilePreview();
+            // Also update queue UI if settings active
+            const settingsPage = document.getElementById('settings-page');
+            if (settingsPage && settingsPage.classList.contains('active')) {
+                window.updateQueueStatusUI();
+            }
         });
 
         console.log('✅ Settings initialized (with tag input & extended profile)');

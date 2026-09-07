@@ -1047,7 +1047,7 @@
                             }
                         }
                         break;
-                        
+
                     case 'search':
                         const searchToggle = document.getElementById('searchToggle');
                         if (searchToggle) {

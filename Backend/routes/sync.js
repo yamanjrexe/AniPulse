@@ -6,7 +6,7 @@ const router = express.Router();
 router.use(express.json({ limit: '50mb' }));
 
 // ============================================
-// XP CALCULATION HELPERS
+// XP CALCULATION HELPERS (unchanged)
 // ============================================
 
 function calculateExpFromParts({ episodes = 0, progress = 0, duration = 20, type = 'TV', score = 0, hasScore = false }, options = {}) {
@@ -97,7 +97,7 @@ function calculateTotalHours(animeList) {
 }
 
 // ============================================
-// INPUT VALIDATION FUNCTIONS
+// SANITIZATION (replaces strict validation)
 // ============================================
 
 const MAX_ANIME_LIST = 10000;
@@ -105,37 +105,113 @@ const MAX_ACTIVITY_LOG = 500;
 const MAX_ACHIEVEMENTS = 100;
 const MAX_XP_HISTORY = 5000;
 
-function isValidAnime(anime) {
-  if (!anime || typeof anime !== 'object') return false;
-  if (typeof anime.id !== 'number' || anime.id < 1) return false;
-  if (typeof anime.title !== 'string' || anime.title.length === 0 || anime.title.length > 200) return false;
-  if (typeof anime.type !== 'string' || anime.type.length > 50) return false;
-  if (typeof anime.episodes !== 'number' || anime.episodes < 0 || anime.episodes > 100000) return false;
-  if (typeof anime.duration !== 'number' || anime.duration < 1 || anime.duration > 10000) return false;
-  if (typeof anime.userStatus !== 'string' || !['Completed', 'Watching', 'Plan to Watch', 'Dropped'].includes(anime.userStatus)) return false;
-  if (typeof anime.progress !== 'number' || anime.progress < 0 || anime.progress > 100000) return false;
-  if (anime.score !== undefined && (typeof anime.score !== 'number' || anime.score < 0 || anime.score > 10)) return false;
-  if (anime.cover !== undefined && typeof anime.cover !== 'string') return false;
-  if (anime.genres !== undefined && (!Array.isArray(anime.genres) || anime.genres.some(g => typeof g !== 'string' || g.length > 50))) return false;
-  if (anime.finishDate !== undefined && typeof anime.finishDate !== 'string') return false;
-  if (anime.actualFinishDate !== undefined && typeof anime.actualFinishDate !== 'string') return false;
-  if (anime.createdAt !== undefined && typeof anime.createdAt !== 'string') return false;
-  if (anime.updatedAt !== undefined && typeof anime.updatedAt !== 'string') return false;
-  return true;
+function sanitizeAnime(anime, existingIds) {
+  // Ensure id is a valid number
+  let id = anime.id;
+  if (id === undefined || id === null) {
+    // Generate new id (max existing + 1)
+    const maxId = existingIds.length > 0 ? Math.max(...existingIds) : 0;
+    id = maxId + 1;
+    while (existingIds.includes(id)) id++; // safety
+  } else if (typeof id === 'string') {
+    const parsed = parseInt(id, 10);
+    if (!isNaN(parsed) && parsed > 0) {
+      id = parsed;
+    } else {
+      // invalid string – generate new id
+      const maxId = existingIds.length > 0 ? Math.max(...existingIds) : 0;
+      id = maxId + 1;
+      while (existingIds.includes(id)) id++;
+    }
+  } else if (typeof id !== 'number' || id < 1) {
+    // invalid number – generate new id
+    const maxId = existingIds.length > 0 ? Math.max(...existingIds) : 0;
+    id = maxId + 1;
+    while (existingIds.includes(id)) id++;
+  }
+  // add to existingIds set to avoid duplicates
+  existingIds.push(id);
+
+  // Ensure title
+  const title = (anime.title && typeof anime.title === 'string' && anime.title.trim().length > 0)
+    ? anime.title.trim()
+    : 'Unknown';
+
+  // Ensure type
+  const validTypes = ['TV', 'TV_SHORT', 'Movie', 'OVA', 'ONA', 'Special'];
+  let type = (anime.type && typeof anime.type === 'string') ? anime.type : 'TV';
+  if (!validTypes.includes(type)) type = 'TV';
+
+  // Ensure episodes, duration, progress as numbers
+  const episodes = typeof anime.episodes === 'number' ? Math.max(0, anime.episodes) : 0;
+  const duration = typeof anime.duration === 'number' ? Math.max(1, anime.duration) : 20;
+  let progress = typeof anime.progress === 'number' ? Math.max(0, anime.progress) : 0;
+  // If progress > episodes, cap it
+  if (episodes > 0 && progress > episodes) progress = episodes;
+
+  // Ensure status
+  const validStatuses = ['Completed', 'Watching', 'Plan to Watch', 'Dropped'];
+  let userStatus = (anime.userStatus && typeof anime.userStatus === 'string') ? anime.userStatus : 'Plan to Watch';
+  if (!validStatuses.includes(userStatus)) userStatus = 'Plan to Watch';
+
+  // Score (optional)
+  let score = undefined;
+  if (anime.score !== undefined && anime.score !== null) {
+    const s = parseFloat(anime.score);
+    if (!isNaN(s) && s >= 0 && s <= 10) score = Math.round(s * 10) / 10;
+  }
+
+  // Cover (optional)
+  const cover = (anime.cover && typeof anime.cover === 'string') ? anime.cover : '';
+
+  // Genres (optional, array)
+  let genres = [];
+  if (Array.isArray(anime.genres)) {
+    genres = anime.genres.filter(g => typeof g === 'string').slice(0, 10);
+  }
+
+  // Dates (optional strings)
+  const finishDate = (anime.finishDate && typeof anime.finishDate === 'string') ? anime.finishDate : null;
+  const actualFinishDate = (anime.actualFinishDate && typeof anime.actualFinishDate === 'string') ? anime.actualFinishDate : null;
+  const createdAt = (anime.createdAt && typeof anime.createdAt === 'string') ? anime.createdAt : new Date().toISOString();
+  const updatedAt = (anime.updatedAt && typeof anime.updatedAt === 'string') ? anime.updatedAt : new Date().toISOString();
+
+  return {
+    id,
+    title,
+    type,
+    episodes,
+    duration,
+    progress,
+    userStatus,
+    score,
+    cover,
+    genres,
+    finishDate,
+    actualFinishDate,
+    createdAt,
+    updatedAt,
+    // preserve any extra fields that might be needed
+    ...(anime.earnedEpisodesExp !== undefined && { earnedEpisodesExp: anime.earnedEpisodesExp })
+  };
 }
 
-function validateAnimeList(list) {
-  if (!Array.isArray(list)) return { valid: false, error: 'animeData must be an array' };
+function sanitizeAnimeList(list) {
+  if (!Array.isArray(list)) return [];
   if (list.length > MAX_ANIME_LIST) {
-    return { valid: false, error: `animeData exceeds maximum size of ${MAX_ANIME_LIST}` };
+    console.warn(`⚠️ Truncating anime list from ${list.length} to ${MAX_ANIME_LIST}`);
+    list = list.slice(0, MAX_ANIME_LIST);
   }
-  for (let i = 0; i < list.length; i++) {
-    if (!isValidAnime(list[i])) {
-      return { valid: false, error: `Invalid anime at index ${i}` };
-    }
-  }
-  return { valid: true };
+
+  const existingIds = [];
+  const sanitized = list.map(anime => sanitizeAnime(anime, existingIds));
+  console.log(`🛠️ Sanitized ${sanitized.length} anime entries`);
+  return sanitized;
 }
+
+// ============================================
+// OTHER VALIDATIONS (activity log, etc.) – keep as before
+// ============================================
 
 function validateActivityLog(log) {
   if (!Array.isArray(log)) return { valid: false, error: 'activityLog must be an array' };
@@ -145,10 +221,19 @@ function validateActivityLog(log) {
   for (let i = 0; i < log.length; i++) {
     const item = log[i];
     if (!item || typeof item !== 'object') return { valid: false, error: `Invalid activity at index ${i}` };
-    if (!item.id || typeof item.id !== 'number') return { valid: false, error: `Missing id in activity at index ${i}` };
-    if (!item.action || typeof item.action !== 'string') return { valid: false, error: `Missing action in activity at index ${i}` };
-    if (!item.animeTitle || typeof item.animeTitle !== 'string') return { valid: false, error: `Missing animeTitle in activity at index ${i}` };
-    if (!item.timestamp || typeof item.timestamp !== 'string') return { valid: false, error: `Missing timestamp in activity at index ${i}` };
+    // id is optional; if present, it can be string or number
+    if (item.id !== undefined && typeof item.id !== 'string' && typeof item.id !== 'number') {
+      return { valid: false, error: `id must be string or number at index ${i}` };
+    }
+    if (!item.action || typeof item.action !== 'string') {
+      return { valid: false, error: `Missing action in activity at index ${i}` };
+    }
+    if (!item.animeTitle || typeof item.animeTitle !== 'string') {
+      return { valid: false, error: `Missing animeTitle in activity at index ${i}` };
+    }
+    if (!item.timestamp || typeof item.timestamp !== 'string') {
+      return { valid: false, error: `Missing timestamp in activity at index ${i}` };
+    }
   }
   return { valid: true };
 }
@@ -217,7 +302,6 @@ function sanitizeProfile(userProfile) {
       }
     }
   }
-  // Preserve cover and memberSince
   if (userProfile.cover) clean.cover = userProfile.cover;
   if (userProfile.memberSince) clean.memberSince = userProfile.memberSince;
   return clean;
@@ -238,9 +322,12 @@ router.post('/sync-all', verifyToken, async (req, res) => {
     console.log(`🔄 Syncing all data for user: ${userId}`);
     console.log(`📦 Received animeData length: ${animeData?.length || 0}`);
 
-    // ---- Validate all incoming data ----
+    // ---- SANITIZE anime data (replaces strict validation) ----
+    const sanitizedAnime = sanitizeAnimeList(animeData || []);
+    console.log(`📦 Sanitized to ${sanitizedAnime.length} anime entries`);
+
+    // ---- Validate other data ----
     const validationResults = [
-      validateAnimeList(animeData),
       validateActivityLog(activityLog),
       validateAchievements(unlockedAchievements),
       validateXpHistory(userXpHistory),
@@ -260,35 +347,40 @@ router.post('/sync-all', verifyToken, async (req, res) => {
 
     const promises = [];
 
-    // ---- 1. Save Anime List ----
-    if (animeData && Array.isArray(animeData)) {
+    // ---- 1. Save Anime List (sanitized) ----
+    if (sanitizedAnime.length > 0) {
       promises.push(
         db.collection(COLLECTIONS.ANIME_LISTS).doc(userId).set({
-          animeList: animeData,
+          animeList: sanitizedAnime,
           lastUpdated: new Date().toISOString(),
-          count: animeData.length
+          count: sanitizedAnime.length
         })
           .then(() => console.log(`✅ ANIME_LISTS saved for user ${userId}`))
           .catch(err => console.error(`❌ Failed to save ANIME_LISTS:`, err))
       );
     }
 
-    // ---- 2. Save Activity Log ----
+    // ---- 2. Save Activity Log (with ID generation) ----
     if (activityLog && Array.isArray(activityLog)) {
+      const enrichedLog = activityLog.map(item => {
+        if (!item.id) {
+          item.id = Date.now().toString() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+        return item;
+      });
       promises.push(
         db.collection(COLLECTIONS.ACTIVITY_LOGS).doc(userId).set({
-          activities: activityLog,
+          activities: enrichedLog,
           lastUpdated: new Date().toISOString(),
-          count: activityLog.length
+          count: enrichedLog.length
         })
           .then(() => console.log(`✅ ACTIVITY_LOGS saved for user ${userId}`))
           .catch(err => console.error(`❌ Failed to save ACTIVITY_LOGS:`, err))
       );
     }
 
-    // ---- 3. Save User Profile (sanitized) ----
+    // ---- 3. Save User Profile ----
     if (cleanProfile) {
-      // Do NOT allow avatar to be set here; it should come from Cloud Storage
       delete cleanProfile.avatar;
       promises.push(
         db.collection(COLLECTIONS.USER_PROFILES).doc(userId).set({
@@ -350,11 +442,11 @@ router.post('/sync-all', verifyToken, async (req, res) => {
     }
 
     // ---- 8. Save Level Data (server-side recalculation) ----
-    const recalculatedXP = calculateTotalXPFromAnimeList(animeData || []);
+    const recalculatedXP = calculateTotalXPFromAnimeList(sanitizedAnime);
     const recalculatedLevel = getLevelFromXP(recalculatedXP);
     const recalculatedTitle = getTitleForLevel(recalculatedLevel);
-    const totalCompleted = (animeData || []).filter(a => a.userStatus === 'Completed').length;
-    const totalHours = calculateTotalHours(animeData || []);
+    const totalCompleted = sanitizedAnime.filter(a => a.userStatus === 'Completed').length;
+    const totalHours = calculateTotalHours(sanitizedAnime);
 
     const userUpdate = {
       totalXP: recalculatedXP,
@@ -367,7 +459,6 @@ router.post('/sync-all', verifyToken, async (req, res) => {
       lastUpdated: new Date().toISOString()
     };
 
-    // Add optional fields if present
     if (dailyXP) userUpdate.dailyXP = dailyXP;
     if (xpPendingQueue) userUpdate.xpPendingQueue = xpPendingQueue;
     if (lastResetDate) userUpdate.lastResetDate = lastResetDate;
@@ -384,7 +475,6 @@ router.post('/sync-all', verifyToken, async (req, res) => {
         .catch(err => console.error(`❌ Failed to update USERS:`, err))
     );
 
-    // ---- Wait for all promises ----
     await Promise.all(promises);
     console.log(`✅ All data synced for user: ${userId}`);
     res.json({ success: true, message: 'All data synced to cloud successfully', timestamp: new Date().toISOString() });
@@ -395,7 +485,7 @@ router.post('/sync-all', verifyToken, async (req, res) => {
 });
 
 // ============================================
-// LOAD ALL DATA (Download from cloud)
+// LOAD ALL DATA (unchanged)
 // ============================================
 router.get('/load-all', verifyToken, async (req, res) => {
   const userId = req.userId;
@@ -441,7 +531,6 @@ router.get('/load-all', verifyToken, async (req, res) => {
         totalAnime: userData.totalAnime || 0,
         totalHours: userData.totalHours || 0
       };
-
       if (userData.dailyXP) data.dailyXP = userData.dailyXP;
       if (userData.xpPendingQueue) data.xpPendingQueue = userData.xpPendingQueue;
       if (userData.lastResetDate) data.lastResetDate = userData.lastResetDate;
@@ -464,7 +553,7 @@ router.get('/load-all', verifyToken, async (req, res) => {
 });
 
 // ============================================
-// SYNC STATUS
+// SYNC STATUS (unchanged)
 // ============================================
 router.get('/status', verifyToken, async (req, res) => {
   const userId = req.userId;
