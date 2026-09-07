@@ -266,7 +266,12 @@ class DualStorageManager {
             const today = new Date().toDateString();
             if (data.dailyXP) {
                 if (data.dailyXP.date === today) {
-                    localStorage.setItem(`dailyXP_${today}`, data.dailyXP.xp.toString());
+                    const localTodayXP = parseInt(localStorage.getItem(`dailyXP_${today}`) || '0');
+                    if (data.dailyXP.xp > localTodayXP) {
+                        localStorage.setItem(`dailyXP_${today}`, data.dailyXP.xp.toString());
+                    } else {
+                        console.log(`🛡️ Keeping local dailyXP (${localTodayXP}) over cloud (${data.dailyXP.xp})`);
+                    }
                 }
             }
             if (data.xpPendingQueue) {
