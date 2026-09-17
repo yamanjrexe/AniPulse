@@ -1,0 +1,117 @@
+.progress-container {
+    width: 100%;
+    height: 4px;
+    background: var(--border-default);
+    border-radius: var(--r-pill);
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: var(--brand-yellow);
+    border-radius: var(--r-pill);
+    transition: width var(--dur-slow) var(--ease-standard);
+}
+
+.progress-bar.complete {
+    background: var(--success);
+}
+
+.progress-bar.success {
+    background: var(--success);
+}
+
+.progress-bar.warning {
+    background: var(--brand-yellow);
+}
+
+.progress-bar.danger {
+    background: var(--brand-red);
+}
+
+.progress-text {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--sp-2);
+    margin-top: 4px;
+    font-size: var(--fs-12);
+    color: var(--text-muted);
+}
+
+.progress-text .current {
+    color: var(--text-primary);
+    font-weight: var(--fw-medium);
+}
+
+.progress-text .percentage {
+    color: var(--text-secondary);
+}
+
+.anime-card .progress-bar-container,
+#top-rated-anime .progress-bar-container,
+#currently-watching-grid .progress-bar-container {
+    width: 100%;
+    height: 3px;
+    background: var(--border-default);
+    border-radius: var(--r-pill);
+    overflow: hidden;
+    margin-top: var(--sp-2);
+}
+
+.anime-card .progress-bar {
+    background: var(--brand-yellow);
+}
+
+.skeleton {
+    background: var(--bg-surface);
+    border-radius: var(--r-sm);
+    position: relative;
+    overflow: hidden;
+}
+
+.skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.04), transparent);
+    animation: skeletonLoading 1.6s var(--ease-standard) infinite;
+}
+
+.skeleton-text {
+    height: 14px;
+    width: 100%;
+    margin-bottom: 8px;
+    border-radius: var(--r-sm);
+}
+
+.skeleton-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+}
+
+.skeleton-card {
+    height: 200px;
+    border-radius: var(--r-md);
+}
+
+@keyframes skeletonLoading {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .progress-bar {
+        transition: none !important;
+    }
+
+    .skeleton::after {
+        animation: none !important;
+    }
+}

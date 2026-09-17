@@ -1,0 +1,217 @@
+@media (max-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dna-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .quick-actions {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    :root {
+        --shell-gutter: 16px;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--sp-3);
+    }
+
+    .dna-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .quick-actions {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .top-anime-grid,
+    #top-rated-anime,
+    #currently-watching-grid,
+    #watchlist-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--sp-3);
+    }
+
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 calc(var(--shell-gutter) * -1);
+        padding: 0 var(--shell-gutter);
+    }
+
+    .anime-table {
+        min-width: 640px;
+    }
+
+    .anime-table thead th:first-child,
+    .anime-table tbody td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 2;
+        background: var(--bg-card);
+        box-shadow: 1px 0 0 var(--border-default);
+    }
+
+    .modal {
+        padding: 0;
+        align-items: stretch;
+    }
+
+    .modal-content,
+    .modal-content.large-modal,
+    .modal-content.profile-modal {
+        width: 100vw;
+        max-width: 100vw;
+        height: 100dvh;
+        max-height: 100dvh;
+        margin: 0;
+        border-radius: 0;
+    }
+
+    .profile-modal-body {
+        max-height: calc(100dvh - 60px);
+    }
+
+    .settings-tabs,
+    .community-tabs,
+    .profile-tabs,
+    .leaderboard-mode-tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        scrollbar-width: none;
+    }
+
+    .settings-tabs::-webkit-scrollbar,
+    .community-tabs::-webkit-scrollbar,
+    .profile-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .settings-tab,
+    .community-tab,
+    .profile-tab,
+    .leaderboard-mode-tab {
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+
+    .search-dropdown,
+    .profile-dropdown,
+    .notification-dropdown {
+        position: fixed;
+        top: calc(var(--shell-header-top) + var(--shell-header-h) + 8px);
+        left: var(--shell-gutter);
+        right: var(--shell-gutter);
+        width: auto;
+        max-width: none;
+    }
+
+    #fab-container {
+        bottom: max(16px, env(safe-area-inset-bottom));
+        right: max(16px, env(safe-area-inset-right));
+    }
+
+    #chat-bot-container {
+        bottom: calc(88px + env(safe-area-inset-bottom));
+        right: max(12px, env(safe-area-inset-right));
+        left: 12px;
+        align-items: stretch;
+    }
+
+    #chat-bot-panel {
+        width: 100%;
+        max-width: 100%;
+        max-height: min(70dvh, 520px);
+    }
+}
+
+@media (max-width: 480px) {
+    :root {
+        --shell-gutter: 12px;
+    }
+
+    .stats-grid {
+        gap: var(--sp-2);
+    }
+
+    .quick-actions {
+        gap: var(--sp-2);
+    }
+
+    .top-anime-grid,
+    #top-rated-anime,
+    #currently-watching-grid,
+    #watchlist-container {
+        gap: var(--sp-2);
+    }
+
+    .stat-value {
+        font-size: var(--fs-20);
+    }
+
+    .section-title {
+        font-size: var(--fs-18);
+    }
+
+    .profile-stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .profile-anime-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (pointer: coarse) {
+
+    button:not(.close-modal),
+    .theme-toggle,
+    .search-trigger,
+    .notification-bell,
+    .filter-btn,
+    .year-btn,
+    .genre-filter-btn,
+    .action-btn,
+    .page-btn,
+    .menu-item {
+        min-height: 40px;
+        min-width: 40px;
+    }
+}
+
+html,
+body {
+    max-width: 100vw;
+    overflow-x: clip;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+.anime-title,
+.anime-card .anime-title,
+.activity-anime,
+.notification-title,
+.notification-message {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        scroll-behavior: auto !important;
+    }
+}

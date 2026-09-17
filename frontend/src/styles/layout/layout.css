@@ -1,0 +1,89 @@
+.main-content {
+    width: 100%;
+    max-width: 100%;
+    min-height: 100dvh;
+    padding:
+        calc(var(--shell-header-top) + var(--shell-header-h) + var(--shell-section-gap)) var(--shell-gutter) var(--shell-section-gap);
+    margin: 0;
+    box-sizing: border-box;
+    overflow-x: clip;
+}
+
+.main-content>.page.active,
+.main-content>main.page.active {
+    width: 100%;
+    max-width: var(--shell-content-max);
+    margin: 0 auto;
+    padding: 0;
+    box-sizing: border-box;
+    animation: fadeIn var(--dur-slow) var(--ease-enter);
+}
+
+.sidebar+.main-content,
+body.has-sidebar .main-content,
+body.no-sidebar .main-content {
+    margin-left: 0;
+    max-width: 100%;
+}
+
+.container {
+    width: 100%;
+    max-width: var(--shell-content-max);
+    margin: 0 auto;
+    padding: 0 var(--shell-gutter);
+}
+
+.dashboard-section,
+.dashboard-grid,
+.dna-grid,
+.greeting-banner,
+.anime-list-container,
+.chart-card:has(.heatmap-header),
+#currently-watching-section,
+#anime-dna-section,
+#watchlist-page,
+#statistics-page,
+#settings-page,
+#community-page,
+#achievements-page,
+#anime-list-page,
+#top-rated-anime {
+    margin-left: 0;
+    margin-right: 0;
+    max-width: 100%;
+}
+
+html,
+body {
+    max-width: 100vw;
+    overflow-x: clip;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+body.modal-open {
+    overflow: hidden;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .main-content>.page.active,
+    .main-content>main.page.active {
+        animation: none !important;
+    }
+}

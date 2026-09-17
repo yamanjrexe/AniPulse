@@ -1,28 +1,36 @@
 ﻿﻿const express = require('express');
 const { db, COLLECTIONS } = require('../services/firebase');
 const { verifyToken } = require('../middleware/auth');
-const { getLevelFromXP, getTitleForLevel, getXPToNextLevel, getXPProgress } = require('../utils/levelSystem');
+const {
+  getLevelFromXP,
+  getTitleForLevel,
+  getXPToNextLevel,
+  getXPProgress,
+  calculateTotalXPFromAnimeList,
+} = require('../utils/levelSystem');
 
 const router = express.Router();
 
-// Helper to get anime list for a user
+// ─── Helper: get user's anime list ──────────────────────
 async function getUserAnimeList(userId) {
   try {
-    let animeDoc = await db.collection(COLLECTIONS.ANIME_LISTS).doc(userId).get();
-    if (animeDoc.exists) {
-      const data = animeDoc.data();
-      if (data.animeList && Array.isArray(data.animeList)) return data.animeList;
+    const doc = await db.collection(COLLECTIONS.ANIME_LISTS).doc(userId).get();
+    if (doc.exists) {
+      const data = doc.data();
+      if (Array.isArray(data.animeList)) return data.animeList;
     }
-    let userDoc = await db.collection(COLLECTIONS.USERS).doc(userId).get();
-    if (userDoc.exists && userDoc.data().animeList) return userDoc.data().animeList;
+    const userDoc = await db.collection(COLLECTIONS.USERS).doc(userId).get();
+    if (userDoc.exists && Array.isArray(userDoc.data().animeList)) {
+      return userDoc.data().animeList;
+    }
     return [];
-  } catch (error) {
-    console.error(`Error getting anime list for ${userId}:`, error);
+  } catch (err) {
+    console.error(`getUserAnimeList(${userId}) error:`, err);
     return [];
   }
 }
 
-// Get my stats
+// ─── GET /my-stats ──────────────────────────────────────
 router.get('/my-stats', verifyToken, async (req, res) => {
   const userId = req.userId;
   try {
@@ -31,8 +39,11 @@ router.get('/my-stats', verifyToken, async (req, res) => {
     const userData = userDoc.data() || {};
     const displayName = userData.name || userData.username || 'User';
 
-    // Recalculate level and title from totalXP
-    const totalXP = userData.totalXP || 0;
+    const animeList = await getUserAnimeList(userId);
+    const storedXP = userData.totalXP || 0;
+    const computedXP = calculateTotalXPFromAnimeList(animeList);
+    const totalXP = Math.max(storedXP, computedXP);
+
     const level = getLevelFromXP(totalXP);
     const title = getTitleForLevel(level);
 
@@ -41,11 +52,11 @@ router.get('/my-stats', verifyToken, async (req, res) => {
       username: displayName,
       name: displayName,
       avatar: userData.avatar || null,
-      level: level,
-      title: title,
-      totalXP: totalXP,
+      level,
+      title,
+      totalXP,
       totalAnime: userData.totalAnime || 0,
-      totalHours: userData.totalHours || 0
+      totalHours: userData.totalHours || 0,
     });
   } catch (error) {
     console.error('Get my stats error:', error);
@@ -53,54 +64,60 @@ router.get('/my-stats', verifyToken, async (req, res) => {
   }
 });
 
-// Get user profile by ID
+// ─── GET /profile/:userId ───────────────────────────────
 router.get('/profile/:userId', verifyToken, async (req, res) => {
   const { userId } = req.params;
   try {
     let userDoc = await db.collection(COLLECTIONS.USER_PROFILES).doc(userId).get();
     if (!userDoc.exists) userDoc = await db.collection(COLLECTIONS.USERS).doc(userId).get();
     if (!userDoc.exists) return res.status(404).json({ error: 'User not found' });
+
     const userData = userDoc.data();
     const displayName = userData.name || userData.username || 'Anime Fan';
 
-    // Calculate totals if missing
-    let totalAnime = userData.totalAnime || 0;
-    let totalHours = userData.totalHours || 0;
-    let totalEpisodes = 0;
-    if (totalAnime === 0) {
-      const animeList = await getUserAnimeList(userId);
-      const completed = animeList.filter(a => a.userStatus === 'Completed');
-      totalAnime = completed.length;
-      let minutes = 0;
-      completed.forEach(a => {
-        if (a.type === 'Movie') {
-          minutes += a.duration || 120;
-          totalEpisodes += 1;
-        } else {
-          const eps = a.episodes || 0;
-          totalEpisodes += eps;
-          minutes += eps * (a.duration || 20);
-        }
-      });
-      totalHours = Math.round(minutes / 60);
-    }
+    // ⚡ Always fetch the anime list — needed for real XP
+    const animeList = await getUserAnimeList(userId);
+    const completed = animeList.filter((a) => a.userStatus === 'Completed');
 
-    // Recalculate level and title from totalXP
-    const totalXP = userData.totalXP || 0;
+    let totalEpisodes = 0;
+    let minutes = 0;
+    completed.forEach((a) => {
+      if (a.type === 'Movie') {
+        minutes += a.duration || 120;
+        totalEpisodes += 1;
+      } else {
+        const eps = a.episodes || 0;
+        totalEpisodes += eps;
+        minutes += eps * (a.duration || 20);
+      }
+    });
+
+    const totalAnime = completed.length;
+    const totalHours = Math.round(minutes / 60);
+
+    // ⚡ Recompute XP from the full list — never trust stale `userData.totalXP`
+    const storedXP = userData.totalXP || 0;
+    const computedXP = calculateTotalXPFromAnimeList(animeList);
+    const totalXP = Math.max(storedXP, computedXP);
+
     const level = getLevelFromXP(totalXP);
     const title = getTitleForLevel(level);
+
+    console.log(
+      `📊 /profile XP for ${userId}: stored=${storedXP}, computed=${computedXP}, final=${totalXP} → Lv.${level} ${title}`
+    );
 
     res.json({
       uid: userId,
       name: displayName,
       username: displayName,
       avatar: userData.avatar || null,
-      level: level,
-      title: title,
-      totalXP: totalXP,
+      level,
+      title,
+      totalXP,
       totalAnime,
       totalEpisodes,
-      totalHours
+      totalHours,
     });
   } catch (error) {
     console.error('Get profile error:', error);
@@ -108,7 +125,7 @@ router.get('/profile/:userId', verifyToken, async (req, res) => {
   }
 });
 
-// Search users
+// ─── GET /search ────────────────────────────────────────
 router.get('/search', verifyToken, async (req, res) => {
   const { q } = req.query;
   const currentUserId = req.userId;
@@ -121,11 +138,14 @@ router.get('/search', verifyToken, async (req, res) => {
       const userData = doc.data();
       let displayName = userData.name || userData.username;
       if (!displayName) {
-        const match = userData.avatar?.match(/name=([^&]+)/);
-        if (match) displayName = decodeURIComponent(match[1]);
+        const m = userData.avatar?.match(/name=([^&]+)/);
+        if (m) displayName = decodeURIComponent(m[1]);
       }
-      if (displayName && displayName.toLowerCase().includes(searchLower) && doc.id !== currentUserId) {
-        // Recalc level/title from their totalXP
+      if (
+        displayName &&
+        displayName.toLowerCase().includes(searchLower) &&
+        doc.id !== currentUserId
+      ) {
         const totalXP = userData.totalXP || 0;
         const level = getLevelFromXP(totalXP);
         const title = getTitleForLevel(level);
@@ -133,9 +153,11 @@ router.get('/search', verifyToken, async (req, res) => {
           uid: doc.id,
           name: displayName,
           username: displayName,
-          title: title,
-          level: level,
-          avatar: userData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=6366F1&color=fff`
+          title,
+          level,
+          avatar:
+            userData.avatar ||
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=6366F1&color=fff`,
         });
       }
     }
@@ -146,7 +168,7 @@ router.get('/search', verifyToken, async (req, res) => {
   }
 });
 
-// Full stats with episodes and genres
+// ─── GET /full-stats/:userId ────────────────────────────
 router.get('/full-stats/:userId', verifyToken, async (req, res) => {
   const { userId } = req.params;
   const { period = 'all' } = req.query;
@@ -163,28 +185,33 @@ router.get('/full-stats/:userId', verifyToken, async (req, res) => {
     currentWeekStart.setDate(now.getDate() - now.getDay());
     currentWeekStart.setHours(0, 0, 0, 0);
 
-    const completed = animeList.filter(a => a.userStatus === 'Completed');
-    const filtered = completed.filter(a => {
-      let finishDate = a.finishDate ? new Date(a.finishDate) : (a.completedTimestamp ? new Date(a.completedTimestamp) : (a.updatedAt ? new Date(a.updatedAt) : null));
+    const completed = animeList.filter((a) => a.userStatus === 'Completed');
+    const filtered = completed.filter((a) => {
+      const finishDate = a.finishDate
+        ? new Date(a.finishDate)
+        : a.completedTimestamp
+          ? new Date(a.completedTimestamp)
+          : a.updatedAt
+            ? new Date(a.updatedAt)
+            : null;
       if (!finishDate) return period === 'all';
       if (period === 'week') return finishDate >= currentWeekStart;
-      if (period === 'month') return finishDate.getMonth() === currentMonth && finishDate.getFullYear() === currentYear;
+      if (period === 'month')
+        return finishDate.getMonth() === currentMonth && finishDate.getFullYear() === currentYear;
       if (period === 'year') return finishDate.getFullYear() === currentYear;
       return true;
     });
 
-    let totalXP = 0, totalEpisodes = 0, totalHours = 0;
+    let totalEpisodes = 0;
+    let totalHours = 0;
     const genreCount = {};
-    filtered.forEach(a => {
-      let eps = a.type === 'Movie' ? 1 : (a.episodes || 0);
+    filtered.forEach((a) => {
+      const eps = a.type === 'Movie' ? 1 : a.episodes || 0;
       totalEpisodes += eps;
-      let hrs = a.type === 'Movie' ? (a.duration || 120) / 60 : (eps * (a.duration || 20)) / 60;
+      const hrs = a.type === 'Movie' ? (a.duration || 120) / 60 : (eps * (a.duration || 20)) / 60;
       totalHours += hrs;
-      const scoreBonus = a.score ? (a.score >= 9 ? 8 : a.score >= 8 ? 5 : a.score >= 7 ? 3 : 0) : 0;
-      const epBonus = Math.floor(eps / 2);
-      totalXP += epBonus + scoreBonus + 10;
-      if (a.genres && Array.isArray(a.genres)) {
-        a.genres.forEach(g => genreCount[g] = (genreCount[g] || 0) + 1);
+      if (Array.isArray(a.genres)) {
+        a.genres.forEach((g) => (genreCount[g] = (genreCount[g] || 0) + 1));
       }
     });
 
@@ -195,9 +222,11 @@ router.get('/full-stats/:userId', verifyToken, async (req, res) => {
 
     const displayName = userData.name || userData.username || 'User';
 
-    // Recalculate level and title from stored totalXP
-    const storedTotalXP = userData.totalXP || 0;
-    const level = getLevelFromXP(storedTotalXP);
+    const storedXP = userData.totalXP || 0;
+    const computedXP = calculateTotalXPFromAnimeList(filtered);
+    const totalXP = Math.max(storedXP, computedXP);
+
+    const level = getLevelFromXP(totalXP);
     const title = getTitleForLevel(level);
 
     res.json({
@@ -205,13 +234,13 @@ router.get('/full-stats/:userId', verifyToken, async (req, res) => {
       name: displayName,
       username: displayName,
       avatar: userData.avatar || null,
-      level: level,
-      title: title,
-      totalXP: Math.round(storedTotalXP),
+      level,
+      title,
+      totalXP: Math.round(totalXP),
       totalAnime: filtered.length,
       totalEpisodes,
       totalHours: Math.round(totalHours),
-      topGenres
+      topGenres,
     });
   } catch (error) {
     console.error('Full stats error:', error);
@@ -219,35 +248,36 @@ router.get('/full-stats/:userId', verifyToken, async (req, res) => {
   }
 });
 
-// Get avatar (public)
+// ─── GET /avatar/:userId (public) ───────────────────────
 router.get('/avatar/:userId', async (req, res) => {
   const { userId } = req.params;
   try {
     let userDoc = await db.collection(COLLECTIONS.USER_PROFILES).doc(userId).get();
     if (!userDoc.exists) userDoc = await db.collection(COLLECTIONS.USERS).doc(userId).get();
     const userData = userDoc.data();
-    const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData?.name || 'User')}&background=6366F1&color=fff&bold=true&length=2&size=200`;
-    res.json({ avatar: userData?.avatar || defaultAvatar, hasCustom: !!userData?.avatar });
+    const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+      userData?.name || 'User'
+    )}&background=6366F1&color=fff&bold=true&length=2&size=200`;
+    res.json({
+      avatar: userData?.avatar || defaultAvatar,
+      hasCustom: !!userData?.avatar,
+    });
   } catch (error) {
     console.error('Get avatar error:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// ============================================================
-// FULL PROFILE 
-// ============================================================
+// ─── GET /full-profile/:userId ──────────────────────────
 router.get('/full-profile/:userId', verifyToken, async (req, res) => {
   const { userId } = req.params;
   const currentUserId = req.userId;
   try {
-    
     let userDoc = await db.collection(COLLECTIONS.USER_PROFILES).doc(userId).get();
     if (!userDoc.exists) userDoc = await db.collection(COLLECTIONS.USERS).doc(userId).get();
     if (!userDoc.exists) return res.status(404).json({ error: 'User not found' });
     const userData = userDoc.data();
 
-    // --- Extract all profile fields ---
     const displayName = userData.name || userData.username || 'Anime Fan';
     const avatar = userData.avatar || null;
     const cover = userData.cover || null;
@@ -256,19 +286,28 @@ router.get('/full-profile/:userId', verifyToken, async (req, res) => {
     const favoriteAnime = userData.favoriteAnime || [];
     const social = userData.social || {};
 
-    // Fetch anime list
+    // Anime list
     const animeList = await getUserAnimeList(userId);
-    const sorted = [...animeList].sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0));
+    const sorted = [...animeList].sort(
+      (a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0)
+    );
 
-    const completed = sorted.filter(a => a.userStatus === 'Completed');
-    const watching = sorted.filter(a => a.userStatus === 'Watching');
-    const plan = sorted.filter(a => a.userStatus === 'Plan to Watch');
-    const dropped = sorted.filter(a => a.userStatus === 'Dropped');
+    const completed = sorted.filter((a) => a.userStatus === 'Completed');
+    const watching = sorted.filter((a) => a.userStatus === 'Watching');
+    const plan = sorted.filter((a) => a.userStatus === 'Plan to Watch');
+    const dropped = sorted.filter((a) => a.userStatus === 'Dropped');
 
-    let totalEpisodes = 0, totalMinutes = 0;
-    completed.forEach(a => {
-      if (a.type === 'Movie') { totalMinutes += a.duration || 120; totalEpisodes += 1; }
-      else { const eps = a.episodes || 0; totalEpisodes += eps; totalMinutes += eps * (a.duration || 20); }
+    let totalEpisodes = 0;
+    let totalMinutes = 0;
+    completed.forEach((a) => {
+      if (a.type === 'Movie') {
+        totalMinutes += a.duration || 120;
+        totalEpisodes += 1;
+      } else {
+        const eps = a.episodes || 0;
+        totalEpisodes += eps;
+        totalMinutes += eps * (a.duration || 20);
+      }
     });
     const totalHours = Math.round(totalMinutes / 60);
 
@@ -276,12 +315,19 @@ router.get('/full-profile/:userId', verifyToken, async (req, res) => {
     const achievementsDoc = await db.collection(COLLECTIONS.ACHIEVEMENTS).doc(userId).get();
     const unlocked = achievementsDoc.exists ? achievementsDoc.data().unlocked || [] : [];
 
-    // Level & XP
-    const totalXP = userData.totalXP || 0;
+    // ⚡ Level & XP — recomputed from FULL anime list
+    const storedXP = userData.totalXP || 0;
+    const computedXP = calculateTotalXPFromAnimeList(animeList);
+    const totalXP = Math.max(storedXP, computedXP);
+
     const level = getLevelFromXP(totalXP);
     const levelTitle = getTitleForLevel(level);
     const nextXP = getXPToNextLevel(level, totalXP);
     const progress = getXPProgress(level, totalXP);
+
+    console.log(
+      `📊 /full-profile XP for ${userId}: stored=${storedXP}, computed=${computedXP}, final=${totalXP} → Lv.${level} ${levelTitle}`
+    );
 
     // Friend status
     let isFriend = false;
@@ -293,17 +339,19 @@ router.get('/full-profile/:userId', verifyToken, async (req, res) => {
 
     // Activity
     const activityDoc = await db.collection(COLLECTIONS.ACTIVITY_LOGS).doc(userId).get();
-    const recentActivity = activityDoc.exists ? (activityDoc.data().activities || []).slice(0, 10) : [];
+    const recentActivity = activityDoc.exists
+      ? (activityDoc.data().activities || []).slice(0, 10)
+      : [];
 
     res.json({
       uid: userId,
       name: displayName,
-      avatar: avatar,
-      cover: cover,                     
-      bio: bio,                         
-      status: status,                   
-      favoriteAnime: favoriteAnime,     
-      social: social,                   
+      avatar,
+      cover,
+      bio,
+      status,
+      favoriteAnime,
+      social,
       level,
       levelTitle,
       totalXP,
@@ -317,17 +365,17 @@ router.get('/full-profile/:userId', verifyToken, async (req, res) => {
         planToWatch: plan.length,
         dropped: dropped.length,
         totalHours,
-        totalEpisodes
+        totalEpisodes,
       },
       animeList: {
         completed: completed.slice(0, 21),
         watching: watching.slice(0, 21),
-        planToWatch: plan.slice(0, 21)
+        planToWatch: plan.slice(0, 21),
       },
       achievements: unlocked,
       recentActivity,
       isFriend,
-      isCurrentUser: currentUserId === userId
+      isCurrentUser: currentUserId === userId,
     });
   } catch (error) {
     console.error('Full profile error:', error);
@@ -335,15 +383,13 @@ router.get('/full-profile/:userId', verifyToken, async (req, res) => {
   }
 });
 
-// ============================================================
-// NOTIFICATION SYSTEM
-// ============================================================
+// ─── Notification System ────────────────────────────────
 router.get('/notifications', verifyToken, async (req, res) => {
   const userId = req.userId;
   try {
     const doc = await db.collection('notifications').doc(userId).get();
     let notifications = doc.exists ? doc.data().notifications || [] : [];
-    const unreadCount = notifications.filter(n => !n.read).length;
+    const unreadCount = notifications.filter((n) => !n.read).length;
     notifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     res.json({ notifications: notifications.slice(0, 50), unreadCount });
   } catch (error) {
@@ -361,9 +407,9 @@ router.post('/notifications/mark-read', verifyToken, async (req, res) => {
     if (doc.exists) {
       let notifications = doc.data().notifications || [];
       if (markAll) {
-        notifications = notifications.map(n => ({ ...n, read: true }));
+        notifications = notifications.map((n) => ({ ...n, read: true }));
       } else if (notificationId) {
-        notifications = notifications.map(n =>
+        notifications = notifications.map((n) =>
           n.id === notificationId ? { ...n, read: true } : n
         );
       }
@@ -376,22 +422,20 @@ router.post('/notifications/mark-read', verifyToken, async (req, res) => {
   }
 });
 
-// Create notification (exported for other routes)
 async function createNotification(userId, type, title, message, data = null) {
   try {
     const ref = db.collection('notifications').doc(userId);
     const doc = await ref.get();
     let notifications = doc.exists ? doc.data().notifications || [] : [];
 
-    // Duplicate prevention (10s window)
     const now = Date.now();
-    const isDuplicate = notifications.some(existing => {
+    const isDuplicate = notifications.some((existing) => {
       if (existing.type !== type) return false;
       if (type === 'friend_accepted' && existing.data?.userId === data?.userId) {
-        return (now - new Date(existing.createdAt).getTime()) < 10000;
+        return now - new Date(existing.createdAt).getTime() < 10000;
       }
       if (type === 'friend_request' && existing.data?.fromUserId === data?.fromUserId) {
-        return (now - new Date(existing.createdAt).getTime()) < 10000;
+        return now - new Date(existing.createdAt).getTime() < 10000;
       }
       return false;
     });
@@ -404,7 +448,7 @@ async function createNotification(userId, type, title, message, data = null) {
       message,
       data: data || {},
       read: false,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     };
     notifications.unshift(newNotification);
     if (notifications.length > 100) notifications = notifications.slice(0, 100);
@@ -415,6 +459,6 @@ async function createNotification(userId, type, title, message, data = null) {
     return null;
   }
 }
-module.exports.createNotification = createNotification;
 
 module.exports = router;
+module.exports.createNotification = createNotification;

@@ -1,0 +1,494 @@
+#dashboard-page {
+    width: 100%;
+    animation: fadeIn var(--dur-slow) var(--ease-enter);
+}
+
+.dashboard-section {
+    margin-bottom: var(--shell-section-gap);
+    width: 100%;
+}
+
+.section-title {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-size: var(--fs-20);
+    font-weight: var(--fw-semibold);
+    color: var(--text-primary);
+    margin: 0 0 var(--sp-5) 0;
+    padding-bottom: var(--sp-3);
+    border-bottom: 1px solid var(--border-subtle);
+    width: 100%;
+    letter-spacing: -0.01em;
+}
+
+.section-title i {
+    color: var(--brand-yellow);
+    font-size: var(--fs-16);
+}
+
+.greeting-banner {
+    position: relative;
+    padding: var(--sp-8) var(--sp-6);
+    margin-bottom: var(--shell-section-gap);
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-lg);
+    min-height: 160px;
+    display: flex;
+    align-items: center;
+}
+
+.greeting-banner .banner-content {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--sp-5);
+    flex-wrap: wrap;
+}
+
+.greeting-banner .greeting-left {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    flex: 1;
+    min-width: 0;
+}
+
+.greeting-banner .greeting-main {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    flex-wrap: wrap;
+}
+
+.greeting-banner .greeting-line {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+
+.greeting-banner .greeting-emoji {
+    font-size: var(--fs-24);
+    color: var(--brand-yellow);
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-md);
+    flex-shrink: 0;
+}
+
+.greeting-banner .greeting-subline {
+    font-size: var(--fs-15);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.greeting-banner .banner-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-3);
+    padding: var(--sp-2) var(--sp-4);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-md);
+}
+
+.greeting-banner .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--fs-13);
+    color: var(--text-secondary);
+}
+
+.greeting-banner .stat-item i {
+    color: var(--brand-yellow);
+}
+
+.greeting-banner #streakInfo {
+    font-weight: var(--fw-medium);
+}
+
+.greeting-banner .quote-card,
+.greeting-banner .orb,
+.greeting-banner .shine-overlay {
+    display: none;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--sp-4);
+    margin-bottom: var(--shell-section-gap);
+    width: 100%;
+}
+
+.dna-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--sp-4);
+    margin-bottom: var(--shell-section-gap);
+}
+
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--sp-4);
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: var(--sp-4);
+    margin-bottom: var(--shell-section-gap);
+}
+
+.activity-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    margin-bottom: var(--shell-section-gap);
+}
+
+.activity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-4) var(--sp-5);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.activity-title {
+    font-size: var(--fs-15);
+    font-weight: var(--fw-semibold);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+}
+
+.activity-title i {
+    color: var(--brand-yellow);
+}
+
+.activity-count {
+    font-size: var(--fs-12);
+    color: var(--text-muted);
+    padding: 3px 10px;
+    background: var(--bg-surface);
+    border-radius: var(--r-pill);
+    border: 1px solid var(--border-subtle);
+}
+
+.view-all-link {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: var(--fs-12);
+    font-family: var(--font-sans);
+    font-weight: var(--fw-medium);
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: var(--r-sm);
+    transition: background-color var(--dur-fast) var(--ease-standard),
+        color var(--dur-fast) var(--ease-standard);
+}
+
+.view-all-link:hover {
+    background: var(--bg-card-hover);
+    color: var(--brand-yellow);
+}
+
+.activity-list {
+    max-height: 380px;
+    overflow-y: auto;
+    padding: var(--sp-2) var(--sp-5) var(--sp-5);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-3);
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    transition: background-color var(--dur-fast) var(--ease-standard);
+}
+
+.activity-item:hover {
+    background: var(--bg-card-hover);
+}
+
+.activity-icon {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--r-sm);
+    background: var(--bg-surface);
+    color: var(--brand-yellow);
+    font-size: var(--fs-12);
+    flex-shrink: 0;
+}
+
+.activity-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-anime {
+    font-size: var(--fs-13);
+    font-weight: var(--fw-medium);
+    color: var(--text-primary);
+    overflow-wrap: anywhere;
+}
+
+.activity-desc {
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+}
+
+.activity-time {
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.no-activity {
+    padding: 32px var(--sp-4);
+    text-align: center;
+    color: var(--text-muted);
+    font-size: var(--fs-13);
+}
+
+#currently-watching-section,
+#top-rated-anime {
+    width: 100%;
+}
+
+.top-anime-grid,
+#top-rated-anime {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(clamp(150px, 16vw, 220px), 1fr));
+    gap: var(--sp-4);
+}
+
+#fab-container {
+    position: fixed;
+    bottom: max(20px, env(safe-area-inset-bottom));
+    right: max(20px, env(safe-area-inset-right));
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--sp-3);
+}
+
+.fab-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 49;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--dur-normal) var(--ease-standard);
+}
+
+.fab-backdrop.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.fab-main {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--brand-yellow);
+    color: var(--text-inverse);
+    border: none;
+    font-size: var(--fs-18);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color var(--dur-fast) var(--ease-standard),
+        transform var(--dur-fast) var(--ease-standard);
+    box-shadow: var(--shadow-md);
+}
+
+.fab-main:hover {
+    background: var(--brand-yellow-hover);
+}
+
+.fab-main:active {
+    transform: scale(0.96);
+}
+
+.fab-main i {
+    transition: transform var(--dur-slow) var(--ease-standard);
+}
+
+.fab-main.open i {
+    transform: rotate(135deg);
+}
+
+.fab-menu {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--sp-2);
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+    transition: opacity var(--dur-fast) var(--ease-standard),
+        transform var(--dur-fast) var(--ease-standard);
+}
+
+.fab-menu.open {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.fab-menu.hidden {
+    display: none;
+}
+
+.fab-item {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: 10px 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-md);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: var(--fs-13);
+    font-weight: var(--fw-medium);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color var(--dur-fast) var(--ease-standard),
+        border-color var(--dur-fast) var(--ease-standard);
+}
+
+.fab-item:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-strong);
+}
+
+.fab-item i {
+    color: var(--brand-yellow);
+    font-size: var(--fs-14);
+    width: 18px;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .greeting-banner {
+        padding: var(--sp-5) var(--sp-4);
+        min-height: auto;
+    }
+
+    .greeting-banner .banner-stats {
+        width: 100%;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .top-anime-grid,
+    #top-rated-anime {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--sp-3);
+    }
+}
+
+@media (max-width: 480px) {
+    .greeting-banner {
+        padding: var(--sp-4);
+        border-radius: var(--r-md);
+    }
+
+    .greeting-banner .greeting-line {
+        font-size: var(--fs-18);
+    }
+
+    .greeting-banner .greeting-emoji {
+        width: 36px;
+        height: 36px;
+        font-size: var(--fs-16);
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--sp-2);
+    }
+
+    .quick-actions {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--sp-2);
+    }
+
+    .dna-grid {
+        grid-template-columns: 1fr;
+        gap: var(--sp-2);
+    }
+
+    .top-anime-grid,
+    #top-rated-anime {
+        gap: var(--sp-2);
+    }
+
+    #fab-container {
+        bottom: 16px;
+        right: 16px;
+    }
+
+    .fab-main {
+        width: 48px;
+        height: 48px;
+        font-size: var(--fs-16);
+    }
+
+    .fab-item {
+        padding: 8px 12px;
+        font-size: var(--fs-12);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    #dashboard-page,
+    .fab-main,
+    .fab-menu {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+    #top-rated-anime>*:nth-child(n+5) {
+        display: none;
+    }
+}

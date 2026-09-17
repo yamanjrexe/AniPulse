@@ -1,8 +1,30 @@
-# 💖 AniPulse - Anime Tracker & Stats Dashboard
+<p align="center">
+  <img src="frontend/public/icon/Anipulse.png" alt="AniPulse Logo" width="180" />
+</p>
 
-![AniPulse](https://img.shields.io/badge/Version-3.0.0-blueviolet?style=flat-square)
-![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
-![Platform](https://img.shields.io/badge/Platform-Web-orange?style=flat-square)
+<p align="center">
+  <strong>Track. Analyze. Understand your anime journey.</strong>
+</p>
+
+<p align="center">
+  <a href="https://ani-pulse.netlify.app/">
+    <img src="https://img.shields.io/badge/live-demo-FCE706?style=for-the-badge&labelColor=050505" alt="Live Demo" />
+  </a>
+  <img src="https://img.shields.io/badge/version-3.0.0-FCE706?style=for-the-badge&labelColor=050505" alt="Version" />
+  <img src="https://img.shields.io/badge/license-MIT-F90415?style=for-the-badge&labelColor=050505" alt="License" />
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=white" alt="React" />
+  <img src="https://img.shields.io/badge/Vite-5-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite" />
+  <img src="https://img.shields.io/badge/React_Router-6-CA4245?style=flat-square&logo=reactrouter&logoColor=white" alt="React Router" />
+  <img src="https://img.shields.io/badge/Chart.js-4-FF6384?style=flat-square&logo=chartdotjs&logoColor=white" alt="Chart.js" />
+  <img src="https://img.shields.io/badge/Firebase-FFCA28?style=flat-square&logo=firebase&logoColor=white" alt="Firebase" />
+  <img src="https://img.shields.io/badge/PWA-5A0FC8?style=flat-square&logo=pwa&logoColor=white" alt="PWA" />
+  <img src="https://img.shields.io/badge/Node.js-18-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js" />
+</p>
+
+---
 
 > **The Ultimate Anime Tracking Experience** 🚀
 > 
@@ -174,7 +196,7 @@
 
 1. **Clone or Download**
    ```bash
-   git clone https://github.com/yamanjr10/AniPulse.git
+   git clone https://github.com/yamanjrexe/AniPulse.git
    cd AniPulse
    ```
 
@@ -502,116 +524,8 @@ Your landing page featuring:
 
 ## 🐛 Known Issues
 
-None currently reported. Please report any bugs on GitHub!
+None currently reported. Please report any bugs on GitHub
 
----
-
-AniPulse/
-├── index.html                     # Main dashboard page
-├── dashboard.html                 # Dashboard (aliased from index)
-├── login.html                     # Login page
-├── manifest.json                  # PWA manifest
-├── service-worker.js              # Service worker (PWA)
-├── README.md                      # Project documentation
-├── .gitignore                     # Git ignore rules
-│
-├── Backend/                       # Node.js server
-│   ├── config/                    # Configuration files
-│   ├── middleware/                # Auth, error handlers
-│   ├── routes/                    # API route handlers
-│   ├── scripts/                   # Utility scripts
-│   ├── services/                  # Firebase, database services
-│   ├── utils/                     # Helpers, validators, constants
-│   ├── server.js                  # Entry point
-│   ├── package.json               # Backend dependencies
-│   ├── package-lock.json
-│                      
-│
-├── Frontend/                      # Frontend source files
-│   ├── Css/                       # Modular CSS (components, pages, responsive)
-│   │   ├── variables.css
-│   │   ├── reset.css
-│   │   ├── typography.css
-│   │   ├── utilities.css
-│   │   ├── layout/
-│   │   │   └── layout.css
-│   │   ├── components/
-│   │   │   ├── header.css
-│   │   │   ├── sidebar.css
-│   │   │   ├── cards.css
-│   │   │   ├── buttons.css
-│   │   │   ├── forms.css
-│   │   │   ├── modals.css
-│   │   │   ├── charts.css
-│   │   │   ├── badges.css
-│   │   │   ├── progress.css
-│   │   │   ├── animations.css
-│   │   │   ├── level-system.css
-│   │   │   ├── toast.css
-│   │   │   └── loading.css
-│   │   ├── pages/
-│   │   │   ├── dashboard.css
-│   │   │   ├── statistics.css
-│   │   │   ├── watchlist.css
-│   │   │   ├── anime-list.css
-│   │   │   ├── achievements.css
-│   │   │   ├── community.css
-│   │   │   ├── settings.css
-│   │   │   └── recap.css
-│   │   └── responsive/
-│   │       ├── tablet.css
-│   │       ├── mobile.css
-│   │       └── small-mobile.css
-│   │
-│   ├── Js/                        # Modular JavaScript
-│   │   ├── main.js                # App orchestrator
-│   │   ├── services/              # API, config, storage, sync
-│   │   │   ├── config.js
-│   │   │   ├── api.js
-│   │   │   ├── level-system.js
-│   │   │   ├── dual-storage.js
-│   │   │   └── sync-manager.js
-│   │   ├── core/                  # Helpers, data
-│   │   │   ├── helpers.js
-│   │   │   └── data.js
-│   │   ├── components/            # UI components
-│   │   │   ├── theme.js
-│   │   │   ├── loader.js
-│   │   │   ├── toast.js
-│   │   │   ├── search.js
-│   │   │   ├── modal.js
-│   │   │   ├── notifications.js
-│   │   │   ├── avatar.js
-│   │   │   ├── name-entry.js
-│   │   │   └── pwa.js
-│   │   ├── pages/                 # Page logic
-│   │   │   ├── statistics.js
-│   │   │   ├── dashboard.js
-│   │   │   ├── anime-list.js
-│   │   │   ├── watchlist.js
-│   │   │   ├── achievements.js
-│   │   │   ├── community.js
-│   │   │   ├── settings.js
-│   │   │   └── recap.js
-│   │   └── utils/                 # Heatmap, state manager
-│   │       ├── heatmap.js
-│   │       └── state-manager.js
-│   │
-│   └── icon/                      # PWA icons
-│       ├── icon-72x72.png
-│       ├── icon-96x96.png
-│       ├── icon-128x128.png
-│       ├── icon-144x144.png
-│       ├── icon-152x152.png
-│       ├── icon-192x192.png
-│       ├── icon-384x384.png
-│       └── icon-512x512.png
-│
-├── public/                        # Static assets (offline fallback, 404)
-│   ├── 404.html
-│   └── offline.html
-
----
 
 ## 🤝 Contributing
 
@@ -623,28 +537,20 @@ We welcome contributions! Here's how:
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
 
 ## 👨‍💻 Author
 
 **Yaman Jr**
-- GitHub: [@yamanjr10](https://github.com/yamanjr10)
+- GitHub: [@yamanjrexe](https://github.com/yamanjrexe)
 - Live Demo: [AniPulse](https://ani-pulse.netlify.app/)
 
 ---
 
 ## 🙏 Acknowledgments
 
-- **Jikan API** - For the comprehensive anime database
 - **Chart.js** - For beautiful data visualizations
 - **Font Awesome** - For amazing icons
-- **MyAnimeList** - For anime information
+- **Anilist** - For anime information
 
 ---
 
@@ -652,7 +558,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 Have questions or suggestions? Feel free to:
 - Open an issue on GitHub
-- Check the FAQ section
 - Review the documentation
 
 ---
@@ -669,8 +574,8 @@ If you find AniPulse helpful, please consider:
 
 ## 🎊 Quick Stats
 
-- **Total Anime Supported**: Thousands (via Jikan API)
-- **Storage**: All local - 100% private
+- **Total Anime Supported**: Thousands+ (via Anilist API)
+- **Storage**: All local and Cloud - 100% private
 - **File Size**: ~500KB (optimized)
 - **Load Time**: <1 second
 - **Mobile Support**: Fully responsive

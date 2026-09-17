@@ -7,9 +7,7 @@ const rateLimit = require('express-rate-limit');
 
 dotenv.config();
 
-// Import routes
 const authRoutes = require('./routes/auth');
-const animeRoutes = require('./routes/anime');
 const syncRoutes = require('./routes/sync');
 const rankingRoutes = require('./routes/ranking');
 const friendsRoutes = require('./routes/friends');
@@ -19,111 +17,90 @@ const chatRoutes = require('./routes/chat');
 
 const app = express();
 
-// Middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// CORS configuration
+// ============================================
+// CORS
+// ============================================
 const allowedOrigins = [
     'http://localhost:3000',
+    'http://localhost:3001',
     'http://localhost:5500',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3001',
     'http://127.0.0.1:5500',
     'https://ani-pulse.netlify.app',
     'https://anipulse-63jv.onrender.com'
 ];
 
 if (process.env.FRONTEND_URL) {
-    const envOrigins = process.env.FRONTEND_URL.split(',').map(url => url.trim().replace(/\/$/, ''));
-    envOrigins.forEach(url => {
-        if (!allowedOrigins.includes(url)) {
-            allowedOrigins.push(url);
-        }
-    });
+    process.env.FRONTEND_URL
+        .split(',')
+        .map(u => u.trim().replace(/\/$/, ''))
+        .filter(Boolean)
+        .forEach(u => { if (!allowedOrigins.includes(u)) allowedOrigins.push(u); });
 }
 
-const corsOptions = {
-    origin: function (origin, callback) {
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) !== -1) {
-            console.log('✅ CORS allowed:', origin);
-            callback(null, true);
-        } else {
-            console.log('❌ CORS blocked origin:', origin);
-            callback(new Error('Not allowed by CORS'));
-        }
+app.use(cors({
+    origin: (origin, cb) => {
+        if (!origin) return cb(null, true);
+        if (allowedOrigins.includes(origin)) return cb(null, true);
+        console.log('❌ CORS blocked:', origin);
+        cb(new Error('Not allowed by CORS'));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
     exposedHeaders: ['Content-Range', 'X-Content-Range'],
     maxAge: 86400
-};
-
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+}));
+app.options('*', cors());
 
 // ============================================
-// RATE LIMITING – adjusted for production
+// RATE LIMITING
 // ============================================
-
-// Global limit: 200 requests per 15 minutes
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 200,
     standardHeaders: true,
     legacyHeaders: false,
+    skip: req =>
+        req.path === '/api/firebase-config' ||
+        req.path === '/api/sync/status' ||
+        req.path === '/api/health'
 });
 app.use('/api/', limiter);
 
-// Stricter for auth endpoints (10 per 15 min)
-const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 10,
-});
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10 });
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 
-// Exempt critical endpoints from rate limiting
-const exemptLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 500, // high enough
-    skip: (req) => {
-        return req.path === '/api/firebase-config' ||
-            req.path === '/api/sync/status' ||
-            req.path === '/api/health';
-    }
-});
-app.use('/api/', exemptLimiter); // override for exempt paths
-
 // ============================================
-// FIREBASE CLIENT CONFIG ENDPOINT
+// FIREBASE CLIENT CONFIG
 // ============================================
 app.get('/api/firebase-config', (req, res) => {
-    const config = {
+    res.json({
         apiKey: process.env.FIREBASE_API_KEY,
         authDomain: process.env.FIREBASE_AUTH_DOMAIN || `${process.env.FIREBASE_PROJECT_ID}.firebaseapp.com`,
         projectId: process.env.FIREBASE_PROJECT_ID,
         storageBucket: process.env.FIREBASE_STORAGE_BUCKET || `${process.env.FIREBASE_PROJECT_ID}.appspot.com`,
         messagingSenderId: process.env.FIREBASE_SENDER_ID,
         appId: process.env.FIREBASE_APP_ID
-    };
-    res.json(config);
+    });
 });
 
-// Static files
-app.use(express.static(path.join(__dirname, '..', 'Frontend')));
-app.use(express.static(path.join(__dirname, '..', 'public')));
-
-// Routes
+// ============================================
+// API ROUTES
+// ============================================
 app.use('/api/auth', authRoutes);
-app.use('/api/anime', animeRoutes);
 app.use('/api/sync', syncRoutes);
 app.use('/api/ranking', rankingRoutes);
 app.use('/api/friends', friendsRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/chat', chatRoutes);
-// Health check
+
 app.get('/api/health', (req, res) => {
     res.json({
         status: 'ok',
@@ -132,32 +109,27 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// HTML page routes
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'index.html'));
-});
-app.get('/dashboard.html', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'dashboard.html'));
-});
-app.get('/login.html', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'login.html'));
-});
+// ============================================
+// REACT PRODUCTION BUILD (SPA)
+// ============================================
+const REACT_BUILD = path.join(__dirname, '..', 'frontend', 'build');
 
-// 404 handler
-app.use((req, res) => {
-    const possiblePaths = [
-        path.join(__dirname, '..', 'public', '404.html'),
-        path.join(__dirname, '..', 'Frontend', '404.html'),
-        path.join(__dirname, '..', 'public', 'error', '404.html')
-    ];
-    for (const filePath of possiblePaths) {
-        if (fs.existsSync(filePath)) {
-            return res.status(404).sendFile(filePath);
-        }
-    }
-});
+if (fs.existsSync(REACT_BUILD)) {
+    app.use(express.static(REACT_BUILD));
 
-// Error handling
+    // SPA fallback — must be AFTER /api routes
+    app.get(/^(?!\/api).*/, (req, res) => {
+        res.sendFile(path.join(REACT_BUILD, 'index.html'));
+    });
+    console.log('✅ Serving React build from', REACT_BUILD);
+} else {
+    console.warn('⚠️ React build not found at', REACT_BUILD);
+    console.warn('   Run `npm run build` inside frontend/ for production.');
+}
+
+// ============================================
+// ERROR HANDLER
+// ============================================
 app.use((err, req, res, next) => {
     console.error('❌ Error:', err.message);
     if (err.message === 'Not allowed by CORS') {
@@ -169,13 +141,13 @@ app.use((err, req, res, next) => {
     });
 });
 
+// ============================================
+// START
+// ============================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`\n🚀 Server running on http://localhost:${PORT}`);
     console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`📁 Root: ${path.join(__dirname, '..')}`);
-    console.log(`📁 Frontend: ${path.join(__dirname, '..', 'Frontend')}`);
-    console.log(`📁 Public: ${path.join(__dirname, '..', 'public')}`);
-    console.log(`📦 Payload limit: 50mb\n`);
-    console.log(`🔥 Firebase config endpoint: /api/firebase-config`);
+    console.log(`📁 React build: ${REACT_BUILD}`);
+    console.log(`🔥 Firebase config endpoint: /api/firebase-config\n`);
 });
