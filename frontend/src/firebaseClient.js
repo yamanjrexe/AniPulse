@@ -1,10 +1,13 @@
 import firebase from "firebase/compat/app";
 import "firebase/compat/auth";
 
-const API_BASE_URL =
+export const API_BASE_URL =
     process.env.REACT_APP_API_BASE_URL ||
-    (window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1"
+    process.env.REACT_APP_API_URL ||
+    (typeof window !== "undefined" && window.API_BASE_URL) ||
+    (typeof window !== "undefined" &&
+        (window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1")
         ? "http://localhost:5000"
         : "https://anipulse-63jv.onrender.com");
 
@@ -19,6 +22,16 @@ function buildConfigFromEnv() {
         messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
         appId: process.env.REACT_APP_FIREBASE_APP_ID,
     };
+}
+
+function cleanConfig(config) {
+    const cleaned = {};
+    for (const [key, value] of Object.entries(config)) {
+        if (value !== undefined && value !== null && value !== "") {
+            cleaned[key] = value;
+        }
+    }
+    return cleaned;
 }
 
 async function fetchConfigFromBackend() {
@@ -42,6 +55,8 @@ export async function initFirebase() {
         if (remote) config = { ...config, ...remote };
     }
 
+    config = cleanConfig(config);
+
     const missing = ["apiKey", "authDomain", "projectId", "appId"].filter(
         (k) => !config[k],
     );
@@ -59,8 +74,13 @@ export async function initFirebase() {
         if (firebase.apps.length === 0) {
             firebase.initializeApp(config);
         }
+
+        await firebase
+            .auth()
+            .setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
         initialized = true;
-        console.log("[Firebase] Initialized");
+        console.log("[Firebase] Initialized (LOCAL persistence)");
         return firebase;
     } catch (err) {
         console.error("[Firebase] init failed:", err);
@@ -69,5 +89,5 @@ export async function initFirebase() {
     }
 }
 
-export { firebase, API_BASE_URL };
+export { firebase };
 export default firebase;

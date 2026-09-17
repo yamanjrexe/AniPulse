@@ -9,6 +9,33 @@ function buildUrl(endpoint) {
     return API_BASE_URL + "/api/" + endpoint;
 }
 
+async function waitForFirebaseUser(timeoutMs = 1500) {
+    let user = firebase?.auth?.().currentUser;
+    if (user) return user;
+
+    return new Promise((resolve) => {
+        let resolved = false;
+        const done = (u) => {
+            if (resolved) return;
+            resolved = true;
+            resolve(u || firebase?.auth?.().currentUser || null);
+        };
+
+        const timeout = setTimeout(() => done(null), timeoutMs);
+
+        try {
+            const unsub = firebase.auth().onAuthStateChanged((u) => {
+                clearTimeout(timeout);
+                unsub();
+                done(u);
+            });
+        } catch (_) {
+            clearTimeout(timeout);
+            done(null);
+        }
+    });
+}
+
 async function request(endpoint, options = {}) {
     const url = buildUrl(endpoint);
     const token = localStorage.getItem("authToken");
@@ -27,27 +54,57 @@ async function request(endpoint, options = {}) {
     }
 
     if (res.status === 401) {
-        const fbUser = firebase?.auth?.().currentUser;
+
+        let fbUser = await waitForFirebaseUser();
+
         if (fbUser) {
-            try {
-                const newToken = await fbUser.getIdToken(true);
-                localStorage.setItem("authToken", newToken);
-                const retry = await fetch(url, {
-                    ...options,
-                    headers: {
-                        ...headers,
-                        Authorization: `Bearer ${newToken}`,
-                    },
-                });
-                if (retry.ok) return retry.json();
-            } catch (_) {
-                /* fall through */
+
+            for (let attempt = 0; attempt < 3; attempt++) {
+                try {
+                    const newToken = await fbUser.getIdToken(true);
+                    localStorage.setItem("authToken", newToken);
+
+                    const retry = await fetch(url, {
+                        ...options,
+                        headers: {
+                            ...headers,
+                            Authorization: `Bearer ${newToken}`,
+                        },
+                    });
+
+                    if (retry.ok) return retry.json();
+
+                    if (retry.status !== 401) {
+                        const errData = await retry.json().catch(() => ({}));
+                        throw new Error(
+                            errData.error ||
+                            `Request failed (${retry.status})`,
+                        );
+                    }
+                } catch (err) {
+                    if (attempt === 2) {
+                        console.warn(
+                            "[api] Token refresh failed after 3 attempts:",
+                            err.message,
+                        );
+                    } else {
+                        await new Promise((r) =>
+                            setTimeout(r, 400 * (attempt + 1)),
+                        );
+                    }
+                }
             }
         }
-        localStorage.removeItem("authToken");
-        if (!window.location.pathname.startsWith("/login")) {
-            window.location.href = "/login";
+
+        const stillHasFirebaseUser = firebase?.auth?.().currentUser;
+        if (!stillHasFirebaseUser) {
+            localStorage.removeItem("authToken");
+            localStorage.removeItem("user");
+            if (!window.location.pathname.startsWith("/login")) {
+                window.location.href = "/login";
+            }
         }
+
         throw new Error("Session expired");
     }
 
@@ -56,7 +113,8 @@ async function request(endpoint, options = {}) {
     }
 
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+    if (!res.ok)
+        throw new Error(data.error || `Request failed (${res.status})`);
     return data;
 }
 
