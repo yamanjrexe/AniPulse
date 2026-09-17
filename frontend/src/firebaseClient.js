@@ -1,54 +1,73 @@
-const API_BASE_URL = window.API_BASE_URL ||
-    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://localhost:3000'
-        : 'https://anipulse-63jv.onrender.com');
+import firebase from "firebase/compat/app";
+import "firebase/compat/auth";
+
+const API_BASE_URL =
+    process.env.REACT_APP_API_BASE_URL ||
+    (window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+        ? "http://localhost:5000"
+        : "https://anipulse-63jv.onrender.com");
 
 let initialized = false;
-let retryCount = 0;
-const MAX_RETRIES = 20;
 
-async function loadFirebaseConfig() {
+function buildConfigFromEnv() {
+    return {
+        apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+        authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+        projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+        storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+        appId: process.env.REACT_APP_FIREBASE_APP_ID,
+    };
+}
+
+async function fetchConfigFromBackend() {
     try {
         const res = await fetch(`${API_BASE_URL}/api/firebase-config`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return await res.json();
-    } catch (e) {
-        console.error('❌ Failed to load Firebase config:', e.message);
+    } catch (err) {
+        console.warn("[Firebase] Backend config fetch failed:", err.message);
         return null;
     }
 }
 
-export function initFirebase() {
-    return new Promise((resolve) => {
-        if (initialized && window.firebase?.apps?.length) return resolve(window.firebase);
+export async function initFirebase() {
+    if (initialized && firebase.apps.length > 0) return firebase;
 
-        const attempt = async () => {
-            if (!window.firebase) {
-                if (retryCount++ < MAX_RETRIES) return setTimeout(attempt, 300);
-                console.error('❌ Firebase SDK never loaded');
-                return resolve(null);
-            }
+    let config = buildConfigFromEnv();
 
-            const config = await loadFirebaseConfig();
-            if (!config) {
-                if (retryCount++ < MAX_RETRIES) {
-                    const delay = Math.min(30000, 3000 * Math.pow(1.2, retryCount));
-                    return setTimeout(attempt, delay);
-                }
-                return resolve(null);
-            }
+    if (!config.apiKey || !config.projectId) {
+        const remote = await fetchConfigFromBackend();
+        if (remote) config = { ...config, ...remote };
+    }
 
-            retryCount = 0;
-            if (!window.firebase.apps.length) {
-                window.firebase.initializeApp(config);
-                console.log('✅ Firebase initialized');
-            }
-            initialized = true;
-            resolve(window.firebase);
-        };
+    const missing = ["apiKey", "authDomain", "projectId", "appId"].filter(
+        (k) => !config[k],
+    );
+    if (missing.length) {
+        console.warn(
+            "[Firebase] Missing config keys:",
+            missing.join(", "),
+            "— auth features disabled.",
+        );
+        initialized = true;
+        return null;
+    }
 
-        attempt();
-    });
+    try {
+        if (firebase.apps.length === 0) {
+            firebase.initializeApp(config);
+        }
+        initialized = true;
+        console.log("[Firebase] Initialized");
+        return firebase;
+    } catch (err) {
+        console.error("[Firebase] init failed:", err);
+        initialized = true;
+        return null;
+    }
 }
 
-export { API_BASE_URL };
+export { firebase, API_BASE_URL };
+export default firebase;

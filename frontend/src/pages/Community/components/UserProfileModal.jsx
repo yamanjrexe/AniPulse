@@ -4,6 +4,7 @@ import { useToast } from "../../../context/ToastContext.jsx";
 import { useAuth } from "../../../context/AuthContext.jsx";
 import { ACHIEVEMENTS } from "../../../services/achievements.js";
 import { getLevelFromXP } from "../../../services/levelSystem.js";
+import { firebase } from "../../../../firebaseClient.js";
 
 const TABS = [
     { k: "completed", l: "Completed", icon: "fa-check-circle" },
@@ -198,11 +199,11 @@ export default function UserProfileModal({ userId, onClose }) {
             }
         })();
         const uidFromAuth = (() => {
-            try {
-                return window.firebase?.auth?.().currentUser?.uid;
-            } catch {
-                return null;
-            }
+          try {
+            return firebase?.auth?.().currentUser?.uid;
+          } catch {
+            return null;
+          }
         })();
         const myUid = uidFromContext || uidFromStorage || uidFromAuth;
         return !!(myUid && userId === myUid);

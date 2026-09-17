@@ -2,7 +2,14 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
 
-// Global CSS
+window.API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL ||
+  process.env.REACT_APP_API_URL ||
+  (window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1"
+    ? "http://localhost:5000"
+    : "https://anipulse-63jv.onrender.com");
+
 import "./styles/variables.css";
 import "./styles/reset.css";
 import "./styles/typography.css";
@@ -33,7 +40,7 @@ import "./styles/pages/settings.css";
 import "./styles/pages/recap.css";
 import "./styles/pages/auth.css";
 import "./styles/pages/index.css";
-import "./styles/responsive.css"
+import "./styles/responsive.css";
 
 import { installFetchInterceptors } from "./utils/rateLimiter.js";
 import { registerServiceWorker } from "./services/pwaService.js";
@@ -42,9 +49,9 @@ installFetchInterceptors();
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-    <React.StrictMode>
-        <App />
-    </React.StrictMode>,
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
 );
 
 registerServiceWorker();
