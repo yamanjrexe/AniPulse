@@ -30,7 +30,7 @@ export function AnimeProvider({ children }) {
 
     // Persist to localStorage
     useEffect(() => {
-        localStorage.setItem("animeData", JSON.stringify(animeData));
+       localStorage.setItem("animeData", JSON.stringify(animeData, null, 2));
     }, [animeData]);
 
     useEffect(() => {

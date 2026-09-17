@@ -44,6 +44,16 @@ function writeStoredHandleName(name) {
     }
 }
 
+function buildPrettyJSON() {
+    const raw = localStorage.getItem("animeData") || "[]";
+    try {
+        const parsed = JSON.parse(raw);
+        return JSON.stringify(parsed, null, 2);
+    } catch {
+        return raw;
+    }
+}
+
 export function isSupported() {
     return typeof window !== "undefined" && "showSaveFilePicker" in window;
 }
@@ -157,7 +167,7 @@ async function writeBackup({ silent = false } = {}) {
             return false;
         }
 
-        const data = localStorage.getItem("animeData") || "[]";
+        const data = buildPrettyJSON();
         const writable = await backupHandle.createWritable();
         await writable.write(data);
         await writable.close();
@@ -236,6 +246,20 @@ export async function saveNow() {
     return writeBackup();
 }
 
+function handleBeforeUnload() {
+    if (!backupHandle) return;
+    clearTimeout(saveTimer);
+    writeBackup({ silent: true });
+}
+
+function handleVisibilityChange() {
+    if (!backupHandle) return;
+    if (document.visibilityState === "hidden") {
+        clearTimeout(saveTimer);
+        writeBackup({ silent: true });
+    }
+}
+
 export async function init() {
     if (initialized) return;
     initialized = true;
@@ -266,10 +290,16 @@ export async function init() {
 
     if (!listenersBound) {
         listenersBound = true;
+
         window.addEventListener("animeUpdate", triggerSave);
+
         window.addEventListener("storage", (e) => {
             if (e.key === "animeData") triggerSave();
         });
+
+        window.addEventListener("beforeunload", handleBeforeUnload);
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
     }
 
     emit();
@@ -277,7 +307,7 @@ export async function init() {
     if (backupHandle) {
         setTimeout(() => {
             writeBackup({ silent: true });
-        }, 500);
+        }, 400);
     }
 }
 
