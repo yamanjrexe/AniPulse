@@ -42,6 +42,13 @@ export const authService = {
                     );
                 }
             } else {
+                const hadToken = !!localStorage.getItem("authToken");
+                if (hadToken) {
+                    await new Promise((r) => setTimeout(r, 500));
+                    const stillNull = !firebase?.auth?.().currentUser;
+                    if (!stillNull) return;
+                }
+
                 localStorage.removeItem("authToken");
                 localStorage.removeItem("user");
             }
@@ -118,7 +125,10 @@ export const authService = {
             localStorage.setItem("user", JSON.stringify(merged, null, 2));
             return merged;
         } catch (err) {
-            console.warn("fetchProfile failed, using local cache:", err.message);
+            console.warn(
+                "fetchProfile failed, using local cache:",
+                err.message,
+            );
             return JSON.parse(localStorage.getItem("user") || "{}");
         }
     },
@@ -162,7 +172,19 @@ export const authService = {
         try {
             await firebase.auth().signOut();
         } catch (_) { }
+
         localStorage.removeItem("authToken");
         localStorage.removeItem("user");
+        localStorage.removeItem("xpPendingQueue");
+
+        sessionStorage.removeItem("cloudLoadedToastShown");
+        sessionStorage.removeItem("nameModalShown");
+
+        window.__levelBootDone = false;
+        window.__syncBootstrapped = false;
+        window.__cloudToastShown = false;
+        window.__recapAutoFired = false;
+
+        window.dispatchEvent(new CustomEvent("userLogout"));
     },
 };

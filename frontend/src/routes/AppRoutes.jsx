@@ -13,18 +13,8 @@ const NotFound = lazy(() => import("../pages/NotFound.jsx"));
 
 function SuspenseFallback() {
     return (
-        <div id="app-loader" role="status" aria-label="Loading page">
-            <div className="loader-container">
-                <div className="loader-logo">
-                    <img src="/icon/Anipulse.png" alt="AniPulse" />
-                </div>
-                <div className="progress-wrapper">
-                    <div className="progress-bar" role="progressbar">
-                        <span id="loader-progress" style={{ width: "50%" }} />
-                    </div>
-                </div>
-            </div>
-        </div>
+       <div>
+       </div>
     );
 }
 

@@ -30,6 +30,21 @@ async function getUserAnimeList(userId) {
   }
 }
 
+// ─── Helper: resolve favorite IDs to { id, title } ──────
+function resolveFavoriteAnime(rawFavorites, animeList) {
+  const titleMap = {};
+  (animeList || []).forEach((a) => {
+    if (a && a.id != null && a.title) titleMap[a.id] = a.title;
+  });
+
+  return (rawFavorites || []).map((fav) => {
+    const id = typeof fav === 'object' ? fav.id : fav;
+    const title =
+      (typeof fav === 'object' && fav.title) || titleMap[id] || null;
+    return { id, title };
+  });
+}
+
 // ─── GET /my-stats ──────────────────────────────────────
 router.get('/my-stats', verifyToken, async (req, res) => {
   const userId = req.userId;
@@ -75,7 +90,6 @@ router.get('/profile/:userId', verifyToken, async (req, res) => {
     const userData = userDoc.data();
     const displayName = userData.name || userData.username || 'Anime Fan';
 
-    // ⚡ Always fetch the anime list — needed for real XP
     const animeList = await getUserAnimeList(userId);
     const completed = animeList.filter((a) => a.userStatus === 'Completed');
 
@@ -95,7 +109,6 @@ router.get('/profile/:userId', verifyToken, async (req, res) => {
     const totalAnime = completed.length;
     const totalHours = Math.round(minutes / 60);
 
-    // ⚡ Recompute XP from the full list — never trust stale `userData.totalXP`
     const storedXP = userData.totalXP || 0;
     const computedXP = calculateTotalXPFromAnimeList(animeList);
     const totalXP = Math.max(storedXP, computedXP);
@@ -273,24 +286,62 @@ router.get('/full-profile/:userId', verifyToken, async (req, res) => {
   const { userId } = req.params;
   const currentUserId = req.userId;
   try {
-    let userDoc = await db.collection(COLLECTIONS.USER_PROFILES).doc(userId).get();
-    if (!userDoc.exists) userDoc = await db.collection(COLLECTIONS.USERS).doc(userId).get();
-    if (!userDoc.exists) return res.status(404).json({ error: 'User not found' });
-    const userData = userDoc.data();
+    // ⚡ Fire every independent read in parallel — total latency becomes
+    // the slowest single read instead of the sum of all reads.
+    const [
+      profileDoc,
+      userDoc,
+      animeListDoc,
+      achievementsDoc,
+      activityDoc,
+      friendsDoc,
+    ] = await Promise.all([
+      db.collection(COLLECTIONS.USER_PROFILES).doc(userId).get(),
+      db.collection(COLLECTIONS.USERS).doc(userId).get(),
+      db.collection(COLLECTIONS.ANIME_LISTS).doc(userId).get(),
+      db.collection(COLLECTIONS.ACHIEVEMENTS).doc(userId).get(),
+      db.collection(COLLECTIONS.ACTIVITY_LOGS).doc(userId).get(),
+      currentUserId !== userId
+        ? db.collection(COLLECTIONS.FRIENDS).doc(currentUserId).get()
+        : Promise.resolve(null),
+    ]);
+
+    // Profile data — USER_PROFILES wins, falls back to USERS
+    const userData = profileDoc.exists
+      ? profileDoc.data()
+      : userDoc.exists
+        ? userDoc.data()
+        : null;
+
+    if (!userData) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Anime list — ANIME_LISTS wins, falls back to USERS.animeList
+    let animeList = [];
+    if (animeListDoc.exists && Array.isArray(animeListDoc.data().animeList)) {
+      animeList = animeListDoc.data().animeList;
+    } else if (userDoc.exists && Array.isArray(userDoc.data().animeList)) {
+      animeList = userDoc.data().animeList;
+    }
 
     const displayName = userData.name || userData.username || 'Anime Fan';
     const avatar = userData.avatar || null;
     const cover = userData.cover || null;
     const bio = userData.bio || '';
     const status = userData.status || '';
-    const favoriteAnime = userData.favoriteAnime || [];
+    const favoriteAnimeRaw = userData.favoriteAnime || [];
     const social = userData.social || {};
 
-    // Anime list
-    const animeList = await getUserAnimeList(userId);
+    // Sort recent-first
     const sorted = [...animeList].sort(
-      (a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0)
+      (a, b) =>
+        new Date(b.updatedAt || b.createdAt || 0) -
+        new Date(a.updatedAt || a.createdAt || 0)
     );
+
+    // ⚡ Resolve favorite IDs to { id, title }
+    const favoriteAnime = resolveFavoriteAnime(favoriteAnimeRaw, sorted);
 
     const completed = sorted.filter((a) => a.userStatus === 'Completed');
     const watching = sorted.filter((a) => a.userStatus === 'Watching');
@@ -311,11 +362,10 @@ router.get('/full-profile/:userId', verifyToken, async (req, res) => {
     });
     const totalHours = Math.round(totalMinutes / 60);
 
-    // Achievements
-    const achievementsDoc = await db.collection(COLLECTIONS.ACHIEVEMENTS).doc(userId).get();
-    const unlocked = achievementsDoc.exists ? achievementsDoc.data().unlocked || [] : [];
+    const unlocked = achievementsDoc.exists
+      ? achievementsDoc.data().unlocked || []
+      : [];
 
-    // ⚡ Level & XP — recomputed from FULL anime list
     const storedXP = userData.totalXP || 0;
     const computedXP = calculateTotalXPFromAnimeList(animeList);
     const totalXP = Math.max(storedXP, computedXP);
@@ -329,16 +379,12 @@ router.get('/full-profile/:userId', verifyToken, async (req, res) => {
       `📊 /full-profile XP for ${userId}: stored=${storedXP}, computed=${computedXP}, final=${totalXP} → Lv.${level} ${levelTitle}`
     );
 
-    // Friend status
     let isFriend = false;
-    if (currentUserId !== userId) {
-      const fDoc = await db.collection(COLLECTIONS.FRIENDS).doc(currentUserId).get();
-      const fList = fDoc.data()?.friends || [];
+    if (friendsDoc && friendsDoc.exists) {
+      const fList = friendsDoc.data()?.friends || [];
       isFriend = fList.includes(userId);
     }
 
-    // Activity
-    const activityDoc = await db.collection(COLLECTIONS.ACTIVITY_LOGS).doc(userId).get();
     const recentActivity = activityDoc.exists
       ? (activityDoc.data().activities || []).slice(0, 10)
       : [];

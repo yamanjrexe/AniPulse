@@ -29,7 +29,6 @@ import "./styles/components/progress.css";
 import "./styles/components/animations.css";
 import "./styles/components/level-system.css";
 import "./styles/components/toast.css";
-import "./styles/components/loading.css";
 import "./styles/pages/dashboard.css";
 import "./styles/pages/statistics.css";
 import "./styles/pages/watchlist.css";

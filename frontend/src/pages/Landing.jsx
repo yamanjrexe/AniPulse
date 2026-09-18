@@ -95,40 +95,6 @@ export default function Landing() {
     }, [navigate]);
 
     useEffect(() => {
-        const loader = document.getElementById("app-loader");
-        if (!loader) return;
-        const bar = document.getElementById("loader-progress");
-        let progress = 0;
-        const interval = setInterval(() => {
-            if (progress < 100) {
-                progress += 2;
-                if (bar) bar.style.width = progress + "%";
-            } else {
-                clearInterval(interval);
-                loader.style.transition = "opacity 0.4s ease";
-                loader.style.opacity = "0";
-                setTimeout(() => {
-                    loader.style.display = "none";
-                }, 400);
-            }
-        }, 40);
-
-        const safety = setTimeout(() => {
-            clearInterval(interval);
-            loader.style.transition = "opacity 0.4s ease";
-            loader.style.opacity = "0";
-            setTimeout(() => {
-                loader.style.display = "none";
-            }, 400);
-        }, 4000);
-
-        return () => {
-            clearInterval(interval);
-            clearTimeout(safety);
-        };
-    }, []);
-
-    useEffect(() => {
         const onScroll = () => {
             const header = headerRef.current;
             if (!header) return;
@@ -187,11 +153,6 @@ export default function Landing() {
 
     return (
         <>
-            <div className="bg-glow">
-                <div className="glow-orb orb-1" />
-                <div className="glow-orb orb-2" />
-                <div className="glow-orb orb-3" />
-            </div>
 
             <header className="landing-header" id="header" ref={headerRef}>
                 <div className="container header-content">

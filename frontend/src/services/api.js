@@ -9,7 +9,7 @@ function buildUrl(endpoint) {
     return API_BASE_URL + "/api/" + endpoint;
 }
 
-async function waitForFirebaseUser(timeoutMs = 1500) {
+async function waitForFirebaseUser(timeoutMs = 5000) {
     let user = firebase?.auth?.().currentUser;
     if (user) return user;
 
@@ -54,11 +54,9 @@ async function request(endpoint, options = {}) {
     }
 
     if (res.status === 401) {
-
-        let fbUser = await waitForFirebaseUser();
+        let fbUser = await waitForFirebaseUser(5000);
 
         if (fbUser) {
-
             for (let attempt = 0; attempt < 3; attempt++) {
                 try {
                     const newToken = await fbUser.getIdToken(true);
@@ -96,12 +94,19 @@ async function request(endpoint, options = {}) {
             }
         }
 
-        const stillHasFirebaseUser = firebase?.auth?.().currentUser;
-        if (!stillHasFirebaseUser) {
-            localStorage.removeItem("authToken");
-            localStorage.removeItem("user");
-            if (!window.location.pathname.startsWith("/login")) {
-                window.location.href = "/login";
+        const stillHasUser = firebase?.auth?.().currentUser;
+        if (!stillHasUser) {
+            const hadToken = !!localStorage.getItem("authToken");
+            if (hadToken) {
+                await new Promise((r) => setTimeout(r, 800));
+                const secondCheck = firebase?.auth?.().currentUser;
+                if (!secondCheck) {
+                    localStorage.removeItem("authToken");
+                    localStorage.removeItem("user");
+                    if (!window.location.pathname.startsWith("/login")) {
+                        window.location.href = "/login";
+                    }
+                }
             }
         }
 

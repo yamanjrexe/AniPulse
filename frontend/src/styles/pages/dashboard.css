@@ -9,7 +9,7 @@
 }
 
 .section-title {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     gap: var(--sp-2);
     font-size: var(--fs-20);
@@ -276,7 +276,33 @@
     font-size: var(--fs-13);
 }
 
-#currently-watching-section,
+/* ============================================================
+   HEATMAP — no accent border, consistent card style
+   ============================================================ */
+
+.chart-card:has(.heatmap-header) {
+    margin-bottom: var(--shell-section-gap);
+    padding: var(--sp-5);
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-md);
+}
+
+/* ============================================================
+   CURRENTLY WATCHING 
+   ============================================================ */
+
+#currently-watching-section {
+    width: 100%;
+    margin-top: var(--sp-3);
+    margin-bottom: var(--shell-section-gap);
+    padding-top: var(--sp-2);
+}
+
+#currently-watching-section .section-title {
+    margin-bottom: var(--sp-5);
+}
+
 #top-rated-anime {
     width: 100%;
 }
@@ -286,6 +312,12 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(clamp(150px, 16vw, 220px), 1fr));
     gap: var(--sp-4);
+}
+
+@media (max-width: 768px) {
+    #top-rated-anime>*:nth-child(n+5) {
+        display: none;
+    }
 }
 
 #fab-container {
@@ -484,11 +516,5 @@
     .fab-menu {
         animation: none !important;
         transition: none !important;
-    }
-}
-
-@media (max-width: 768px) {
-    #top-rated-anime>*:nth-child(n+5) {
-        display: none;
     }
 }
