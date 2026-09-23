@@ -88,21 +88,6 @@ function FullScreenLoader({ progress = 30 }) {
           }}
         />
 
-        <h1
-          style={{
-            fontSize: "1.375rem",
-            fontWeight: 700,
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-            color: "#FBFBFB",
-            margin: "0 0 6px 0",
-            lineHeight: 1,
-            paddingLeft: "0.14em",
-          }}
-        >
-          AniPulse
-        </h1>
-
         <p
           style={{
             fontSize: "0.75rem",
