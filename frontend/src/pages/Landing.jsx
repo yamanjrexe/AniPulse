@@ -472,8 +472,8 @@ export default function Landing() {
 
           <div className="footer-bottom">
             <p>
-              &copy; 2026 AniPulse. All rights reserved. Anime data via Jikan
-              API — fan-made project.
+              &copy; 2026 AniPulse. All rights reserved. Anime data via Anilist
+              API Â— fan-made project.
             </p>
           </div>
         </div>
