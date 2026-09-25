@@ -1,3 +1,20 @@
+body.modal-open {
+    overflow: hidden !important;
+    overscroll-behavior: none;
+    touch-action: none;
+}
+
+html:has(body.modal-open) {
+    overflow: hidden;
+    overscroll-behavior: none;
+}
+
+body.modal-open .modal-content {
+    touch-action: pan-y;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
 .modal {
     display: none;
     position: fixed;

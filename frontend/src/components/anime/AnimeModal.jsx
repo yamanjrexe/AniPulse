@@ -131,31 +131,63 @@ export default function AnimeModal() {
     editingRef.current = editing;
   }, [editing]);
 
+  // ============================================================
+  // MODAL LOCK
+  // ============================================================
   useEffect(() => {
     if (!open) return;
 
-    // ---- 1. Freeze background scroll ----
+    // ---------- 1. Freeze background scroll ----------
     const scrollbarWidth =
       window.innerWidth - document.documentElement.clientWidth;
 
-    const prevOverflow = document.body.style.overflow;
-    const prevPaddingRight = document.body.style.paddingRight;
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevBodyPaddingRight = document.body.style.paddingRight;
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    const prevHtmlOverscroll =
+      document.documentElement.style.overscrollBehavior;
 
     document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    document.documentElement.style.overscrollBehavior = "none";
+
     if (scrollbarWidth > 0) {
       document.body.style.paddingRight = `${scrollbarWidth}px`;
     }
-    document.body.classList.add("modal-open");
 
-    // ---- 2. Block touch scroll outside the modal ----
-    const blockTouchScroll = (e) => {
-      if (e.target.closest(".modal-content")) return;
+    document.body.classList.add("modal-open");
+    document.body.setAttribute("data-anime-modal-open", "true");
+
+    // ---------- 2. Block wheel + touch outside the modal ----------
+    const isInsideModalContent = (el) => {
+      while (el && el !== document.body) {
+        if (el.classList?.contains("modal-content")) return true;
+        el = el.parentElement;
+      }
+      return false;
+    };
+
+    const blockWheel = (e) => {
+      if (isInsideModalContent(e.target)) return;
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    const blockTouchMove = (e) => {
+      if (isInsideModalContent(e.target)) return;
       e.preventDefault();
     };
-    document.addEventListener("touchmove", blockTouchScroll, {
+
+    document.addEventListener("wheel", blockWheel, {
       passive: false,
+      capture: true,
+    });
+    document.addEventListener("touchmove", blockTouchMove, {
+      passive: false,
+      capture: true,
     });
 
+    // ---------- 3. Swallow every other open*Modal event ----------
     const originalDispatch = window.dispatchEvent;
     window.dispatchEvent = function (event) {
       if (
@@ -173,13 +205,20 @@ export default function AnimeModal() {
       return originalDispatch.call(this, event);
     };
 
-    // ---- Cleanup ----
+    // ---------- Cleanup ----------
     return () => {
-      document.body.style.overflow = prevOverflow;
-      document.body.style.paddingRight = prevPaddingRight;
-      document.body.classList.remove("modal-open");
+      document.body.style.overflow = prevBodyOverflow;
+      document.body.style.paddingRight = prevBodyPaddingRight;
+      document.documentElement.style.overflow = prevHtmlOverflow;
+      document.documentElement.style.overscrollBehavior = prevHtmlOverscroll;
 
-      document.removeEventListener("touchmove", blockTouchScroll);
+      document.body.classList.remove("modal-open");
+      document.body.removeAttribute("data-anime-modal-open");
+
+      document.removeEventListener("wheel", blockWheel, { capture: true });
+      document.removeEventListener("touchmove", blockTouchMove, {
+        capture: true,
+      });
 
       window.dispatchEvent = originalDispatch;
     };
@@ -614,9 +653,6 @@ export default function AnimeModal() {
               </div>
             )}
 
-            {/* ============================================
-                            SEARCH RESULTS
-                            ============================================ */}
             {!isEditing && results.length > 0 && (
               <div className="search-results">
                 {results.map((r) => (
@@ -651,9 +687,6 @@ export default function AnimeModal() {
                         )}
                       </div>
 
-                      {/* Genres: comma separated,
-                                                rendered as individual spans
-                                                with CSS-drawn commas. */}
                       {r.genres?.length > 0 && (
                         <div className="search-result-genres">
                           {r.genres.slice(0, 4).map((g, i, arr) => (

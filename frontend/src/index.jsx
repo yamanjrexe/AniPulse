@@ -30,6 +30,7 @@ import "./styles/components/animations.css";
 import "./styles/components/level-system.css";
 import "./styles/components/toast.css";
 import "./styles/pages/dashboard.css";
+import "./styles/pages/leaderboard.css";
 import "./styles/pages/statistics.css";
 import "./styles/pages/watchlist.css";
 import "./styles/pages/anime-list.css";
