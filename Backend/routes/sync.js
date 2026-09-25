@@ -5,10 +5,6 @@ const router = express.Router();
 
 router.use(express.json({ limit: '50mb' }));
 
-// ============================================
-// XP CALCULATION HELPERS (unchanged)
-// ============================================
-
 function calculateExpFromParts({ episodes = 0, progress = 0, duration = 20, type = 'TV', score = 0, hasScore = false }, options = {}) {
   const epsForEpisodeBonus = options.useProgress ? Math.max(0, progress) : Math.max(0, episodes);
   const episodeBonus = Math.floor(epsForEpisodeBonus / 2);
@@ -96,81 +92,63 @@ function calculateTotalHours(animeList) {
   return Math.round(totalMinutes / 60);
 }
 
-// ============================================
-// SANITIZATION (replaces strict validation)
-// ============================================
-
 const MAX_ANIME_LIST = 10000;
 const MAX_ACTIVITY_LOG = 500;
 const MAX_ACHIEVEMENTS = 100;
 const MAX_XP_HISTORY = 5000;
 
 function sanitizeAnime(anime, existingIds) {
-  // Ensure id is a valid number
   let id = anime.id;
   if (id === undefined || id === null) {
-    // Generate new id (max existing + 1)
     const maxId = existingIds.length > 0 ? Math.max(...existingIds) : 0;
     id = maxId + 1;
-    while (existingIds.includes(id)) id++; // safety
+    while (existingIds.includes(id)) id++;
   } else if (typeof id === 'string') {
     const parsed = parseInt(id, 10);
     if (!isNaN(parsed) && parsed > 0) {
       id = parsed;
     } else {
-      // invalid string – generate new id
       const maxId = existingIds.length > 0 ? Math.max(...existingIds) : 0;
       id = maxId + 1;
       while (existingIds.includes(id)) id++;
     }
   } else if (typeof id !== 'number' || id < 1) {
-    // invalid number – generate new id
     const maxId = existingIds.length > 0 ? Math.max(...existingIds) : 0;
     id = maxId + 1;
     while (existingIds.includes(id)) id++;
   }
-  // add to existingIds set to avoid duplicates
   existingIds.push(id);
 
-  // Ensure title
   const title = (anime.title && typeof anime.title === 'string' && anime.title.trim().length > 0)
     ? anime.title.trim()
     : 'Unknown';
 
-  // Ensure type
   const validTypes = ['TV', 'TV_SHORT', 'Movie', 'OVA', 'ONA', 'Special'];
   let type = (anime.type && typeof anime.type === 'string') ? anime.type : 'TV';
   if (!validTypes.includes(type)) type = 'TV';
 
-  // Ensure episodes, duration, progress as numbers
   const episodes = typeof anime.episodes === 'number' ? Math.max(0, anime.episodes) : 0;
   const duration = typeof anime.duration === 'number' ? Math.max(1, anime.duration) : 20;
   let progress = typeof anime.progress === 'number' ? Math.max(0, anime.progress) : 0;
-  // If progress > episodes, cap it
   if (episodes > 0 && progress > episodes) progress = episodes;
 
-  // Ensure status
   const validStatuses = ['Completed', 'Watching', 'Plan to Watch', 'Dropped'];
   let userStatus = (anime.userStatus && typeof anime.userStatus === 'string') ? anime.userStatus : 'Plan to Watch';
   if (!validStatuses.includes(userStatus)) userStatus = 'Plan to Watch';
 
-  // Score (optional)
   let score = undefined;
   if (anime.score !== undefined && anime.score !== null) {
     const s = parseFloat(anime.score);
     if (!isNaN(s) && s >= 0 && s <= 10) score = Math.round(s * 10) / 10;
   }
 
-  // Cover (optional)
   const cover = (anime.cover && typeof anime.cover === 'string') ? anime.cover : '';
 
-  // Genres (optional, array)
   let genres = [];
   if (Array.isArray(anime.genres)) {
     genres = anime.genres.filter(g => typeof g === 'string').slice(0, 10);
   }
 
-  // Dates (optional strings)
   const finishDate = (anime.finishDate && typeof anime.finishDate === 'string') ? anime.finishDate : null;
   const actualFinishDate = (anime.actualFinishDate && typeof anime.actualFinishDate === 'string') ? anime.actualFinishDate : null;
   const createdAt = (anime.createdAt && typeof anime.createdAt === 'string') ? anime.createdAt : new Date().toISOString();
@@ -191,7 +169,6 @@ function sanitizeAnime(anime, existingIds) {
     actualFinishDate,
     createdAt,
     updatedAt,
-    // preserve any extra fields that might be needed
     ...(anime.earnedEpisodesExp !== undefined && { earnedEpisodesExp: anime.earnedEpisodesExp })
   };
 }
@@ -202,16 +179,11 @@ function sanitizeAnimeList(list) {
     console.warn(`⚠️ Truncating anime list from ${list.length} to ${MAX_ANIME_LIST}`);
     list = list.slice(0, MAX_ANIME_LIST);
   }
-
   const existingIds = [];
   const sanitized = list.map(anime => sanitizeAnime(anime, existingIds));
   console.log(`🛠️ Sanitized ${sanitized.length} anime entries`);
   return sanitized;
 }
-
-// ============================================
-// OTHER VALIDATIONS (activity log, etc.) – keep as before
-// ============================================
 
 function validateActivityLog(log) {
   if (!Array.isArray(log)) return { valid: false, error: 'activityLog must be an array' };
@@ -221,7 +193,6 @@ function validateActivityLog(log) {
   for (let i = 0; i < log.length; i++) {
     const item = log[i];
     if (!item || typeof item !== 'object') return { valid: false, error: `Invalid activity at index ${i}` };
-    // id is optional; if present, it can be string or number
     if (item.id !== undefined && typeof item.id !== 'string' && typeof item.id !== 'number') {
       return { valid: false, error: `id must be string or number at index ${i}` };
     }
@@ -307,9 +278,15 @@ function sanitizeProfile(userProfile) {
   return clean;
 }
 
-// ============================================
-// SYNC ALL DATA 
-// ============================================
+function sanitizeStreakData(streakData) {
+  if (!streakData || typeof streakData !== 'object') return null;
+  const streak = Number.isFinite(streakData.streak) ? Math.max(0, Math.floor(streakData.streak)) : 0;
+  const lastActive = (typeof streakData.lastActive === 'string' && streakData.lastActive.length > 0)
+    ? streakData.lastActive
+    : null;
+  return { streak, lastActive };
+}
+
 router.post('/sync-all', verifyToken, async (req, res) => {
   const {
     animeData, activityLog, userProfile, unlockedAchievements,
@@ -322,11 +299,9 @@ router.post('/sync-all', verifyToken, async (req, res) => {
     console.log(`🔄 Syncing all data for user: ${userId}`);
     console.log(`📦 Received animeData length: ${animeData?.length || 0}`);
 
-    // ---- SANITIZE anime data (replaces strict validation) ----
     const sanitizedAnime = sanitizeAnimeList(animeData || []);
     console.log(`📦 Sanitized to ${sanitizedAnime.length} anime entries`);
 
-    // ---- Validate other data ----
     const validationResults = [
       validateActivityLog(activityLog),
       validateAchievements(unlockedAchievements),
@@ -342,12 +317,11 @@ router.post('/sync-all', verifyToken, async (req, res) => {
       }
     }
 
-    // ---- Sanitize profile ----
     const cleanProfile = sanitizeProfile(userProfile);
+    const cleanStreak = sanitizeStreakData(streakData);
 
     const promises = [];
 
-    // ---- 1. Save Anime List (sanitized) ----
     if (sanitizedAnime.length > 0) {
       promises.push(
         db.collection(COLLECTIONS.ANIME_LISTS).doc(userId).set({
@@ -360,7 +334,6 @@ router.post('/sync-all', verifyToken, async (req, res) => {
       );
     }
 
-    // ---- 2. Save Activity Log (with ID generation) ----
     if (activityLog && Array.isArray(activityLog)) {
       const enrichedLog = activityLog.map(item => {
         if (!item.id) {
@@ -379,7 +352,6 @@ router.post('/sync-all', verifyToken, async (req, res) => {
       );
     }
 
-    // ---- 3. Save User Profile ----
     if (cleanProfile) {
       delete cleanProfile.avatar;
       promises.push(
@@ -392,7 +364,6 @@ router.post('/sync-all', verifyToken, async (req, res) => {
       );
     }
 
-    // ---- 4. Save Achievements ----
     if (unlockedAchievements && Array.isArray(unlockedAchievements)) {
       promises.push(
         db.collection(COLLECTIONS.ACHIEVEMENTS).doc(userId).set({
@@ -405,7 +376,6 @@ router.post('/sync-all', verifyToken, async (req, res) => {
       );
     }
 
-    // ---- 5. Save XP History ----
     if (userXpHistory && Array.isArray(userXpHistory)) {
       promises.push(
         db.collection(COLLECTIONS.XP_HISTORY).doc(userId).set({
@@ -417,7 +387,6 @@ router.post('/sync-all', verifyToken, async (req, res) => {
       );
     }
 
-    // ---- 6. Save Contributions ----
     if (animeContributions && typeof animeContributions === 'object') {
       promises.push(
         db.collection(COLLECTIONS.CONTRIBUTIONS).doc(userId).set({
@@ -429,7 +398,6 @@ router.post('/sync-all', verifyToken, async (req, res) => {
       );
     }
 
-    // ---- 7. Save Settings ----
     if (appSettings && typeof appSettings === 'object') {
       promises.push(
         db.collection(COLLECTIONS.SETTINGS).doc(userId).set({
@@ -441,7 +409,6 @@ router.post('/sync-all', verifyToken, async (req, res) => {
       );
     }
 
-    // ---- 8. Save Level Data (server-side recalculation) ----
     const recalculatedXP = calculateTotalXPFromAnimeList(sanitizedAnime);
     const recalculatedLevel = getLevelFromXP(recalculatedXP);
     const recalculatedTitle = getTitleForLevel(recalculatedLevel);
@@ -462,9 +429,34 @@ router.post('/sync-all', verifyToken, async (req, res) => {
     if (dailyXP) userUpdate.dailyXP = dailyXP;
     if (xpPendingQueue) userUpdate.xpPendingQueue = xpPendingQueue;
     if (lastResetDate) userUpdate.lastResetDate = lastResetDate;
-    if (streakData) {
-      userUpdate.streak = streakData.streak || 0;
-      userUpdate.lastActive = streakData.lastActive || null;
+
+    if (cleanStreak) {
+      const userRef = db.collection(COLLECTIONS.USERS).doc(userId);
+      const existing = await userRef.get();
+      const existingData = existing.exists ? existing.data() : {};
+      const existingStreak = existingData.streak || 0;
+      const existingLast = existingData.lastActive || null;
+
+      const incomingStreak = cleanStreak.streak;
+      const incomingLast = cleanStreak.lastActive;
+
+      let useIncoming = true;
+      if (
+        existingStreak > incomingStreak &&
+        existingLast &&
+        incomingLast &&
+        existingLast === incomingLast
+      ) {
+        useIncoming = false;
+      }
+
+      if (useIncoming) {
+        userUpdate.streak = incomingStreak;
+        userUpdate.lastActive = incomingLast;
+      } else {
+        userUpdate.streak = existingStreak;
+        userUpdate.lastActive = existingLast;
+      }
     }
 
     console.log(`📊 Server-side recalculated XP: ${recalculatedXP} (level ${recalculatedLevel}, title "${recalculatedTitle}")`);
@@ -484,9 +476,6 @@ router.post('/sync-all', verifyToken, async (req, res) => {
   }
 });
 
-// ============================================
-// LOAD ALL DATA (unchanged)
-// ============================================
 router.get('/load-all', verifyToken, async (req, res) => {
   const userId = req.userId;
   try {
@@ -534,14 +523,14 @@ router.get('/load-all', verifyToken, async (req, res) => {
       if (userData.dailyXP) data.dailyXP = userData.dailyXP;
       if (userData.xpPendingQueue) data.xpPendingQueue = userData.xpPendingQueue;
       if (userData.lastResetDate) data.lastResetDate = userData.lastResetDate;
-      if (userData.streak !== undefined) {
-        data.streakData = {
-          streak: userData.streak || 0,
-          lastActive: userData.lastActive || null
-        };
-      }
+
+      data.streakData = {
+        streak: userData.streak || 0,
+        lastActive: userData.lastActive || null
+      };
     } else {
       data.levelData = { totalXP: 0, level: 1, title: 'Newbie', totalAnime: 0, totalHours: 0 };
+      data.streakData = { streak: 0, lastActive: null };
     }
 
     console.log(`✅ Load complete for user ${userId}`);
@@ -552,9 +541,6 @@ router.get('/load-all', verifyToken, async (req, res) => {
   }
 });
 
-// ============================================
-// SYNC STATUS (unchanged)
-// ============================================
 router.get('/status', verifyToken, async (req, res) => {
   const userId = req.userId;
   try {
