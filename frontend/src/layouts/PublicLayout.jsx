@@ -1,6 +1,14 @@
 import React, { useEffect, useRef } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 
+const RESOURCES_TITLES = {
+  "/resources/docs": "Documentation - AniPulse",
+  "/resources/help": "Help Center - AniPulse",
+  "/resources/changelog": "Changelog - AniPulse",
+  "/resources/about": "About - AniPulse",
+  "/resources": "Resources - AniPulse",
+};
+
 export default function PublicLayout() {
   const headerRef = useRef(null);
   const location = useLocation();
@@ -18,6 +26,12 @@ export default function PublicLayout() {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
+  }, [location.pathname]);
+
+  // ─── Browser tab title for all Resources pages ─────────────
+  useEffect(() => {
+    document.title =
+      RESOURCES_TITLES[location.pathname] || "Resources - AniPulse";
   }, [location.pathname]);
 
   return (

@@ -17,6 +17,10 @@ import useScrollRestoration from "../hooks/useScrollRestoration.js";
 import { navigationItems } from "../routes/routeConfig.jsx";
 import { autoBackupService } from "../services/autoBackupService.js";
 
+const PAGE_TITLES = {
+    "/leaderboard": "Leaderboard - AniPulse",
+};
+
 export default function AppLayout() {
     const location = useLocation();
     const [drawer, setDrawer] = useState(false);
@@ -27,10 +31,11 @@ export default function AppLayout() {
         setDrawer(false);
     }, [location.pathname]);
 
-    useEffect(() => {
-        const match = navigationItems.find((i) => i.path === location.pathname);
-        document.title = match?.title || "AniPulse";
-    }, [location.pathname]);
+   useEffect(() => {
+     const match = navigationItems.find((i) => i.path === location.pathname);
+     document.title =
+       match?.title || PAGE_TITLES[location.pathname] || "AniPulse";
+   }, [location.pathname]);
 
     useEffect(() => {
         const profile = JSON.parse(localStorage.getItem("userProfile") || "{}");
