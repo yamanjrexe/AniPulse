@@ -112,17 +112,6 @@ export default function OverviewMetrics() {
             timing: { duration: 1100, delay: 160 },
         },
         {
-            icon: "fa-star",
-            cls: "rating",
-            value: m.avg,
-            decimals: 1,
-            suffix: "★",
-            label: "Average Rating",
-            change: `from ${m.rated} ratings`,
-            changeCls: "neutral",
-            timing: { duration: 900, delay: 240 },
-        },
-        {
             icon: "fa-percent",
             cls: "rate",
             value: m.rate,
@@ -140,15 +129,6 @@ export default function OverviewMetrics() {
             change: m.watching > 0 ? `${m.watching} active` : "none active",
             changeCls: m.watching > 0 ? "positive" : "neutral",
             timing: { duration: 800, delay: 400 },
-        },
-        {
-            icon: "fa-clock",
-            cls: "plan",
-            value: m.plan,
-            label: "Plan to Watch",
-            change: `${m.plan} in queue`,
-            changeCls: "neutral",
-            timing: { duration: 950, delay: 480 },
         },
         {
             icon: "fa-fire",
