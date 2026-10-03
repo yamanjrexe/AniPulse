@@ -1,8 +1,3 @@
-// ============================================================
-// LEVEL SYSTEM — pure logic, no React, no DOM
-// Port of Frontend/Js/services/level-system.js
-// ============================================================
-
 export const LEVELS = [
     { level: 1, title: 'Newbie', xpRequired: 0 },
     { level: 2, title: 'Scout', xpRequired: 100 },
@@ -69,9 +64,6 @@ export const LEVEL_EVENTS = {
     QUEUE_UPDATED: 'queueUpdated',
 };
 
-// ============================================================
-// SAFE STORAGE HELPERS
-// ============================================================
 function safeGet(key, fallback = null) {
     try {
         const v = localStorage.getItem(key);
@@ -94,9 +86,14 @@ function dispatchEvent(name, detail) {
     window.dispatchEvent(new CustomEvent(name, { detail }));
 }
 
-// ============================================================
-// PROFILE — resilient to missing/partial data
-// ============================================================
+function todayKey() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+}
+
 export function getUserProfile() {
     let profile = safeGet(USER_PROFILE_KEY);
 
@@ -111,14 +108,12 @@ export function getUserProfile() {
 
     let changed = false;
 
-    // ─── 1. Seed totalExp from userXP mirror if missing ───
     if (typeof profile.totalExp !== 'number' || isNaN(profile.totalExp)) {
         const mirror = parseInt(localStorage.getItem('userXP') || '0', 10);
         profile.totalExp = Number.isFinite(mirror) && mirror > 0 ? mirror : 0;
         changed = true;
     }
 
-    // ─── 2. Recompute level/title from totalExp if missing ───
     if (typeof profile.level !== 'number' || !profile.title) {
         for (let i = LEVELS.length - 1; i >= 0; i--) {
             if (profile.totalExp >= LEVELS[i].xpRequired) {
@@ -130,7 +125,6 @@ export function getUserProfile() {
         changed = true;
     }
 
-    // ─── 3. Persist the healing ───
     if (changed) {
         safeSet(USER_PROFILE_KEY, profile);
         localStorage.setItem('userXP', String(profile.totalExp));
@@ -142,10 +136,8 @@ export function getUserProfile() {
 }
 
 export function saveUserProfile(profile) {
-    // Normalize
     profile.totalExp = Math.max(0, Math.floor(Number(profile.totalExp) || 0));
 
-    // Recompute level/title from totalExp (authoritative)
     for (let i = LEVELS.length - 1; i >= 0; i--) {
         if (profile.totalExp >= LEVELS[i].xpRequired) {
             profile.level = LEVELS[i].level;
@@ -156,7 +148,6 @@ export function saveUserProfile(profile) {
 
     safeSet(USER_PROFILE_KEY, profile);
 
-    // Keep mirror keys in sync
     localStorage.setItem('userXP', String(profile.totalExp));
     localStorage.setItem('userLevel', String(profile.level));
     localStorage.setItem('userLevelTitle', profile.title);
@@ -165,9 +156,6 @@ export function saveUserProfile(profile) {
     dispatchEvent('syncSchedule');
 }
 
-// ============================================================
-// LEVEL MATH HELPERS
-// ============================================================
 export function getLevelFromXP(totalExp) {
     const xp = Math.max(0, totalExp || 0);
     for (let i = LEVELS.length - 1; i >= 0; i--) {
@@ -201,9 +189,6 @@ export function getLevelStats(totalExp) {
     return { current, next, inLevel, need, remaining, percent };
 }
 
-// ============================================================
-// XP CALCULATION
-// ============================================================
 export function calculateExpFromParts(
     { episodes = 0, progress = 0, duration = 20, type = 'TV', score = 0, hasScore = false } = {},
     { useProgress = false } = {}
@@ -260,9 +245,6 @@ export function recalculateTotalExp() {
     return next;
 }
 
-// ============================================================
-// XP QUEUE
-// ============================================================
 export function getPendingXPQueue() {
     return safeGet(XP_QUEUE_KEY, []) || [];
 }
@@ -329,9 +311,6 @@ export function removeAnimeFromQueue(animeId) {
     savePendingXPQueue(q);
 }
 
-// ============================================================
-// ANTI-ABUSE HISTORY
-// ============================================================
 export function getCompletedAnimeHistory() {
     return safeGet(COMPLETED_ANIME_KEY, {}) || {};
 }
@@ -364,9 +343,6 @@ export function removeAnimeFromCompletedHistory(animeId) {
     return true;
 }
 
-// ============================================================
-// RATE LIMIT
-// ============================================================
 export function canGainNow() {
     const profile = getUserProfile();
     const now = Date.now();
@@ -376,9 +352,6 @@ export function canGainNow() {
     return true;
 }
 
-// ============================================================
-// CORE AWARD LOGIC
-// ============================================================
 function awardXPInternal(anime, earned) {
     const today = new Date().toDateString();
     const key = `dailyXP_${today}`;
@@ -393,7 +366,6 @@ function awardXPInternal(anime, earned) {
         prevLevel,
     };
 
-    // ─── Case A: daily cap already reached → queue all ───
     if (todayXP >= MAX_DAILY_XP) {
         addToPendingQueue(anime, earned);
 
@@ -409,7 +381,6 @@ function awardXPInternal(anime, earned) {
         return { awarded: 0, queued: earned, popupData };
     }
 
-    // ─── Case B: partial → split between now and queue ───
     if (todayXP + earned > MAX_DAILY_XP) {
         const addNow = MAX_DAILY_XP - todayXP;
         const queueRest = earned - addNow;
@@ -433,7 +404,6 @@ function awardXPInternal(anime, earned) {
         return { awarded: addNow, queued: queueRest, popupData };
     }
 
-    // ─── Case C: normal — full award ───
     todayXP += earned;
     localStorage.setItem(key, String(todayXP));
     profile.totalExp += earned;
@@ -450,9 +420,29 @@ function awardXPInternal(anime, earned) {
     return { awarded: earned, popupData };
 }
 
-// ============================================================
-// DELTA PROCESSING
-// ============================================================
+function creditTodayOnly(anime, earned) {
+    const today = new Date().toDateString();
+    const key = `dailyXP_${today}`;
+    let todayXP = parseInt(localStorage.getItem(key) || '0', 10);
+
+    if (todayXP >= MAX_DAILY_XP) {
+        addToPendingQueue(anime, earned);
+        return;
+    }
+
+    if (todayXP + earned > MAX_DAILY_XP) {
+        const addNow = MAX_DAILY_XP - todayXP;
+        const queueRest = earned - addNow;
+        todayXP += addNow;
+        localStorage.setItem(key, String(todayXP));
+        if (queueRest > 0) addToPendingQueue(anime, queueRest);
+        return;
+    }
+
+    todayXP += earned;
+    localStorage.setItem(key, String(todayXP));
+}
+
 export function processAnimeDelta(oldA, newA) {
     if (!newA || typeof newA !== 'object') return { awarded: 0 };
     if (!oldA || typeof oldA !== 'object') return { awarded: 0 };
@@ -461,12 +451,10 @@ export function processAnimeDelta(oldA, newA) {
     const oldStatus = oldA.userStatus;
     const newStatus = newA.userStatus;
 
-    // Anti-abuse: already completed before → skip
     if (wasCompleted && oldStatus !== 'Completed' && newStatus === 'Completed') {
         return { awarded: 0, blocked: true };
     }
 
-    // Only award on first Completed transition
     if (wasCompleted || oldStatus === 'Completed' || newStatus !== 'Completed') {
         return { awarded: 0 };
     }
@@ -487,16 +475,13 @@ export function processAnimeDelta(oldA, newA) {
     return awardXPInternal(newA, earned);
 }
 
-// ============================================================
-// BATCH DIRECTLY-COMPLETED DETECTION
-// ============================================================
 export function checkForDirectlyCompletedAnime(animeList) {
     if (!Array.isArray(animeList) || animeList.length === 0) {
-        return { processed: 0, popups: [] };
+        return { processed: 0 };
     }
 
     const history = getCompletedAnimeHistory();
-    const popups = [];
+    const tk = todayKey();
     let processed = 0;
 
     animeList.forEach((anime) => {
@@ -504,27 +489,60 @@ export function checkForDirectlyCompletedAnime(animeList) {
         if (history[anime.id]) return;
 
         const earned =
-            calculateExpFromParts({
-                episodes: anime.episodes || 0,
-                progress: anime.progress || anime.episodes || 0,
-                duration: anime.duration || 20,
-                type: anime.type,
-                score: anime.score || 0,
-                hasScore: !!anime.score,
-            }) + 10;
+            calculateExpFromParts(
+                {
+                    episodes: anime.episodes || 0,
+                    progress: anime.progress || anime.episodes || 0,
+                    duration: anime.duration || 20,
+                    type: anime.type,
+                    score: anime.score || 0,
+                    hasScore: !!anime.score,
+                },
+                { useProgress: true }
+            ) + 10;
 
         markAnimeAsCompleted(anime.id, anime.title, earned);
-        const result = awardXPInternal(anime, earned);
+
+        if (anime.actualFinishDate === tk) {
+            creditTodayOnly(anime, earned);
+        }
+
         processed++;
-        if (result.popupData) popups.push(result.popupData);
     });
 
-    return { processed, popups };
+    return { processed };
 }
 
-// ============================================================
-// DAILY RESET
-// ============================================================
+export function recomputeDailyXP() {
+    const today = new Date().toDateString();
+    const key = `dailyXP_${today}`;
+    const tk = todayKey();
+    const list = safeGet(ANIME_DATA_KEY, []) || [];
+
+    let total = 0;
+    list.forEach((a) => {
+        if (a.userStatus !== 'Completed') return;
+        if (a.actualFinishDate !== tk) return;
+
+        total +=
+            calculateExpFromParts(
+                {
+                    episodes: a.episodes || 0,
+                    progress: a.progress || 0,
+                    duration: a.duration || 20,
+                    type: a.type,
+                    score: a.score || 0,
+                    hasScore: !!a.score,
+                },
+                { useProgress: true }
+            ) + 10;
+    });
+
+    const capped = Math.min(total, MAX_DAILY_XP);
+    localStorage.setItem(key, String(capped));
+    return capped;
+}
+
 export function checkDailyReset() {
     const lastReset = localStorage.getItem('lastResetDate');
     const today = new Date().toDateString();
@@ -542,9 +560,6 @@ export function checkDailyReset() {
     return true;
 }
 
-// ============================================================
-// TODAY'S XP
-// ============================================================
 export function getTodayXP() {
     const today = new Date().toDateString();
     return parseInt(localStorage.getItem(`dailyXP_${today}`) || '0', 10);
