@@ -119,10 +119,6 @@ body.modal-open .modal-content {
     color: var(--brand-red);
 }
 
-/* ============================================================
-   MODAL FORM
-   ============================================================ */
-
 .modal .form-group {
     margin-bottom: 0;
     position: relative;
@@ -205,8 +201,6 @@ body.modal-open .modal-content {
     color: var(--text-primary);
 }
 
-/* ---------- ROWS: 24px vertical rhythm ---------- */
-
 .modal .form-row {
     display: grid;
     gap: var(--sp-4);
@@ -225,14 +219,10 @@ body.modal-open .modal-content {
     margin-bottom: 0;
 }
 
-/* Standalone form-groups (Title, Cover URL, Genres) */
 .modal form>.form-group,
 .modal>.modal-content>.form-group {
     margin-bottom: var(--sp-6);
 }
-
-/* ---------- COMPLETION DATE BOX ---------- */
-/* Same surface as the modal — grouped by border only */
 
 .modal .completion-date-box {
     padding: var(--sp-4);
@@ -251,10 +241,6 @@ body.modal-open .modal-content {
     color: var(--text-muted);
     font-size: var(--fs-12);
 }
-
-/* ============================================================
-   SEARCH INPUT + RESULTS
-   ============================================================ */
 
 .modal .form-group-search {
     position: relative;
@@ -337,7 +323,6 @@ body.modal-open .modal-content {
     color: var(--text-muted);
 }
 
-/* Chips never break internally */
 .modal .search-result-meta>span {
     white-space: nowrap;
     flex: 0 0 auto;
@@ -388,10 +373,6 @@ body.modal-open .modal-content {
     }
 }
 
-/* ============================================================
-   FORM ACTIONS
-   ============================================================ */
-
 .modal .form-actions {
     display: flex;
     justify-content: flex-end;
@@ -404,10 +385,6 @@ body.modal-open .modal-content {
 .modal .form-actions .btn {
     min-width: 100px;
 }
-
-/* ============================================================
-   FILE INPUT
-   ============================================================ */
 
 .modal .file-input-wrapper {
     position: relative;
@@ -445,10 +422,6 @@ body.modal-open .modal-content {
     border-color: var(--brand-yellow-border);
     color: var(--text-primary);
 }
-
-/* ============================================================
-   PROFILE MODAL
-   ============================================================ */
 
 .profile-modal-body {
     padding: var(--sp-5) var(--sp-6) var(--sp-6);
@@ -773,10 +746,6 @@ body.modal-open .modal-content {
     color: var(--text-muted);
 }
 
-/* ============================================================
-   LOADING / EMPTY STATES
-   ============================================================ */
-
 .loading-spinner {
     display: flex;
     align-items: center;
@@ -837,10 +806,6 @@ body.modal-open .modal-content {
 .empty-state-action:hover {
     background: var(--brand-yellow-hover);
 }
-
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
 
 @media (max-width: 768px) {
     .modal {
@@ -932,7 +897,6 @@ body.modal-open .modal-content {
     .modal .form-group select,
     .modal .form-group textarea {
         padding: 10px 12px;
-        font-size: var(--fs-13);
     }
 
     .profile-avatar-large img {
@@ -957,5 +921,38 @@ body.modal-open .modal-content {
     .modal .form-group select,
     .modal .form-group textarea {
         transition: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+
+    .modal input:not([type="checkbox"]):not([type="radio"]),
+    .modal select,
+    .modal textarea,
+    .modal .form-group input:not([type="checkbox"]):not([type="radio"]),
+    .modal .form-group select,
+    .modal .form-group textarea,
+    .modal .search-input input,
+    .modal input[type="text"],
+    .modal input[type="number"],
+    .modal input[type="email"],
+    .modal input[type="password"],
+    .modal input[type="search"],
+    .modal input[type="tel"],
+    .modal input[type="url"],
+    .modal input[type="date"],
+    .modal input[type="time"] {
+        font-size: 16px !important;
+        line-height: 1.4;
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+    }
+
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea {
+        font-size: 16px !important;
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
     }
 }
