@@ -745,9 +745,6 @@ export default function UserProfileModal({ userId, onClose }) {
                       <EmptyState icon="fa-inbox" message={`No ${tab} anime`} />
                     );
 
-                  // Already sorted recent-first when
-                  // the profile was built. Show only
-                  // the most recent 30.
                   const recent = list.slice(0, 30);
 
                   return (
@@ -805,14 +802,20 @@ export default function UserProfileModal({ userId, onClose }) {
                             >
                               {a.title}
                             </div>
-                            <div
-                              style={{
-                                fontSize: "0.65rem",
-                                color: "#797979",
-                                marginTop: 2,
-                              }}
-                            >
-                              {a.episodes || 0} eps
+                            <div style={{ padding: 8 }}>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "center",
+                                  marginTop: 4,
+                                  fontSize: "0.65rem",
+                                  color: "#797979",
+                                }}
+                              >
+                                <span>{a.type || "Unknown"}</span>
+                                <span>{a.episodes || 0} Eps</span>
+                              </div>
                             </div>
                           </div>
                         </div>

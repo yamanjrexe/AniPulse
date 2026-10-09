@@ -2,9 +2,19 @@ import React from "react";
 
 const RELEASES = [
   {
+    version: "3.1.1",
+    date: "October 9th 2026",
+    tag: "",
+    items: [
+      "Period Stats now remembers month/year filter across reloads and sessions",
+      "Completion Journey now shows Most Active Year — was rendering blank",
+      "Achievements: 7-Day and 30-Day Streak badges now unlock correctly — IDs were mismatched",
+    ],
+  },
+  {
     version: "3.1.0",
     date: "October 3rd 2026",
-    tag: "Latest",
+    tag: "",
     items: [
       "Daily XP counter is now rebuilt from your library on every load — no inflated numbers",
       "XP Queue card shows real earnings for today, capped at the true daily limit",
@@ -14,7 +24,7 @@ const RELEASES = [
   {
     version: "3.0.0",
     date: "September 25th 2026",
-    tag: "1 week ago",
+    tag: "",
     items: [
       "Complete design system refresh — every page rebuilt from scratch",
       "Rewritten streak engine — server-authoritative and consistent across devices",

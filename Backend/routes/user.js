@@ -414,9 +414,9 @@ router.get('/full-profile/:userId', verifyToken, async (req, res) => {
         totalEpisodes,
       },
       animeList: {
-        completed: completed.slice(0, 21),
-        watching: watching.slice(0, 21),
-        planToWatch: plan.slice(0, 21),
+        completed: completed.slice(0, 30),
+        watching: watching.slice(0, 30),
+        planToWatch: plan.slice(0, 30),
       },
       achievements: unlocked,
       recentActivity,
