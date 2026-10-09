@@ -12,6 +12,7 @@ const friendsRoutes = require('./routes/friends');
 const userRoutes = require('./routes/user');
 const uploadRoutes = require('./routes/upload');
 const chatRoutes = require('./routes/chat');
+const anilistRoutes = require('./routes/anilist');
 
 const app = express();
 
@@ -116,7 +117,7 @@ app.use('/api/friends', friendsRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/chat', chatRoutes);
-
+app.use('/api/anilist', anilistRoutes);
 app.get('/api/health', (req, res) => {
     res.json({
         status: 'ok',

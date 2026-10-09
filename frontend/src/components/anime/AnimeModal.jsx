@@ -8,6 +8,7 @@ import { useSync } from "../../context/SyncContext.jsx";
 import { searchAniList } from "../../services/anilist.js";
 import { animeService } from "../../services/animeService.js";
 import { openDayPrompt } from "../ui/DayPromptModal.jsx";
+import { anilistSync } from "../../services/anilistSync.js";
 
 const DEFAULT_DURATION = {
   Movie: 120,
@@ -114,9 +115,6 @@ export default function AnimeModal() {
 
   const [form, setForm] = useState(defaultForm());
 
-  // ============================================================
-  // LIVE REFS
-  // ============================================================
   const animeDataRef = useRef(animeData);
   const openRef = useRef(open);
   const editingRef = useRef(editing);
@@ -131,13 +129,10 @@ export default function AnimeModal() {
     editingRef.current = editing;
   }, [editing]);
 
-  // ============================================================
-  // MODAL LOCK
-  // ============================================================
+  // ?? Modal lock ??
   useEffect(() => {
     if (!open) return;
 
-    // ---------- 1. Freeze background scroll ----------
     const scrollbarWidth =
       window.innerWidth - document.documentElement.clientWidth;
 
@@ -158,7 +153,6 @@ export default function AnimeModal() {
     document.body.classList.add("modal-open");
     document.body.setAttribute("data-anime-modal-open", "true");
 
-    // ---------- 2. Block wheel + touch outside the modal ----------
     const isInsideModalContent = (el) => {
       while (el && el !== document.body) {
         if (el.classList?.contains("modal-content")) return true;
@@ -187,7 +181,6 @@ export default function AnimeModal() {
       capture: true,
     });
 
-    // ---------- 3. Swallow every other open*Modal event ----------
     const originalDispatch = window.dispatchEvent;
     window.dispatchEvent = function (event) {
       if (
@@ -196,7 +189,6 @@ export default function AnimeModal() {
         event.type !== "openAddAnimeModal" &&
         event.type !== "openEditAnimeModal"
       ) {
-        // eslint-disable-next-line no-console
         console.warn(
           `[AnimeModal] Suppressed "${event.type}" while modal is open.`,
         );
@@ -205,7 +197,6 @@ export default function AnimeModal() {
       return originalDispatch.call(this, event);
     };
 
-    // ---------- Cleanup ----------
     return () => {
       document.body.style.overflow = prevBodyOverflow;
       document.body.style.paddingRight = prevBodyPaddingRight;
@@ -215,7 +206,9 @@ export default function AnimeModal() {
       document.body.classList.remove("modal-open");
       document.body.removeAttribute("data-anime-modal-open");
 
-      document.removeEventListener("wheel", blockWheel, { capture: true });
+      document.removeEventListener("wheel", blockWheel, {
+        capture: true,
+      });
       document.removeEventListener("touchmove", blockTouchMove, {
         capture: true,
       });
@@ -224,9 +217,6 @@ export default function AnimeModal() {
     };
   }, [open]);
 
-  // ============================================================
-  // RESET
-  // ============================================================
   const resetState = useCallback(() => {
     setEditing(null);
     setForm(defaultForm());
@@ -252,9 +242,6 @@ export default function AnimeModal() {
     resetState();
   }, [resetState]);
 
-  // ============================================================
-  // OPEN LISTENERS
-  // ============================================================
   useEffect(() => {
     const onNew = () => {
       if (openRef.current) return;
@@ -320,9 +307,7 @@ export default function AnimeModal() {
     };
   }, [resetState, showToast]);
 
-  // ============================================================
-  // DEBOUNCED SEARCH
-  // ============================================================
+  // ?? Debounced AniList search ??
   useEffect(() => {
     if (editing) return;
 
@@ -342,7 +327,9 @@ export default function AnimeModal() {
         const controller = new AbortController();
         abortRef.current = controller;
 
-        const r = await searchAniList(q, { signal: controller.signal });
+        const r = await searchAniList(q, {
+          signal: controller.signal,
+        });
 
         if (!controller.signal.aborted) {
           setResults(r || []);
@@ -365,9 +352,6 @@ export default function AnimeModal() {
     };
   }, [query, editing]);
 
-  // ============================================================
-  // FORM HELPERS
-  // ============================================================
   const setField = (key, value) => setForm((f) => ({ ...f, [key]: value }));
 
   const handleTypeChange = (newType) =>
@@ -389,6 +373,20 @@ export default function AnimeModal() {
   const handleProgressChange = (value) => {
     const n = Math.max(0, parseInt(value, 10) || 0);
     setForm((f) => ({ ...f, progress: Math.min(n, f.episodes || 0) }));
+  };
+
+  // ?? Status change: auto-bump progress to at least 1 for Watching ??
+  const handleStatusChange = (newStatus) => {
+    setForm((f) => {
+      let progress = f.progress;
+      if (newStatus === "Watching" && progress < 1) {
+        progress = 1;
+      }
+      if (f.episodes > 0 && progress > f.episodes) {
+        progress = f.episodes;
+      }
+      return { ...f, userStatus: newStatus, progress };
+    });
   };
 
   const selectResult = (r) => {
@@ -415,9 +413,6 @@ export default function AnimeModal() {
     setResults([]);
   };
 
-  // ============================================================
-  // SUBMIT
-  // ============================================================
   const handleSubmit = async (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -437,7 +432,13 @@ export default function AnimeModal() {
     let duration = parseInt(form.duration, 10) || 0;
     if (!duration) duration = DEFAULT_DURATION[type] || 20;
     const status = form.userStatus || "Plan to Watch";
-    const progress = Math.min(parseInt(form.progress, 10) || 0, episodes);
+
+    // Progress floor: Watching needs at least 1
+    let progress = Math.min(parseInt(form.progress, 10) || 0, episodes);
+    if (status === "Watching" && progress < 1) {
+      progress = 1;
+    }
+
     const score = form.score !== "" ? parseFloat(form.score) : null;
     const cover = form.cover || "";
     const genres = (form.genres || "")
@@ -521,6 +522,11 @@ export default function AnimeModal() {
             : `"${title}" updated successfully!`,
           "success",
         );
+
+        anilistSync.invalidateStatus();
+        anilistSync
+          .syncAnime(updatedAnime, "upsert")
+          .catch((err) => console.warn("[AniList] edit sync failed:", err));
       } else {
         const newId = animeService.getNextAvailableId(animeDataSnapshot);
         const newAnime = {
@@ -551,6 +557,11 @@ export default function AnimeModal() {
             : `"${title}" added successfully!`,
           "success",
         );
+
+        anilistSync.invalidateStatus();
+        anilistSync
+          .syncAnime(newAnime, "upsert")
+          .catch((err) => console.warn("[AniList] add sync failed:", err));
       }
 
       close();
@@ -575,9 +586,6 @@ export default function AnimeModal() {
     }
   };
 
-  // ============================================================
-  // DELETE
-  // ============================================================
   const handleDelete = () => {
     if (!editing) return;
     setConfirmDelete(true);
@@ -597,6 +605,11 @@ export default function AnimeModal() {
       logActivity("deleted", deletedTitle);
       showToast("Anime deleted successfully", "success");
 
+      anilistSync.invalidateStatus();
+      anilistSync
+        .syncAnime({ id: targetId, title: deletedTitle }, "delete")
+        .catch((err) => console.warn("[AniList] delete sync failed:", err));
+
       close();
 
       setTimeout(() => {
@@ -611,9 +624,6 @@ export default function AnimeModal() {
     }
   };
 
-  // ============================================================
-  // RENDER
-  // ============================================================
   const isEditing = Boolean(editing);
   const durationEditable = isDurationEditable(form.type);
   const years = Array.from(
@@ -628,7 +638,22 @@ export default function AnimeModal() {
         onClose={close}
         title={isEditing ? "Edit Anime" : "Add New Anime"}
       >
-        <form onSubmit={handleSubmit} id="addAnimeForm">
+        <form
+          onSubmit={handleSubmit}
+          onKeyDown={(e) => {
+            // Enter submits from inputs and selects,
+            // but not from textareas or when the search
+            // dropdown is open
+            if (e.key === "Enter" && !e.shiftKey) {
+              const tag = e.target.tagName;
+              if (tag === "INPUT" || tag === "SELECT") {
+                e.preventDefault();
+                if (!submitting) handleSubmit(e);
+              }
+            }
+          }}
+          id="addAnimeForm"
+        >
           <div className="form-group form-group-search">
             <label htmlFor="animeTitle">Title</label>
             <input
@@ -753,7 +778,7 @@ export default function AnimeModal() {
               <select
                 id="animeStatus"
                 value={form.userStatus}
-                onChange={(e) => setField("userStatus", e.target.value)}
+                onChange={(e) => handleStatusChange(e.target.value)}
               >
                 <option value="Completed">Completed</option>
                 <option value="Watching">Watching</option>

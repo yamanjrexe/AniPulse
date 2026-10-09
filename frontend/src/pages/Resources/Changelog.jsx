@@ -2,6 +2,18 @@ import React from "react";
 
 const RELEASES = [
   {
+  version: "3.1.2",
+  date: "October 10th 2026",
+  tag: "",
+  items: [
+    "AniList Sync: connect  AniList account and keep both libraries in sync automatically — adds, edits, and deletes push in the background",
+    "AniList Sync: combined-season entries supported — progress is capped to AniList's actual episode count when the two differ",
+    "AniList Sync: live progress bar shows how many anime are queued and syncing",
+    "AniList Sync: title matching is deeper — searches across romaji, English, native, and synonyms, and tries cleaned-up title variants when the first search comes up empty",
+    "AniList Sync: 'Deep re-sync' re-searches every anime from scratch — use this to fix entries that were matched to the wrong format by an earlier version",
+  ],
+},
+  {
     version: "3.1.1",
     date: "October 9th 2026",
     tag: "",

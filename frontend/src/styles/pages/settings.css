@@ -768,6 +768,189 @@
     color: var(--text-muted);
 }
 
+/* ============================================================
+   AniList connected view
+   ============================================================ */
+
+#tab-sync .anilist-connected-view {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+#tab-sync .anilist-row {
+    display: block;
+}
+
+#tab-sync .anilist-status-row {
+    margin: 0;
+}
+
+#tab-sync .anilist-status-row .sync-status {
+    margin: 0;
+}
+
+/* ---------- Progress block ---------- */
+
+#tab-sync .anilist-progress-row {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--r-md);
+}
+
+#tab-sync .anilist-progress-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.8125rem;
+}
+
+#tab-sync .anilist-progress-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    font-weight: var(--fw-medium);
+}
+
+#tab-sync .anilist-progress-label i {
+    color: var(--brand-yellow);
+    font-size: 0.75rem;
+}
+
+#tab-sync .anilist-progress-count {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+#tab-sync .anilist-progress-sep {
+    color: var(--text-muted);
+    font-weight: var(--fw-regular);
+    padding: 0 2px;
+}
+
+#tab-sync .anilist-progress-track {
+    width: 100%;
+    height: 8px;
+    background: var(--border-default);
+    border-radius: var(--r-pill);
+    overflow: hidden;
+}
+
+#tab-sync .anilist-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg,
+            var(--brand-yellow) 0%,
+            #FFEE4A 100%);
+    border-radius: var(--r-pill);
+    transition: width 400ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* ---------- Actions row ---------- */
+
+#tab-sync .anilist-actions-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    padding-top: 4px;
+}
+
+#tab-sync .anilist-actions-row .btn {
+    min-width: 0;
+}
+
+/* ---------- Ghost button (Disconnect) ---------- */
+
+#tab-sync .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    min-height: 40px;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid transparent;
+    border-radius: var(--r-sm);
+    font-family: var(--font-sans);
+    font-size: var(--fs-13);
+    font-weight: var(--fw-medium);
+    cursor: pointer;
+    transition:
+        background-color var(--dur-fast) var(--ease-standard),
+        border-color var(--dur-fast) var(--ease-standard),
+        color var(--dur-fast) var(--ease-standard);
+}
+
+#tab-sync .btn-ghost:hover:not(:disabled) {
+    background: var(--brand-red-soft);
+    border-color: var(--brand-red-border);
+    color: var(--brand-red);
+}
+
+#tab-sync .btn-ghost:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ---------- Footer note ---------- */
+
+#tab-sync .anilist-footer-row {
+    padding-top: 4px;
+    border-top: 1px solid var(--border-subtle);
+    margin-top: 4px;
+    padding-top: 14px;
+}
+
+#tab-sync .anilist-footer-note {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+#tab-sync .anilist-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #22C55E;
+    flex-shrink: 0;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 480px) {
+    #tab-sync .anilist-actions-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    #tab-sync .anilist-actions-row .btn,
+    #tab-sync .anilist-actions-row .btn-ghost {
+        width: 100%;
+        justify-content: center;
+    }
+
+    #tab-sync .anilist-progress-row {
+        padding: 12px;
+    }
+}
+
 /* ---------- TAG INPUT (favorite anime) ---------- */
 .tag-input-wrapper {
     position: relative;

@@ -437,6 +437,9 @@ export default function Landing() {
               <h3>Resources</h3>
               <ul className="footer-links">
                 <li>
+                  <Link to="/resources/about">About</Link>
+                </li>
+                <li>
                   <Link to="/resources/docs">Documentation</Link>
                 </li>
                 <li>
@@ -444,9 +447,6 @@ export default function Landing() {
                 </li>
                 <li>
                   <Link to="/resources/changelog">Changelog</Link>
-                </li>
-                <li>
-                  <Link to="/resources/about">About</Link>
                 </li>
               </ul>
             </div>
