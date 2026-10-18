@@ -38,7 +38,7 @@ function compare(current, previous) {
   if (previous === 0 && current === 0)
     return { cls: "neutral", icon: "fa-minus", text: "No data" };
   if (previous === 0 && current > 0)
-    return { cls: "positive", icon: "fa-arrow-up", text: "New activity" };
+    return { cls: "neutral", icon: "fa-minus", text: "New activity" };
   if (previous > 0 && current === 0)
     return { cls: "negative", icon: "fa-arrow-down", text: "No activity" };
 

@@ -10,7 +10,7 @@
   <a href="https://ani-pulse.netlify.app/">
     <img src="https://img.shields.io/badge/live-demo-FCE706?style=for-the-badge&labelColor=050505" alt="Live Demo" />
   </a>
-  <img src="https://img.shields.io/badge/version-3.0.0-FCE706?style=for-the-badge&labelColor=050505" alt="Version" />
+  <img src="https://img.shields.io/badge/version-3.1.3-FCE706?style=for-the-badge&labelColor=050505" alt="Version" />
   <img src="https://img.shields.io/badge/license-MIT-F90415?style=for-the-badge&labelColor=050505" alt="License" />
 </p>
 
