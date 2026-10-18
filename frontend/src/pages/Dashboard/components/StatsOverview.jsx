@@ -1,272 +1,208 @@
-import React, { useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import { useAnime } from "../../../context/AnimeContext.jsx";
-import { useSync } from "../../../context/SyncContext.jsx";
-import { useToast } from "../../../context/ToastContext.jsx";
-import ConfirmDialog from "../../../components/ui/ConfirmDialog.jsx";
+import CountUp from "../../../components/ui/CountUp.jsx";
 
-function timeAgo(ts) {
-  if (!ts) return "Just now";
-  const d = new Date(ts);
-  const diff = (Date.now() - d.getTime()) / 1000;
-  if (diff < 60) return "Just now";
-  if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
-  if (diff < 604800) return `${Math.floor(diff / 86400)} days ago`;
-  return d.toLocaleDateString();
+function getMonthStats(animeData, year, month) {
+  let completed = 0,
+    movies = 0,
+    episodes = 0,
+    minutes = 0;
+
+  (animeData || []).forEach((a) => {
+    if (a.userStatus !== "Completed") return;
+    const dstr = a.actualFinishDate || a.finishDate;
+    if (!dstr) return;
+    const d = new Date(dstr);
+    if (isNaN(d) || d.getMonth() !== month || d.getFullYear() !== year) return;
+
+    completed++;
+    if (a.type === "Movie") {
+      movies++;
+      episodes += 1;
+      minutes += a.duration || 120;
+    } else {
+      episodes += a.episodes || 0;
+      minutes += (a.episodes || 0) * (a.duration || 20);
+    }
+  });
+
+  return {
+    completed,
+    movies,
+    episodes,
+    hours: Math.floor(minutes / 60),
+  };
 }
 
-const ICONS = {
-  added: { cls: "added", icon: "plus" },
-  completed: { cls: "completed", icon: "check" },
-  watching: { cls: "watching", icon: "play" },
-  edited: { cls: "edited", icon: "edit" },
-  deleted: { cls: "deleted", icon: "trash" },
+function compare(current, previous) {
+  if (previous === 0 && current === 0)
+    return { cls: "neutral", icon: "fa-minus", text: "No data" };
+  if (previous === 0 && current > 0)
+    return { cls: "positive", icon: "fa-arrow-up", text: "New activity" };
+  if (previous > 0 && current === 0)
+    return { cls: "negative", icon: "fa-arrow-down", text: "No activity" };
+
+  const change = ((current - previous) / previous) * 100;
+  const abs = Math.abs(change);
+
+  if (abs < 1) return { cls: "neutral", icon: "fa-minus", text: "No change" };
+
+  return change > 0
+    ? {
+        cls: "positive",
+        icon: "fa-arrow-up",
+        text: `${abs.toFixed(1)}% more`,
+      }
+    : {
+        cls: "negative",
+        icon: "fa-arrow-down",
+        text: `${abs.toFixed(1)}% less`,
+      };
+}
+
+const BADGE_STYLES = {
+  positive: {
+    bg: "rgba(16,185,129,0.12)",
+    color: "#10B981",
+    border: "rgba(16,185,129,0.3)",
+  },
+  negative: {
+    bg: "rgba(239,68,68,0.12)",
+    color: "#EF4444",
+    border: "rgba(239,68,68,0.3)",
+  },
+  neutral: {
+    bg: "rgba(148,163,184,0.12)",
+    color: "#94A3B8",
+    border: "rgba(148,163,184,0.3)",
+  },
 };
 
-export default function RecentActivity() {
-  const { activityLog, setActivityLog } = useAnime();
-  const { syncToCloud } = useSync();
-  const { showToast } = useToast();
+export default function StatsOverview() {
+  const { animeData } = useAnime();
 
-  const [filter, setFilter] = useState("all");
-  const [deleteTarget, setDeleteTarget] = useState(null);
-  const [clearConfirm, setClearConfirm] = useState(false);
-  const [syncing, setSyncing] = useState(false);
-
-  const filteredLog = useMemo(() => {
+  const { current, previous, monthName, isJanuary } = useMemo(() => {
     const now = new Date();
-    return activityLog.filter((a) => {
-      if (!a.timestamp) return true;
-      const d = new Date(a.timestamp);
+    const y = now.getFullYear();
+    const m = now.getMonth();
 
-      if (filter === "today") {
-        return d.toDateString() === now.toDateString();
-      }
-      if (filter === "7days") {
-        const diff = (now.getTime() - d.getTime()) / (1000 * 3600 * 24);
-        return diff <= 7;
-      }
-      if (filter === "this_month") {
-        return (
-          d.getMonth() === now.getMonth() &&
-          d.getFullYear() === now.getFullYear()
-        );
-      }
-      if (filter === "last_month") {
-        let lm = now.getMonth() - 1;
-        let ly = now.getFullYear();
-        if (lm < 0) {
-          lm = 11;
-          ly--;
-        }
-        return d.getMonth() === lm && d.getFullYear() === ly;
-      }
-      return true; // 'all'
-    });
-  }, [activityLog, filter]);
-
-  const handleDelete = async () => {
-    if (!deleteTarget) return;
-    setSyncing(true);
-
-    const newLog = activityLog.filter((a) => a.id !== deleteTarget);
-
-    // 1. Update React State
-    setActivityLog(newLog);
-    // 2. Force LocalStorage update immediately so syncToCloud picks it up
-    localStorage.setItem("activityLog", JSON.stringify(newLog));
-
-    setDeleteTarget(null);
-
-    try {
-      if (syncToCloud) await syncToCloud();
-      showToast("Activity deleted and synced", "success");
-    } catch (err) {
-      console.error(err);
-      showToast("Deleted locally, but cloud sync failed", "error");
-    } finally {
-      setSyncing(false);
+    let py = y,
+      pm = m - 1;
+    if (pm < 0) {
+      pm = 11;
+      py--;
     }
-  };
 
-  const handleClearAll = async () => {
-    setSyncing(true);
-    setClearConfirm(false);
+    return {
+      current: getMonthStats(animeData, y, m),
+      previous: getMonthStats(animeData, py, pm),
+      monthName: now.toLocaleString("default", { month: "long" }),
+      isJanuary: m === 0,
+    };
+  }, [animeData]);
 
-    setActivityLog([]);
-    localStorage.setItem("activityLog", JSON.stringify([]));
-
-    try {
-      if (syncToCloud) await syncToCloud();
-      showToast("All history cleared and synced", "success");
-    } catch (err) {
-      console.error(err);
-      showToast("Cleared locally, but cloud sync failed", "error");
-    } finally {
-      setSyncing(false);
-    }
-  };
+  const cards = [
+    {
+      value: current.completed,
+      label: "Total Completed",
+      icon: "fa-check-circle",
+      tone: "success",
+      change: isJanuary ? null : compare(current.completed, previous.completed),
+    },
+    {
+      value: current.movies,
+      label: "Total Movies",
+      icon: "fa-video",
+      tone: "info",
+      change: isJanuary ? null : compare(current.movies, previous.movies),
+    },
+    {
+      value: current.episodes,
+      label: "Total Episodes",
+      icon: "fa-play-circle",
+      tone: "warning",
+      change: isJanuary ? null : compare(current.episodes, previous.episodes),
+    },
+    {
+      value: current.hours,
+      label: "Total Hours",
+      icon: "fa-clock",
+      tone: "primary",
+      change: isJanuary ? null : compare(current.hours, previous.hours),
+    },
+  ];
 
   return (
     <section className="dashboard-section">
-      <div
-        className="section-header"
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: "10px",
-          marginBottom: "1rem",
-        }}
-      >
-        <h2 className="section-title" style={{ margin: 0 }}>
-          <i className="fas fa-history" /> Recent Activity
-        </h2>
-
-        {/* Filter Dropdown */}
-        <select
-          className="form-input"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          style={{
-            width: "auto",
-            padding: "6px 30px 6px 12px",
-            fontSize: "0.85rem",
-            borderRadius: "8px",
-            background: "var(--bg-card)",
-            border: "1px solid var(--border-default)",
-            color: "var(--text-primary)",
-            cursor: "pointer",
-          }}
-        >
-          <option value="all">All Time</option>
-          <option value="today">Today</option>
-          <option value="7days">Last 7 Days</option>
-          <option value="this_month">This Month</option>
-          <option value="last_month">Last Month</option>
-        </select>
+      <h2 className="section-title">
+        <i className="fas fa-tachometer-alt" aria-hidden="true" /> Overview (
+        {monthName})
+      </h2>
+      <div className="stats-grid">
+        {cards.map((c, i) => (
+          <Card key={i} {...c} index={i} />
+        ))}
       </div>
-
-      <div className="activity-card fade-in">
-        <div className="activity-header">
-          <div className="activity-title">Latest Changes</div>
-          {activityLog.length > 0 && (
-            <button
-              className="btn btn-danger btn-sm"
-              onClick={() => setClearConfirm(true)}
-              disabled={syncing}
-              style={{ fontSize: "0.75rem", padding: "4px 10px" }}
-            >
-              {syncing ? (
-                <i className="fas fa-spinner fa-spin" />
-              ) : (
-                <i className="fas fa-trash-alt" />
-              )}{" "}
-              Clear All
-            </button>
-          )}
-        </div>
-
-        <div
-          className="activity-list"
-          style={{ maxHeight: "400px", overflowY: "auto" }}
-        >
-          {filteredLog.length === 0 ? (
-            <div
-              className="no-activity"
-              style={{ padding: "2rem", textAlign: "center", opacity: 0.6 }}
-            >
-              No activity found for this period.
-            </div>
-          ) : (
-            filteredLog.map((a) => {
-              const info = ICONS[a.action] || ICONS.edited;
-              const text =
-                a.action === "added"
-                  ? `Added ${a.animeTitle} to your list`
-                  : a.action === "completed"
-                    ? `Completed ${a.animeTitle}`
-                    : a.action === "watching"
-                      ? `Started watching ${a.animeTitle}`
-                      : a.action === "deleted"
-                        ? `Removed ${a.animeTitle}`
-                        : `Updated ${a.animeTitle}`;
-
-              return (
-                <div
-                  key={a.id}
-                  className="activity-item"
-                  style={{ position: "relative", paddingRight: "40px" }}
-                >
-                  <div className={`activity-icon ${info.cls}`}>
-                    <i className={`fas fa-${info.icon}`} />
-                  </div>
-                  <div className="activity-content">
-                    <div className="activity-anime">{a.animeTitle}</div>
-                    <div className="activity-desc">{text}</div>
-                  </div>
-                  <div className="activity-time">{timeAgo(a.timestamp)}</div>
-
-                  {/* Hover Delete Button */}
-                  <button
-                    className="activity-delete-btn"
-                    onClick={() => setDeleteTarget(a.id)}
-                    disabled={syncing}
-                    title="Delete entry"
-                    style={{
-                      position: "absolute",
-                      right: "10px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      background: "rgba(231, 76, 60, 0.1)",
-                      border: "none",
-                      borderRadius: "6px",
-                      color: "#e74c3c",
-                      padding: "6px 8px",
-                      cursor: "pointer",
-                      opacity: 0,
-                      transition: "opacity 0.2s",
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.background =
-                        "rgba(231, 76, 60, 0.25)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.background =
-                        "rgba(231, 76, 60, 0.1)")
-                    }
-                  >
-                    <i className="fas fa-trash" />
-                  </button>
-                </div>
-              );
-            })
-          )}
-        </div>
-      </div>
-
-      <ConfirmDialog
-        open={!!deleteTarget}
-        message="Are you sure you want to permanently delete this activity? This cannot be undone."
-        confirmLabel="Delete"
-        onConfirm={handleDelete}
-        onCancel={() => setDeleteTarget(null)}
-      />
-
-      <ConfirmDialog
-        open={clearConfirm}
-        message="Are you sure you want to permanently delete ALL history? This cannot be undone."
-        confirmLabel="Clear All"
-        onConfirm={handleClearAll}
-        onCancel={() => setClearConfirm(false)}
-      />
-
-      <style>{`
-                .activity-item:hover .activity-delete-btn {
-                    opacity: 1 !important;
-                }
-            `}</style>
     </section>
+  );
+}
+
+function Card({ value, label, icon, tone, change, index }) {
+  const s = change ? BADGE_STYLES[change.cls] || BADGE_STYLES.neutral : null;
+
+  const timing = [
+    { duration: 3500, delay: 0 },
+    { duration: 3500, delay: 120 },
+    { duration: 3500, delay: 200 },
+    { duration: 3500, delay: 340 },
+  ][index] || { duration: 1100, delay: index * 100 };
+
+  return (
+    <div className="stat-card fade-in">
+      <div className="stat-header">
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div className="stat-value">
+            <CountUp
+              end={value}
+              duration={timing.duration}
+              delay={timing.delay}
+            />
+          </div>
+          <div className="stat-label">{label}</div>
+
+          {change && (
+            <div
+              className={`stat-change ${change.cls}`}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
+                marginTop: 8,
+                padding: "3px 8px",
+                borderRadius: 999,
+                fontSize: "0.7rem",
+                fontWeight: 700,
+                background: s.bg,
+                color: s.color,
+                border: `1px solid ${s.border}`,
+                whiteSpace: "nowrap",
+                lineHeight: 1.2,
+              }}
+              title={`vs previous month`}
+            >
+              <i
+                className={`fas ${change.icon}`}
+                style={{ fontSize: "0.6rem" }}
+              />
+              <span>{change.text}</span>
+            </div>
+          )}
+        </div>
+
+        <div className={`stat-icon ${tone}`}>
+          <i className={`fas ${icon}`} aria-hidden="true" />
+        </div>
+      </div>
+    </div>
   );
 }
