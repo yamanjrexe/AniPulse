@@ -145,7 +145,7 @@
   - Quick stats preview
 
 ### 🔍 Search & Database Integration
-- **Real-time Anime Search** - Search using Jikan API (MyAnimeList database)
+- **Real-time Anime Search** - Search using Jikan API (Anilist database)
 - **Search Suggestions** - Auto-complete with anime titles as you type
 - **Debounced Search** - Optimized search with 400ms debounce
 - **Search Results Display** - Shows matching anime with:
@@ -423,7 +423,7 @@ Your landing page featuring:
 
 - **Frontend**: HTML5, CSS3, Vanilla JavaScript
 - **Charts**: Chart.js with matrix chart support
-- **APIs**: Jikan API (MyAnimeList database)
+- **APIs**: Anilist API (database for anime data)
 - **Icons**: Font Awesome 6.4.0
 - **Fonts**: Inter, Poppins (Google Fonts)
 - **Storage**: LocalStorage (browser-based)

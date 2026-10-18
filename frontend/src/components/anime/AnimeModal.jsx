@@ -129,7 +129,6 @@ export default function AnimeModal() {
     editingRef.current = editing;
   }, [editing]);
 
-  // ?? Modal lock ??
   useEffect(() => {
     if (!open) return;
 
@@ -307,7 +306,6 @@ export default function AnimeModal() {
     };
   }, [resetState, showToast]);
 
-  // ?? Debounced AniList search ??
   useEffect(() => {
     if (editing) return;
 
@@ -375,7 +373,6 @@ export default function AnimeModal() {
     setForm((f) => ({ ...f, progress: Math.min(n, f.episodes || 0) }));
   };
 
-  // ?? Status change: auto-bump progress to at least 1 for Watching ??
   const handleStatusChange = (newStatus) => {
     setForm((f) => {
       let progress = f.progress;
@@ -411,6 +408,11 @@ export default function AnimeModal() {
 
     setQuery("");
     setResults([]);
+
+    // Auto-focus the next input (Type) after auto-filling
+    setTimeout(() => {
+      document.getElementById("animeType")?.focus();
+    }, 50);
   };
 
   const handleSubmit = async (e) => {
@@ -433,7 +435,6 @@ export default function AnimeModal() {
     if (!duration) duration = DEFAULT_DURATION[type] || 20;
     const status = form.userStatus || "Plan to Watch";
 
-    // Progress floor: Watching needs at least 1
     let progress = Math.min(parseInt(form.progress, 10) || 0, episodes);
     if (status === "Watching" && progress < 1) {
       progress = 1;
@@ -574,9 +575,7 @@ export default function AnimeModal() {
       setTimeout(() => {
         try {
           recalc?.();
-        } catch (_) {
-          /* ignore */
-        }
+        } catch (_) {}
       }, 100);
     } catch (err) {
       console.error("AnimeModal submit error:", err);
@@ -641,14 +640,29 @@ export default function AnimeModal() {
         <form
           onSubmit={handleSubmit}
           onKeyDown={(e) => {
-            // Enter submits from inputs and selects,
-            // but not from textareas or when the search
-            // dropdown is open
             if (e.key === "Enter" && !e.shiftKey) {
               const tag = e.target.tagName;
               if (tag === "INPUT" || tag === "SELECT") {
                 e.preventDefault();
-                if (!submitting) handleSubmit(e);
+
+                const formElement = e.target.form;
+                if (!formElement) return;
+
+                // Gather all focusable, non-disabled inputs and selects
+                const focusable = Array.from(
+                  formElement.querySelectorAll(
+                    "input:not([disabled]), select:not([disabled])",
+                  ),
+                ).filter((el) => el.offsetParent !== null);
+
+                const index = focusable.indexOf(e.target);
+
+                // If on last input, submit. Otherwise, move to next.
+                if (index === -1 || index === focusable.length - 1) {
+                  if (!submitting) handleSubmit(e);
+                } else {
+                  focusable[index + 1].focus();
+                }
               }
             }
           }}
