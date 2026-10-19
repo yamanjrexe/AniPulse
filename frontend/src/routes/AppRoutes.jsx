@@ -19,13 +19,29 @@ const About = lazy(() => import("../pages/Resources/About.jsx"));
 
 const Leaderboard = lazy(() => import("../pages/Leaderboard/Leaderboard.jsx"));
 
-function SuspenseFallback() {
-  return <div />;
+function GlobalFallback() {
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh",
+        width: "100%",
+        background: "var(--bg-page)",
+      }}
+    >
+      <i
+        className="fas fa-spinner fa-spin"
+        style={{ fontSize: "2rem", color: "var(--brand-yellow)" }}
+      />
+    </div>
+  );
 }
 
 export default function AppRoutes() {
   return (
-    <Suspense fallback={<SuspenseFallback />}>
+    <Suspense fallback={<GlobalFallback />}>
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route

@@ -5,6 +5,8 @@ export function registerServiceWorker() {
         navigator.serviceWorker.register('/service-worker.js')
             .then((reg) => {
                 console.log('✅ SW registered:', reg.scope);
+                reg.update().catch((err) => console.warn('SW update check failed:', err));
+
                 reg.addEventListener('updatefound', () => {
                     const newSW = reg.installing;
                     if (!newSW) return;

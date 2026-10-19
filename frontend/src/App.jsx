@@ -306,8 +306,7 @@ export default function App() {
 
       {!showLoader && (
         <BrowserRouter
-          future={{
-            v7_startTransition: true,
+          future={{        
             v7_relativeSplatPath: true,
           }}
         >
