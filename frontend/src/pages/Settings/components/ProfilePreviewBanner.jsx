@@ -8,6 +8,17 @@ const SOCIAL_ICON = {
   instagram: "fa-instagram",
 };
 
+function formatJoinDate(dateStr) {
+  if (!dateStr) return "Recently";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+  return d.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 export default function ProfilePreviewBanner({ profile }) {
   const { animeData } = useAnime();
 
@@ -30,59 +41,69 @@ export default function ProfilePreviewBanner({ profile }) {
 
   return (
     <div id="profilePreviewBanner">
-      {profile.cover && (
-        <img id="coverPreviewImage" src={profile.cover} alt="Cover" />
-      )}
-      <div className="banner-gradient" />
-      <div className="banner-content">
+      <div className="banner-cover-wrap">
+        {profile.cover ? (
+          <img id="coverPreviewImage" src={profile.cover} alt="Cover" />
+        ) : (
+          <div className="banner-default-cover" />
+        )}
+      </div>
+
+      <div className="banner-avatar-row">
         <img
           id="profilePreviewAvatar"
           className="profile-preview-avatar"
           src={avatar}
           alt={name}
         />
-        <div className="profile-preview-info">
-          <div className="profile-preview-name">{name}</div>
-          <div className="profile-preview-join-date">
-            <i className="fas fa-calendar-plus" aria-hidden="true" />
-            <span>Member since {profile.memberSince || "Recently"}</span>
-          </div>
-          <div id="profilePreviewDetails">
-            {profile.bio && <span id="previewBio">{profile.bio}</span>}
-            {profile.status && <span id="previewStatus">{profile.status}</span>}
-            {profile.favoriteAnime?.length > 0 && (
-              <div id="previewFavAnime">
-                {profile.favoriteAnime.map((fav, i) => {
-                  const id = typeof fav === "object" ? fav.id : fav;
-                  const title =
-                    (typeof fav === "object" && fav.title) ||
-                    titleMap[id] ||
-                    `Anime #${id}`;
-                  return (
-                    <span key={i} className="fav-tag">
-                      {title}
-                    </span>
-                  );
-                })}
-              </div>
-            )}
-            {socialKeys.length > 0 && (
-              <div id="previewSocials">
-                {socialKeys.map((k) => (
-                  <a
-                    key={k}
-                    href={`https://${k}.com/${profile.social[k]}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <i
-                      className={`${k === "twitter" || k === "instagram" ? "fab" : "fas"} ${SOCIAL_ICON[k]}`}
-                    />
-                  </a>
-                ))}
-              </div>
-            )}
-          </div>
+      </div>
+
+      <div className="banner-info-below">
+        <div className="profile-preview-name">{name}</div>
+
+        <div className="profile-preview-join-date">
+          <i className="fas fa-calendar-plus" aria-hidden="true" />
+          <span>Member since {formatJoinDate(profile.memberSince)}</span>
+        </div>
+
+        <div id="profilePreviewDetails">
+          {profile.bio && <span id="previewBio">{profile.bio}</span>}
+
+          {profile.status && <span id="previewStatus">{profile.status}</span>}
+
+          {profile.favoriteAnime?.length > 0 && (
+            <div id="previewFavAnime">
+              {profile.favoriteAnime.map((fav, i) => {
+                const id = typeof fav === "object" ? fav.id : fav;
+                const title =
+                  (typeof fav === "object" && fav.title) ||
+                  titleMap[id] ||
+                  `Anime #${id}`;
+                return (
+                  <span key={i} className="fav-tag">
+                    {title}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+
+          {socialKeys.length > 0 && (
+            <div id="previewSocials">
+              {socialKeys.map((k) => (
+                <a
+                  key={k}
+                  href={`https://${k}.com/${profile.social[k]}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <i
+                    className={`${k === "twitter" || k === "instagram" ? "fab" : "fas"} ${SOCIAL_ICON[k]}`}
+                  />
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

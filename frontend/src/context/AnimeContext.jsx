@@ -35,8 +35,7 @@ export function AnimeProvider({ children }) {
 
   useEffect(() => {
     localStorage.setItem("activityLog", JSON.stringify(activityLog));
-    // Dispatch uiRefresh so other components know history changed
-    window.dispatchEvent(new CustomEvent("uiRefresh"));
+    // Removed the uiRefresh dispatch here to prevent infinite loops
   }, [activityLog]);
 
   // Cross-tab sync
@@ -84,7 +83,7 @@ export function AnimeProvider({ children }) {
       if (broadcastRef.current) clearTimeout(broadcastRef.current);
       broadcastRef.current = setTimeout(() => {
         window.dispatchEvent(new CustomEvent("syncSchedule"));
-      }, 2000);
+      }, 0);
       return next;
     });
   }, []);
@@ -97,7 +96,6 @@ export function AnimeProvider({ children }) {
         animeTitle,
         timestamp: new Date().toISOString(),
       };
-      // Increased from 50 to 500 for full history
       return [entry, ...prev].slice(0, 500);
     });
   }, []);

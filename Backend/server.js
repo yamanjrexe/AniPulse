@@ -13,6 +13,7 @@ const userRoutes = require('./routes/user');
 const uploadRoutes = require('./routes/upload');
 const chatRoutes = require('./routes/chat');
 const anilistRoutes = require('./routes/anilist');
+const animeRoutes = require('./routes/anime');
 
 const app = express();
 
@@ -118,6 +119,7 @@ app.use('/api/user', userRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/anilist', anilistRoutes);
+app.use('/api/anime', animeRoutes);
 app.get('/api/health', (req, res) => {
     res.json({
         status: 'ok',

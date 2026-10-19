@@ -131,10 +131,8 @@ export default function AnimeModal() {
 
   useEffect(() => {
     if (!open) return;
-
     const scrollbarWidth =
       window.innerWidth - document.documentElement.clientWidth;
-
     const prevBodyOverflow = document.body.style.overflow;
     const prevBodyPaddingRight = document.body.style.paddingRight;
     const prevHtmlOverflow = document.documentElement.style.overflow;
@@ -145,9 +143,8 @@ export default function AnimeModal() {
     document.documentElement.style.overflow = "hidden";
     document.documentElement.style.overscrollBehavior = "none";
 
-    if (scrollbarWidth > 0) {
+    if (scrollbarWidth > 0)
       document.body.style.paddingRight = `${scrollbarWidth}px`;
-    }
 
     document.body.classList.add("modal-open");
     document.body.setAttribute("data-anime-modal-open", "true");
@@ -188,9 +185,6 @@ export default function AnimeModal() {
         event.type !== "openAddAnimeModal" &&
         event.type !== "openEditAnimeModal"
       ) {
-        console.warn(
-          `[AnimeModal] Suppressed "${event.type}" while modal is open.`,
-        );
         return true;
       }
       return originalDispatch.call(this, event);
@@ -205,9 +199,7 @@ export default function AnimeModal() {
       document.body.classList.remove("modal-open");
       document.body.removeAttribute("data-anime-modal-open");
 
-      document.removeEventListener("wheel", blockWheel, {
-        capture: true,
-      });
+      document.removeEventListener("wheel", blockWheel, { capture: true });
       document.removeEventListener("touchmove", blockTouchMove, {
         capture: true,
       });
@@ -245,28 +237,23 @@ export default function AnimeModal() {
     const onNew = () => {
       if (openRef.current) return;
       if (Date.now() < closeLockRef.current) return;
-
       resetState();
       setOpen(true);
     };
 
     const onEdit = (e) => {
       const id = e.detail?.id;
-
       if (
         openRef.current &&
         editingRef.current &&
         String(editingRef.current.id) === String(id)
-      ) {
+      )
         return;
-      }
-
       if (Date.now() < closeLockRef.current) return;
 
       const anime = animeDataRef.current.find(
         (a) => String(a.id) === String(id),
       );
-
       if (!anime) {
         showToast("Anime not found", "error");
         return;
@@ -308,7 +295,6 @@ export default function AnimeModal() {
 
   useEffect(() => {
     if (editing) return;
-
     const q = (query || "").trim();
     if (q.length < 2) {
       setResults([]);
@@ -324,17 +310,10 @@ export default function AnimeModal() {
         abortRef.current?.abort();
         const controller = new AbortController();
         abortRef.current = controller;
-
-        const r = await searchAniList(q, {
-          signal: controller.signal,
-        });
-
-        if (!controller.signal.aborted) {
-          setResults(r || []);
-        }
+        const r = await searchAniList(q, { signal: controller.signal });
+        if (!controller.signal.aborted) setResults(r || []);
       } catch (err) {
         if (err?.name !== "AbortError") {
-          console.warn("[AnimeModal] search failed:", err);
           setResults([]);
         }
       } finally {
@@ -361,11 +340,7 @@ export default function AnimeModal() {
 
   const handleEpisodesChange = (value) => {
     const n = Math.max(0, parseInt(value, 10) || 0);
-    setForm((f) => ({
-      ...f,
-      episodes: n,
-      progress: Math.min(f.progress, n),
-    }));
+    setForm((f) => ({ ...f, episodes: n, progress: Math.min(f.progress, n) }));
   };
 
   const handleProgressChange = (value) => {
@@ -376,12 +351,8 @@ export default function AnimeModal() {
   const handleStatusChange = (newStatus) => {
     setForm((f) => {
       let progress = f.progress;
-      if (newStatus === "Watching" && progress < 1) {
-        progress = 1;
-      }
-      if (f.episodes > 0 && progress > f.episodes) {
-        progress = f.episodes;
-      }
+      if (newStatus === "Watching" && progress < 1) progress = 1;
+      if (f.episodes > 0 && progress > f.episodes) progress = f.episodes;
       return { ...f, userStatus: newStatus, progress };
     });
   };
@@ -409,7 +380,6 @@ export default function AnimeModal() {
     setQuery("");
     setResults([]);
 
-    // Auto-focus the next input (Type) after auto-filling
     setTimeout(() => {
       document.getElementById("animeType")?.focus();
     }, 50);
@@ -428,7 +398,6 @@ export default function AnimeModal() {
 
     const editingSnapshot = editing;
     const animeDataSnapshot = animeData;
-
     const type = form.type || "TV";
     const episodes = Math.max(0, parseInt(form.episodes, 10) || 0);
     let duration = parseInt(form.duration, 10) || 0;
@@ -436,9 +405,7 @@ export default function AnimeModal() {
     const status = form.userStatus || "Plan to Watch";
 
     let progress = Math.min(parseInt(form.progress, 10) || 0, episodes);
-    if (status === "Watching" && progress < 1) {
-      progress = 1;
-    }
+    if (status === "Watching" && progress < 1) progress = 1;
 
     const score = form.score !== "" ? parseFloat(form.score) : null;
     const cover = form.cover || "";
@@ -454,7 +421,6 @@ export default function AnimeModal() {
 
     try {
       const nowTimestamp = formatTimestamp();
-
       let finishDate = null;
       let actualFinishDate = null;
 
@@ -463,7 +429,6 @@ export default function AnimeModal() {
         const m = parseInt(month, 10);
         if (!isNaN(y) && !isNaN(m) && m >= 1 && m <= 12) {
           finishDate = `${y}-${String(m).padStart(2, "0")}`;
-
           if (
             editingSnapshot &&
             editingSnapshot.actualFinishDate &&
@@ -496,26 +461,22 @@ export default function AnimeModal() {
         updatedAt: nowTimestamp,
       };
 
+      let updatedList;
+
       if (editingSnapshot) {
         const oldAnime = editingSnapshot;
         const updatedAnime = { ...oldAnime, ...payload };
-
-        setAnimeData((prev) =>
-          prev.map((a) => (a.id === updatedAnime.id ? updatedAnime : a)),
+        updatedList = animeData.map((a) =>
+          a.id === updatedAnime.id ? updatedAnime : a,
         );
 
         try {
           awardXP(updatedAnime, { oldAnime });
-        } catch (err) {
-          console.warn("XP award failed on update:", err);
-        }
-
+        } catch (err) {}
         const wasCompleted = oldAnime.userStatus === "Completed";
-        if (isCompleted && !wasCompleted) {
-          logActivity("completed", title);
-        } else {
-          logActivity("edited", title);
-        }
+
+        if (isCompleted && !wasCompleted) logActivity("completed", title);
+        else logActivity("edited", title);
 
         showToast(
           isCompleted && !wasCompleted
@@ -523,34 +484,20 @@ export default function AnimeModal() {
             : `"${title}" updated successfully!`,
           "success",
         );
-
         anilistSync.invalidateStatus();
-        anilistSync
-          .syncAnime(updatedAnime, "upsert")
-          .catch((err) => console.warn("[AniList] edit sync failed:", err));
+        anilistSync.syncAnime(updatedAnime, "upsert").catch(() => {});
       } else {
         const newId = animeService.getNextAvailableId(animeDataSnapshot);
-        const newAnime = {
-          id: newId,
-          ...payload,
-          createdAt: nowTimestamp,
-        };
-
-        setAnimeData((prev) => [...prev, newAnime]);
+        const newAnime = { id: newId, ...payload, createdAt: nowTimestamp };
+        updatedList = [...anime, newAnime];
 
         try {
           awardXP(newAnime, { oldAnime: null });
-        } catch (err) {
-          console.warn("XP award failed on add:", err);
-        }
+        } catch (err) {}
 
-        if (isCompleted) {
-          logActivity("completed", title);
-        } else if (status === "Watching") {
-          logActivity("watching", title);
-        } else {
-          logActivity("added", title);
-        }
+        if (isCompleted) logActivity("completed", title);
+        else if (status === "Watching") logActivity("watching", title);
+        else logActivity("added", title);
 
         showToast(
           isCompleted
@@ -558,19 +505,19 @@ export default function AnimeModal() {
             : `"${title}" added successfully!`,
           "success",
         );
-
         anilistSync.invalidateStatus();
-        anilistSync
-          .syncAnime(newAnime, "upsert")
-          .catch((err) => console.warn("[AniList] add sync failed:", err));
+        anilistSync.syncAnime(newAnime, "upsert").catch(() => {});
       }
 
-      close();
+      // 1. Update local state and local storage immediately
+      setAnimeData(updatedList);
+      localStorage.setItem("animeData", JSON.stringify(updatedList, null, 2));
 
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent("animeUpdate"));
-        syncToCloud?.().catch(() => {});
-      }, 50);
+      // 2. Directly save to the cloud via animeService
+      await animeService.saveCloud(updatedList);
+
+      window.dispatchEvent(new CustomEvent("animeUpdate"));
+      close();
 
       setTimeout(() => {
         try {
@@ -600,24 +547,33 @@ export default function AnimeModal() {
     setSubmitting(true);
 
     try {
-      setAnimeData((prev) => prev.filter((a) => a.id !== targetId));
-      logActivity("deleted", deletedTitle);
-      showToast("Anime deleted successfully", "success");
+      // 1. Calculate the new list without the deleted anime
+      const newList = animeData.filter((a) => a.id !== targetId);
 
+      // 2. Update React state and local storage immediately
+      setAnimeData(newList);
+      localStorage.setItem("animeData", JSON.stringify(newList, null, 2));
+      logActivity("deleted", deletedTitle);
+
+      // 3. Directly save to the cloud via animeService
+      await animeService.saveCloud(newList);
+
+      // 4. Tell AniList to delete (fire and forget)
       anilistSync.invalidateStatus();
       anilistSync
         .syncAnime({ id: targetId, title: deletedTitle }, "delete")
-        .catch((err) => console.warn("[AniList] delete sync failed:", err));
+        .catch(() => {});
 
+      showToast("Anime deleted successfully", "success");
+      window.dispatchEvent(new CustomEvent("animeUpdate"));
       close();
-
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent("animeUpdate"));
-        syncToCloud?.().catch(() => {});
-      }, 50);
     } catch (err) {
       console.error("Delete error:", err);
-      showToast("Failed to delete anime", "error");
+      showToast(
+        "Failed to delete from cloud. It may reappear on refresh.",
+        "error",
+      );
+      close();
     } finally {
       setSubmitting(false);
     }
@@ -644,11 +600,9 @@ export default function AnimeModal() {
               const tag = e.target.tagName;
               if (tag === "INPUT" || tag === "SELECT") {
                 e.preventDefault();
-
                 const formElement = e.target.form;
                 if (!formElement) return;
 
-                // Gather all focusable, non-disabled inputs and selects
                 const focusable = Array.from(
                   formElement.querySelectorAll(
                     "input:not([disabled]), select:not([disabled])",
@@ -656,8 +610,6 @@ export default function AnimeModal() {
                 ).filter((el) => el.offsetParent !== null);
 
                 const index = focusable.indexOf(e.target);
-
-                // If on last input, submit. Otherwise, move to next.
                 if (index === -1 || index === focusable.length - 1) {
                   if (!submitting) handleSubmit(e);
                 } else {

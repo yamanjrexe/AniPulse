@@ -1,10 +1,25 @@
 import React from "react";
 
 const RELEASES = [
+ {
+  version: "3.1.4",
+  date: "October 19th 2026",
+  tag: "",
+  items: [
+    "Routing: Fixed navigation issues and added loading spinners",
+    "Layout: Kept the header and navigation visible while loading",
+    "Profile: Redesigned the banner, avatar, image cropper, and join date",
+    "Danger Zone: Added Firebase data clearing and a custom warning modal",
+    "Empty States: Added 'Add your first anime' prompts across lists and charts",
+    "Anime Modal: Fixed deleted anime reappearing after refresh",
+    "Backend: Added the missing /api/anime/save route",
+    "Performance: Fixed infinite rendering loops causing browser lag"
+  ],
+},
   {
     version: "3.1.3",
     date: "October 18th 2026",
-    tag: "feature",
+    tag: "",
     items: [
       "Anime Modal: Improved keyboard navigation and auto-focus",
       "ChatBot: Added live AniList recommendations, smart filters, poster cards, voice input, and chat history",

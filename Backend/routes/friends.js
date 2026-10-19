@@ -1,6 +1,6 @@
 const express = require('express');
 const { db, COLLECTIONS, admin } = require('../services/firebase');
-const { verifyToken } = require('../middleware/auth'); // ✅ Correct Firebase middleware
+const { verifyToken } = require('../middleware/auth');
 const { createNotification } = require('./user');
 
 const router = express.Router();

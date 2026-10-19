@@ -234,10 +234,12 @@ export default function App() {
 
   useEffect(() => {
     const start = performance.now();
-    let raf;
+    let frameId;
+    let cancelled = false;
 
-    const tick = (now) => {
-      const elapsed = now - start;
+    const update = () => {
+      if (cancelled) return;
+      const elapsed = performance.now() - start;
       const t = Math.min(elapsed / MIN_LOADER_TIME, 1);
 
       let eased;
@@ -247,11 +249,18 @@ export default function App() {
       else eased = 0.85 + ((t - 0.85) / 0.15) * 0.1;
 
       setProgress(Math.floor(eased * 100));
-      if (t < 1) raf = requestAnimationFrame(tick);
+
+      if (t < 1) {
+        frameId = requestAnimationFrame(update);
+      }
     };
 
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    frameId = requestAnimationFrame(update);
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(frameId);
+    };
   }, []);
 
   useEffect(() => {
@@ -306,7 +315,7 @@ export default function App() {
 
       {!showLoader && (
         <BrowserRouter
-          future={{        
+          future={{
             v7_relativeSplatPath: true,
           }}
         >
