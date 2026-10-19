@@ -4,62 +4,101 @@ import { Link } from "react-router-dom";
 const SECTIONS = [
   {
     icon: "fa-rocket",
-    title: "Getting Started",
-    desc: "Create your account, add your first anime, and understand the dashboard.",
+    title: "Getting Started & UI",
+    desc: "Learn the layout and how to navigate the app quickly.",
     points: [
-      "Sign up with email or Google",
-      "Search any anime via AniList and one-click add",
-      "Track episodes, status, score, and completion dates",
+      "FAB Menu: Click the floating yellow button (bottom-right) to Add Anime, Import, or open the ChatBot",
+      "Keyboard Shortcuts: Press Enter in forms to jump to the next field; press Esc to close modals",
+      "Theme Toggle: Swap between light and dark mode in the top header",
+      "PWA Install: Use the download icon in the header to install AniPulse as an app",
     ],
   },
   {
     icon: "fa-list-check",
     title: "Tracking Your Library",
-    desc: "Everything you can do with an anime entry.",
+    desc: "Master the anime list and keep your data accurate.",
     points: [
-      "Four statuses: Completed · Watching · Plan to Watch · Dropped",
-      "Progress caps to total episodes automatically",
-      "Completion dates power the heatmap and recaps",
+      "Smart Progress: Selecting 'Watching' automatically bumps your progress to at least 1",
+      "Date Picker: When marking as Completed, choose the exact month and year (and day, if it's in the past)",
+      "Filters: Filter your list by status, completion month, and year to find specific entries",
+      "Favorites: Feature up to 4 anime on your public profile by adding them in Settings",
     ],
   },
   {
     icon: "fa-chart-line",
-    title: "Analytics & Stats",
-    desc: "What the numbers on the Statistics page actually mean.",
+    title: "Analytics & Visuals",
+    desc: "Understand the data behind your anime journey.",
     points: [
-      "Overview Metrics: totals across your whole library",
-      "Period Stats: pick any month/year for a snapshot",
-      "Rating Analytics: distribution, behaviour, personality",
+      "Heatmap: A daily grid of your completion history; darker green means more anime finished that day",
+      "Period Stats: Pick any month/year combination to see exactly what you watched then",
+      "Rating Personality: Our algorithm analyzes your scores to tell you if you are a Generous, Balanced, or Harsh critic",
+      "Monthly Charts: View your completion trends over the current year",
+    ],
+  },
+  {
+    icon: "fa-list-ul",
+    title: "AniList Two-Way Sync",
+    desc: "Keep both your AniPulse and AniList accounts perfectly aligned.",
+    points: [
+      "Connect via OAuth in Settings → Sync & Backup",
+      "Background Sync: We queue your edits and push them without spamming your AniList activity feed",
+      "Deep Re-sync: Fix wrong title or format matches (e.g., TV vs OVA) by forcing a fresh search",
+      "Completion Rules: Marking as 'Completed' will auto-fill the episode count on AniList without creating a 'watched ep' activity",
+    ],
+  },
+  {
+    icon: "fa-robot",
+    title: "AniPulse ChatBot",
+    desc: "Your personal anime assistant powered by AniList data.",
+    points: [
+      "Ask for recommendations: 'Recommend me', 'I'm sad', 'Action anime under 30 eps'",
+      "Look up anime: 'Tell me about Frieren', 'Top 10 anime'",
+      "Click any poster card to view a synopsis and add it to your list",
+      "Voice Input: Use the microphone icon on supported browsers to speak your queries",
+    ],
+  },
+  {
+    icon: "fa-history",
+    title: "Activity History & Gamification",
+    desc: "How your XP, levels, and history logs work.",
+    points: [
+      "XP System: Earn XP by adding anime and marking them completed (more XP for longer shows)",
+      "Daily Limit: You can earn up to 1,500 XP per day; extra XP is queued and applied the next day",
+      "Activity History: View your recent actions; filter by Today, Last 7 Days, etc., and delete specific logs",
+      "Levels: Level up from 1 to 50, unlocking new titles (Newbie → Max)",
     ],
   },
   {
     icon: "fa-cloud",
-    title: "Cloud Sync",
-    desc: "How your data travels between devices.",
+    title: "Cloud Sync & Backup",
+    desc: "How your data moves between devices safely.",
     points: [
-      "Every change is saved locally first, then synced",
-      "The server is the source of truth on first load",
-      "Offline edits are queued and pushed when you reconnect",
+      "Local-First: Every edit is saved to your browser instantly before hitting the cloud",
+      "Firebase Sync: When logged in, your data securely syncs to Firestore",
+      "Auto Backup: Enable this in Settings to write a JSON backup file directly to your computer's hard drive",
+      "Conflict Resolution: The server is the source of truth on initial load",
+    ],
+  },
+  {
+    icon: "fa-user-astronaut",
+    title: "Profile Customization",
+    desc: "Make your profile truly yours.",
+    points: [
+      "Avatars & Banners: Upload images and crop them with our built-in Facebook/YouTube-style cropper",
+      "Socials: Link your Twitter, Instagram, MyAnimeList, and AniList accounts",
+      "Custom Status: Write a short bio or set a custom status (e.g., 'Watching Frieren')",
+      "Member Since: Your profile automatically tracks the exact date you joined",
     ],
   },
   {
     icon: "fa-file-import",
-    title: "Import & Export",
-    desc: "Bring your data in, take it out.",
+    title: "Import, Export & Danger Zone",
+    desc: "You own your data. Manage it safely.",
     points: [
-      "Import a JSON file from the FAB menu → Import Anime",
-      "Export everything, or just one completion year",
-      "Danger Zone in Settings for full JSON export",
-    ],
-  },
-  {
-    icon: "fa-star",
-    title: "Levels & Achievements",
-    desc: "Earning XP, levelling up, unlocking badges.",
-    points: [
-      "XP comes from completing anime — more for longer shows",
-      "Daily XP limit of 1,500 keeps things fair",
-      "50 levels, 38 achievements, unlockable in any order",
+      "Export: In the Danger Zone, download your entire list or filter it by completion year",
+      "Import: Use the FAB menu to upload a JSON file (formatted correctly)",
+      "Clear Data: The Danger Zone allows you to wipe your local AND cloud data permanently",
+      "Recovery: Once data is cleared, it cannot be restored unless you have an export",
     ],
   },
 ];
@@ -69,25 +108,50 @@ export default function Docs() {
     <div className="resources-page">
       <header className="resources-header">
         <span className="section-tag">Resources</span>
-        <h1>Documentation</h1>
+        <h1>Documentation & User Guide</h1>
         <p>
-          Everything you need to get the most out of AniPulse. Each section
-          below covers a feature area end-to-end.
+          Everything you need to master AniPulse. From basic tracking to deep
+          analytics and AniList syncing, learn how to make the most of your
+          library.
         </p>
       </header>
 
       <div className="resources-grid">
         {SECTIONS.map((s) => (
-          <section key={s.title} className="resources-card">
+          <section
+            key={s.title}
+            className="resources-card"
+            style={{ display: "flex", flexDirection: "column" }}
+          >
             <div className="resources-card-icon">
               <i className={`fas ${s.icon}`} />
             </div>
-            <h2>{s.title}</h2>
-            <p>{s.desc}</p>
-            <ul>
+            <h2 style={{ fontSize: "1.1rem", marginBottom: "8px" }}>
+              {s.title}
+            </h2>
+            <p
+              style={{
+                fontSize: "0.85rem",
+                color: "var(--text-muted)",
+                marginBottom: "16px",
+                flex: 1,
+              }}
+            >
+              {s.desc}
+            </p>
+            <ul
+              style={{
+                margin: 0,
+                paddingLeft: "20px",
+                display: "grid",
+                gap: "10px",
+                fontSize: "0.85rem",
+                lineHeight: "1.5",
+              }}
+            >
               {s.points.map((p) => (
-                <li key={p}>
-                  <i className="fas fa-check" /> {p}
+                <li key={p} style={{ position: "relative" }}>
+                  {p}
                 </li>
               ))}
             </ul>
@@ -95,15 +159,28 @@ export default function Docs() {
         ))}
       </div>
 
-      <div className="resources-cta">
-        <h2>Still need help?</h2>
+      <div className="resources-cta" style={{ marginTop: "40px" }}>
+        <h2>Need more help?</h2>
         <p>
-          Check the <Link to="/resources/help">Help Center</Link> for common
-          questions, or open a discussion inside the app.
+          If you couldn't find what you're looking for, check the Help Center or
+          ask the community.
         </p>
-        <Link to="/community" className="btn btn-primary">
-          <i className="fas fa-users" /> Visit Community
-        </Link>
+        <div
+          style={{
+            display: "flex",
+            gap: "12px",
+            justifyContent: "center",
+            marginTop: "16px",
+            flexWrap: "wrap",
+          }}
+        >
+          <Link to="/resources/help" className="btn btn-primary">
+            <i className="fas fa-question-circle" /> Help Center
+          </Link>
+          <Link to="/community" className="btn btn-secondary">
+            <i className="fas fa-users" /> Visit Community
+          </Link>
+        </div>
       </div>
     </div>
   );

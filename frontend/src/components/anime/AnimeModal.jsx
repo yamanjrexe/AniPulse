@@ -489,7 +489,9 @@ export default function AnimeModal() {
       } else {
         const newId = animeService.getNextAvailableId(animeDataSnapshot);
         const newAnime = { id: newId, ...payload, createdAt: nowTimestamp };
-        updatedList = [...anime, newAnime];
+
+        // FIXED: Changed 'anime' to 'animeData'
+        updatedList = [...animeData, newAnime];
 
         try {
           awardXP(newAnime, { oldAnime: null });
@@ -547,18 +549,14 @@ export default function AnimeModal() {
     setSubmitting(true);
 
     try {
-      // 1. Calculate the new list without the deleted anime
       const newList = animeData.filter((a) => a.id !== targetId);
 
-      // 2. Update React state and local storage immediately
       setAnimeData(newList);
       localStorage.setItem("animeData", JSON.stringify(newList, null, 2));
       logActivity("deleted", deletedTitle);
 
-      // 3. Directly save to the cloud via animeService
       await animeService.saveCloud(newList);
 
-      // 4. Tell AniList to delete (fire and forget)
       anilistSync.invalidateStatus();
       anilistSync
         .syncAnime({ id: targetId, title: deletedTitle }, "delete")
