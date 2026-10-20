@@ -80,11 +80,11 @@ function FullScreenLoader({ progress = 30 }) {
           src="/icon/Anipulse.png"
           alt="AniPulse"
           style={{
-            width: 128,
-            height: 128,
+            width: 200, 
+            height: 200, 
             objectFit: "contain",
             display: "block",
-            marginBottom: 20,
+            marginBottom: 12, 
           }}
         />
 

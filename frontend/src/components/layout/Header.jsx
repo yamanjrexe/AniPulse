@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { useTheme } from "../../context/ThemeContext.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useRefresh } from "../../context/RefreshContext.jsx";
 import { useToast } from "../../context/ToastContext.jsx";
@@ -11,7 +10,6 @@ import PWAInstallButton from "../ui/PWAInstallButton.jsx";
 import { toggleThemeWithAnimation } from "../../utils/themeTransition.js";
 
 export default function Header({ onMenuClick }) {
-    const { theme, toggleTheme } = useTheme();
     const { user } = useAuth();
     const { refreshUI } = useRefresh();
     const { showToast } = useToast();
@@ -77,17 +75,6 @@ export default function Header({ onMenuClick }) {
                                 ? "none"
                                 : "transform 0.3s ease",
                         }}
-                    />
-                </button>
-
-                {/* Theme toggle */}
-                <button
-                    className="theme-toggle"
-                    onClick={(e) => toggleThemeWithAnimation(toggleTheme, e)}
-                    aria-label="Toggle theme"
-                >
-                    <i
-                        className={`fas ${theme === "dark" ? "fa-sun" : "fa-moon"}`}
                     />
                 </button>
 
