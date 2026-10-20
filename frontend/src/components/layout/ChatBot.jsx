@@ -563,7 +563,7 @@ export default function ChatBot() {
         <div id="chat-bot-header">
           <span>
             <img
-              src="/icon/icon-72x72.png"
+              src="/icon/icon-72.png"
               alt="AniPulse Bot"
               className="chat-bot-icon"
             />
