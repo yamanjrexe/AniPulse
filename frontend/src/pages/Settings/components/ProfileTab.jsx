@@ -4,7 +4,7 @@ import { useToast } from "../../../context/ToastContext.jsx";
 import { uploadAvatar, uploadCover } from "../../../services/avatarService.js";
 import ProfilePreviewBanner from "./ProfilePreviewBanner.jsx";
 import FavoriteAnimeTagInput from "./FavoriteAnimeTagInput.jsx";
-import AvatarCropperModal from "../../../components/profile/AvatarCropperModal.jsx"; 
+import AvatarCropperModal from "../../../components/profile/AvatarCropperModal.jsx";
 
 // Helper to convert base64 to File for the upload service
 function base64ToFile(base64, filename) {
@@ -337,6 +337,37 @@ export default function ProfileTab() {
         ))}
       </div>
 
+      {/* ═══════════════════════════════════════════════
+                RECAP
+            ═══════════════════════════════════════════════ */}
+      <div className="settings-group">
+        <h3>
+          <i className="fas fa-chart-line" aria-hidden="true" /> Recaps
+        </h3>
+        <div className="settings-item">
+          <p
+            style={{
+              fontSize: "0.85rem",
+              color: "var(--text-muted)",
+              marginBottom: "12px",
+              lineHeight: 1.5,
+            }}
+          >
+            View your monthly or yearly anime viewing recap to see your stats,
+            top genres, and milestones.
+          </p>
+          <button
+            className="btn btn-secondary"
+            onClick={() => window.dispatchEvent(new CustomEvent("openRecap"))}
+          >
+            <i className="fas fa-chart-line" /> View My Recap
+          </button>
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════
+                ACTIONS
+            ═══════════════════════════════════════════════ */}
       <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
         <button className="btn btn-primary" onClick={save} disabled={saving}>
           <i className="fas fa-save" /> {saving ? "Saving..." : "Save Profile"}

@@ -183,7 +183,7 @@ export default function Landing() {
         <div className="container hero-content">
           <div className="hero-text">
             <div className="hero-tag">
-              <i className="fas fa-rocket" /> Version 3 launched
+              <i className="fas fa-rocket" /> Version 3.1.4 launched
             </div>
 
             <h1 className="hero-title">

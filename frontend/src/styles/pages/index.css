@@ -38,10 +38,6 @@ body:has(.landing-header) html {
     transition: background-color var(--dur-normal) var(--ease-standard);
 }
 
-[data-theme="light"] .landing-header {
-    background: rgba(247, 247, 247, 0.82);
-}
-
 .landing-header .header-content {
     display: flex;
     justify-content: space-between;

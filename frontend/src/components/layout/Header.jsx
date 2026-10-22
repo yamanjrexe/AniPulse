@@ -7,7 +7,6 @@ import SearchDropdown from "./SearchDropdown.jsx";
 import NotificationsDropdown from "./NotificationsDropdown.jsx";
 import ProfileDropdown from "./ProfileDropdown.jsx";
 import PWAInstallButton from "../ui/PWAInstallButton.jsx";
-import { toggleThemeWithAnimation } from "../../utils/themeTransition.js";
 
 export default function Header({ onMenuClick }) {
     const { user } = useAuth();

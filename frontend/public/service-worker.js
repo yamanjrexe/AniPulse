@@ -6,9 +6,9 @@ const APP_SHELL = [
     '/index.html',
     '/manifest.json',
     '/offline.html',
-    '/icon/Anipulse.png',
-    '/icon/icon-192.png',
-    '/icon/icon-512.png'
+    '/icon/Halloween/Anipulse-H.png',
+    '/icon/Halloween/icon/icon-192.png',
+    '/icon/Halloween/icon/icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {

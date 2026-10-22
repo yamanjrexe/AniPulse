@@ -204,15 +204,6 @@ export default function DangerTab() {
         </div>
       </div>
 
-      <div style={{ marginTop: "1.5rem" }}>
-        <button
-          className="settings-btn"
-          onClick={() => window.dispatchEvent(new CustomEvent("openRecap"))}
-        >
-          <i className="fas fa-chart-line" /> View Recap
-        </button>
-      </div>
-
       {/* CUSTOM DANGER MODAL */}
       {showClearConfirm && (
         <div

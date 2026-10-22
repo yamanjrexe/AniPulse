@@ -114,6 +114,9 @@ export default function RecentActivity() {
     }
   };
 
+  const hasNoHistoryAtAll = activityLog.length === 0;
+  const hasNoFilteredHistory = filteredLog.length === 0;
+
   return (
     <section className="dashboard-section">
       <h2 className="section-title" style={{ marginBottom: "1rem" }}>
@@ -171,12 +174,61 @@ export default function RecentActivity() {
           className="activity-list"
           style={{ maxHeight: "400px", overflowY: "auto" }}
         >
-          {filteredLog.length === 0 ? (
+          {hasNoFilteredHistory ? (
             <div
-              className="no-activity"
-              style={{ padding: "2rem", textAlign: "center", opacity: 0.6 }}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "48px 24px",
+                textAlign: "center",
+              }}
             >
-              No activity found for this period.
+              <div
+                style={{
+                  width: "56px",
+                  height: "56px",
+                  borderRadius: "50%",
+                  background: "var(--bg-surface)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: "16px",
+                  border: "1px solid var(--border-subtle)",
+                }}
+              >
+                <i
+                  className={`fas ${hasNoHistoryAtAll ? "fa-history" : "fa-search"}`}
+                  style={{
+                    fontSize: "24px",
+                    color: "var(--brand-yellow)",
+                    opacity: 0.8,
+                  }}
+                />
+              </div>
+              <h3
+                style={{
+                  fontSize: "1.1rem",
+                  marginBottom: "8px",
+                  color: "var(--text-primary)",
+                }}
+              >
+                {hasNoHistoryAtAll ? "No activity yet" : "No matching activity"}
+              </h3>
+              <p
+                style={{
+                  fontSize: "0.9rem",
+                  color: "var(--text-muted)",
+                  maxWidth: "300px",
+                  margin: 0,
+                  lineHeight: 1.5,
+                }}
+              >
+                {hasNoHistoryAtAll
+                  ? "Add, edit, or complete an anime to start building your history."
+                  : "Try changing your filter to see older activity."}
+              </p>
             </div>
           ) : (
             filteredLog.map((a) => {

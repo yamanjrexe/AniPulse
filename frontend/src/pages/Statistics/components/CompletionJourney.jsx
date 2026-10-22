@@ -35,9 +35,8 @@ function inRange(date, range) {
 
 export default function CompletionJourney() {
   const { animeData } = useAnime();
-  const { theme } = useTheme();
+  const { isDark } = useTheme();
   const [range, setRange] = useState("all");
-  const isDark = theme === "dark";
   const text = isDark ? "#94a3b8" : "#64748b";
   const grid = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)";
 

@@ -80,7 +80,7 @@ export async function initFirebase() {
             .setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
         initialized = true;
-        console.log("[Firebase] Initialized (LOCAL persistence)");
+        console.log("[Firebase] Initialized (Auth session saved locally, database is Cloud)");
         return firebase;
     } catch (err) {
         console.error("[Firebase] init failed:", err);

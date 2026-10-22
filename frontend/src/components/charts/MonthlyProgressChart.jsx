@@ -22,8 +22,7 @@ const COLOR_DOWN = "#EF4444";
 const COLOR_FLAT = "#9CA3AF";
 
 export default function MonthlyProgressChart({ animeData }) {
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
+  const { isDark } = useTheme();
   const text = isDark ? "#fff" : "#64748b";
   const grid = isDark ? "rgba(255,255,255,0.1)" : "#e2e8f0";
 
@@ -137,7 +136,6 @@ export default function MonthlyProgressChart({ animeData }) {
       x: { grid: { display: false }, ticks: { color: text } },
     },
   };
-
 
   if (!hasData) {
     return (

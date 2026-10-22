@@ -1,55 +1,41 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 const ThemeContext = createContext(null);
-const getSystem = () =>
-    window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
+const SUPPORTED_THEMES = ["dark"];
+const DEFAULT_THEME = "dark";
+
+function normalizeTheme(value) {
+  return SUPPORTED_THEMES.includes(value) ? value : DEFAULT_THEME;
+}
 
 export function ThemeProvider({ children }) {
-    const [theme, setTheme] = useState(() => {
-        const stored = localStorage.getItem("theme");
-        const pref = localStorage.getItem("themePreference");
-        if (stored) return stored;
-        if (!pref || pref === "system") return getSystem();
-        return pref;
-    });
+  const [theme, setTheme] = useState(() =>
+    normalizeTheme(localStorage.getItem("theme")),
+  );
 
-    useEffect(() => {
-        document.documentElement.setAttribute("data-theme", theme);
-        document.body.setAttribute("data-theme", theme);
-        localStorage.setItem("theme", theme);
-    }, [theme]);
+  useEffect(() => {
+    localStorage.removeItem("themePreference");
+  }, []);
 
-    useEffect(() => {
-        const media = window.matchMedia("(prefers-color-scheme: dark)");
-        const handler = (e) => {
-            const pref = localStorage.getItem("themePreference");
-            if (!pref || pref === "system")
-                setTheme(e.matches ? "dark" : "light");
-        };
-        media.addEventListener?.("change", handler);
-        return () => media.removeEventListener?.("change", handler);
-    }, []);
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    document.body.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
 
-    const toggleTheme = () =>
-        setTheme((t) => (t === "dark" ? "light" : "dark"));
-    const setThemePreference = (pref) => {
-        localStorage.setItem("themePreference", pref);
-        setTheme(pref === "system" ? getSystem() : pref);
-    };
+  const setThemePreference = (pref) => {
+    setTheme(normalizeTheme(pref));
+  };
 
-    return (
-        <ThemeContext.Provider
-            value={{ theme, toggleTheme, setThemePreference }}
-        >
-            {children}
-        </ThemeContext.Provider>
-    );
+  return (
+    <ThemeContext.Provider value={{ theme, isDark: true, setThemePreference }}>
+      {children}
+    </ThemeContext.Provider>
+  );
 }
 
 export function useTheme() {
-    const ctx = useContext(ThemeContext);
-    if (!ctx) throw new Error("useTheme must be used within ThemeProvider");
-    return ctx;
+  const ctx = useContext(ThemeContext);
+  if (!ctx) throw new Error("useTheme must be used within ThemeProvider");
+  return ctx;
 }

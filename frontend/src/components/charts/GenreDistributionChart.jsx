@@ -57,7 +57,7 @@ function getCompletionTime(anime) {
 }
 
 export default function GenreDistributionChart({ animeData }) {
-  const { theme } = useTheme();
+  const { isDark } = useTheme();
   const [filter, setFilter] = useState("month");
   const [hidden, setHidden] = useState(() => new Set());
 
@@ -126,7 +126,6 @@ export default function GenreDistributionChart({ animeData }) {
     hidden.has(i) ? "transparent" : c,
   );
 
-  const isDark = theme === "dark";
   const textColor = isDark ? "#F8FAFC" : "#0F172A";
 
   return (

@@ -239,11 +239,6 @@
     color: var(--text-secondary);
 }
 
-[data-theme="light"] #previewFavAnime .fav-tag {
-    background: rgba(0, 0, 0, 0.05);
-    border-color: rgba(0, 0, 0, 0.1);
-}
-
 #previewSocials {
     display: flex;
     gap: 8px;
@@ -687,74 +682,7 @@
     }
 }
 
-/* ---------- THEME SELECTION ---------- */
-.theme-selection {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--sp-3);
-}
-
-.theme-card {
-    padding: var(--sp-3);
-    background: var(--bg-surface);
-    border: 2px solid var(--border-default);
-    border-radius: var(--r-md);
-    text-align: center;
-    cursor: pointer;
-    transition: border-color var(--dur-fast) var(--ease-standard);
-    position: relative;
-}
-
-.theme-card:hover {
-    border-color: var(--border-strong);
-}
-
-.theme-card.active {
-    border-color: var(--brand-yellow);
-}
-
-.theme-card.active::after {
-    content: '✓';
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    width: 20px;
-    height: 20px;
-    background: var(--brand-yellow);
-    color: var(--text-inverse);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.6875rem;
-    font-weight: var(--fw-bold);
-}
-
-.theme-sample {
-    width: 100%;
-    height: 60px;
-    border-radius: var(--r-sm);
-    margin-bottom: var(--sp-2);
-    border: 1px solid var(--border-default);
-}
-
-.theme-sample.light {
-    background: #FFFFFF;
-}
-
-.theme-sample.dark {
-    background: #171717;
-}
-
-.theme-sample.system {
-    background: linear-gradient(90deg, #FFFFFF 0%, #FFFFFF 50%, #171717 50%, #171717 100%);
-}
-
-.theme-label {
-    font-size: var(--fs-13);
-    font-weight: var(--fw-medium);
-    color: var(--text-primary);
-}
+/* ---------- THEME SELECTION (deprecated placeholder removed) ---------- */
 
 /* ---------- SYNC ---------- */
 .sync-status {
@@ -1134,25 +1062,6 @@
         padding: var(--sp-4);
     }
 
-    .theme-selection {
-        grid-template-columns: 1fr;
-    }
-
-    .theme-card {
-        display: flex;
-        align-items: center;
-        gap: var(--sp-3);
-        text-align: left;
-        padding: var(--sp-2) var(--sp-3);
-    }
-
-    .theme-sample {
-        width: 48px;
-        height: 48px;
-        margin: 0;
-        flex-shrink: 0;
-    }
-
     #profilePreviewBanner .banner-content {
         padding: var(--sp-4);
     }
@@ -1190,8 +1099,6 @@
 @media (prefers-reduced-motion: reduce) {
 
     .settings-tab,
-    .theme-card,
-    .theme-card.active::after,
     .settings-item .btn,
     .settings-btn,
     .file-input-btn,
