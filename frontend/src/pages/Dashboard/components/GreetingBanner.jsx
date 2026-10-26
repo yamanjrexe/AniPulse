@@ -52,9 +52,10 @@ export default function GreetingBanner() {
       : null;
 
     const next = reconcileAndBump({ local, server });
+
     writeLocalStreak(next);
 
-    if (next.changed) {
+    if (next.changed || (server && server.lastActive !== next.lastActive)) {
       updateStreakData({
         streak: next.streak,
         lastActive: next.lastActive,

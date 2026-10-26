@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
+import { useSearchParams } from "react-router-dom";
 import SettingsTabs from "./components/SettingsTabs.jsx";
 import ProfileTab from "./components/ProfileTab.jsx";
 import AppearanceTab from "./components/AppearanceTab.jsx";
@@ -6,32 +7,38 @@ import ExperienceTab from "./components/ExperienceTab.jsx";
 import SyncTab from "./components/SyncTab.jsx";
 import DangerTab from "./components/DangerTab.jsx";
 
+const VALID_TABS = ["profile", "appearance", "experience", "sync", "danger"];
+
 export default function Settings() {
-    const [tab, setTab] = useState(
-        () => localStorage.getItem("settingsActiveTab") || "profile",
-    );
+  const [searchParams, setSearchParams] = useSearchParams();
 
-    const changeTab = (k) => {
-        setTab(k);
-        localStorage.setItem("settingsActiveTab", k);
-    };
+  const paramTab = searchParams.get("tab");
+  const activeTab = VALID_TABS.includes(paramTab) ? paramTab : "profile";
 
-    return (
-        <div className="dashboard-section">
-            <h2 className="section-title">
-                <i className="fas fa-user" aria-hidden="true" /> Profile
-                Settings
-            </h2>
+  const changeTab = (newTab) => {
+    if (!VALID_TABS.includes(newTab)) return;
 
-            <SettingsTabs active={tab} onChange={changeTab} />
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("tab", newTab);
 
-            <div className="settings-content">
-                {tab === "profile" && <ProfileTab />}
-                {tab === "appearance" && <AppearanceTab />}
-                {tab === "experience" && <ExperienceTab />}
-                {tab === "sync" && <SyncTab />}
-                {tab === "danger" && <DangerTab />}
-            </div>
-        </div>
-    );
+    setSearchParams(newParams, { replace: true });
+  };
+
+  return (
+    <div className="dashboard-section">
+      <h2 className="section-title">
+        <i className="fas fa-user" aria-hidden="true" /> Profile Settings
+      </h2>
+
+      <SettingsTabs active={activeTab} onChange={changeTab} />
+
+      <div className="settings-content">
+        {activeTab === "profile" && <ProfileTab />}
+        {activeTab === "appearance" && <AppearanceTab />}
+        {activeTab === "experience" && <ExperienceTab />}
+        {activeTab === "sync" && <SyncTab />}
+        {activeTab === "danger" && <DangerTab />}
+      </div>
+    </div>
+  );
 }

@@ -34,11 +34,6 @@ export function writeLocalStreak({ streak, lastActive }) {
     else localStorage.removeItem(LAST_ACTIVE_KEY);
 }
 
-function daysBetween(a, b) {
-    if (!a || !b) return Infinity;
-    return Math.abs(Math.round((Date.parse(b) - Date.parse(a)) / 86400000));
-}
-
 export function reconcileAndBump({ local, server, now = new Date() }) {
     const today = dateKey(now);
     const yesterday = yesterdayKey(now);
@@ -64,32 +59,11 @@ export function reconcileAndBump({ local, server, now = new Date() }) {
     }
 
     if (localLast === today) {
-        const gap = daysBetween(serverLast, today);
-        if (serverStreak > localStreak && gap <= 2) {
-            return {
-                streak: serverStreak,
-                lastActive: today,
-                changed: true,
-            };
-        }
-        return { streak: localStreak, lastActive: today, changed: false };
-    }
-
-    if (localLast === yesterday) {
-        const base = Math.max(localStreak, serverStreak);
-        return { streak: base + 1, lastActive: today, changed: true };
-    }
-
-    if (!localLast && serverStreak > 1) {
-        const gap = daysBetween(serverLast, today);
-        if (gap <= 2) {
-            return {
-                streak: serverStreak + 1,
-                lastActive: today,
-                changed: true,
-            };
-        }
-        return { streak: 1, lastActive: today, changed: true };
+        return {
+            streak: Math.max(localStreak, serverStreak),
+            lastActive: today,
+            changed: true 
+        };
     }
 
     return { streak: 1, lastActive: today, changed: true };

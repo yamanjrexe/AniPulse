@@ -1,21 +1,34 @@
 import React from "react";
 
 const RELEASES = [
- {
-  version: "3.1.4",
-  date: "October 19th 2026",
-  tag: "",
-  items: [
-    "Routing: Fixed navigation issues and added loading spinners",
-    "Layout: Kept the header and navigation visible while loading",
-    "Profile: Redesigned the banner, avatar, image cropper, and join date",
-    "Danger Zone: Added Firebase data clearing and a custom warning modal",
-    "Empty States: Added 'Add your first anime' prompts across lists and charts",
-    "Anime Modal: Fixed deleted anime reappearing after refresh",
-    "Backend: Added the missing /api/anime/save route",
-    "Performance: Fixed infinite rendering loops causing browser lag"
-  ],
-},
+  {
+    version: "3.1.5",
+    date: "October 27th 2026",
+    tag: "",
+    items: [
+      "Streaks: Fixed sync issues, added automatic midnight recalculation, and improved cloud syncing.",
+      "User Profiles: Redesigned the layout, improved responsiveness, and updated anime lists, badges, and labels.",
+      "Social Links: Fixed AniList and MyAnimeList profile URLs.",
+      "Settings: Updated Profile Preview to match the new Community Profile design.",
+      "Danger Zone: Added Force Cloud Sync, Reset Gamification, and Clear Local Cache tools.",
+    ],
+  },
+
+  {
+    version: "3.1.4",
+    date: "October 19th 2026",
+    tag: "",
+    items: [
+      "Routing: Fixed navigation issues and added loading spinners",
+      "Layout: Kept the header and navigation visible while loading",
+      "Profile: Redesigned the banner, avatar, image cropper, and join date",
+      "Danger Zone: Added Firebase data clearing and a custom warning modal",
+      "Empty States: Added 'Add your first anime' prompts across lists and charts",
+      "Anime Modal: Fixed deleted anime reappearing after refresh",
+      "Backend: Added the missing /api/anime/save route",
+      "Performance: Fixed infinite rendering loops causing browser lag",
+    ],
+  },
   {
     version: "3.1.3",
     date: "October 18th 2026",

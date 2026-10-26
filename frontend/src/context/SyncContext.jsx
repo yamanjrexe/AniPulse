@@ -28,6 +28,8 @@ export function SyncProvider({ children }) {
   const updateStreakData = useCallback((next) => {
     setStreakData(next);
     streakDataRef.current = next;
+
+    window.dispatchEvent(new CustomEvent("syncSchedule"));
   }, []);
 
   const applyServerStreak = useCallback((result) => {

@@ -6,20 +6,60 @@ import { ACHIEVEMENTS } from "../../../services/achievements.js";
 import { getLevelFromXP } from "../../../services/levelSystem.js";
 import { firebase } from "../../../firebaseClient.js";
 
-const TABS = [
-  { k: "completed", l: "Completed", icon: "fa-check-circle" },
-  { k: "watching", l: "Watching", icon: "fa-play-circle" },
-  { k: "plan", l: "Plan", icon: "fa-clock" },
-  { k: "achievements", l: "Achievements", icon: "fa-trophy" },
-  { k: "activity", l: "Activity", icon: "fa-history" },
-];
+function getSocialUrl(platform, username) {
+  if (!username) return "#";
+  const cleanUsername = username.replace(/^@/, "").trim();
+  switch (platform) {
+    case "anilist":
+      return `https://anilist.co/user/${cleanUsername}`;
+    case "myanimelist":
+      return `https://myanimelist.net/profile/${cleanUsername}`;
+    case "twitter":
+      return `https://twitter.com/${cleanUsername}`;
+    case "instagram":
+      return `https://instagram.com/${cleanUsername}`;
+    default:
+      return `https://${platform}.com/${cleanUsername}`;
+  }
+}
 
-const SOCIAL_ICON = {
-  anilist: "fa-list-ul",
-  myanimelist: "fa-book",
-  twitter: "fa-twitter",
-  instagram: "fa-instagram",
-};
+function SocialIcon({ platform }) {
+  if (platform === "anilist") {
+    return (
+      <img
+        src="/svg/anilist.svg"
+        alt="AniList"
+        style={{
+          width: 22,
+          height: 22,
+          objectFit: "contain",
+          display: "block",
+        }}
+      />
+    );
+  }
+  if (platform === "myanimelist") {
+    return (
+      <img
+        src="/svg/myanimelist.svg"
+        alt="MyAnimeList"
+        style={{
+          width: 22,
+          height: 22,
+          objectFit: "contain",
+          display: "block",
+        }}
+      />
+    );
+  }
+  if (platform === "twitter") {
+    return <i className="fab fa-twitter" style={{ fontSize: "1.2rem" }} />;
+  }
+  if (platform === "instagram") {
+    return <i className="fab fa-instagram" style={{ fontSize: "1.2rem" }} />;
+  }
+  return null;
+}
 
 function formatCompact(num) {
   if (num === undefined || num === null) return "0";
@@ -29,13 +69,6 @@ function formatCompact(num) {
     return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
   if (n >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, "") + "K";
   return n.toString();
-}
-
-function formatFull(num) {
-  if (num === undefined || num === null) return "0";
-  const n = Number(num);
-  if (!Number.isFinite(n)) return "0";
-  return n.toLocaleString();
 }
 
 function timestampOf(a) {
@@ -207,7 +240,6 @@ export default function UserProfileModal({ userId, onClose }) {
 
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState("completed");
 
   const isSelf = useMemo(() => {
     if (!userId) return false;
@@ -230,6 +262,14 @@ export default function UserProfileModal({ userId, onClose }) {
     const myUid = uidFromContext || uidFromStorage || uidFromAuth;
     return !!(myUid && userId === myUid);
   }, [userId, user]);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose?.();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
 
   useEffect(() => {
     if (!userId) return;
@@ -301,8 +341,6 @@ export default function UserProfileModal({ userId, onClose }) {
     [profile],
   );
 
-  // Build a title lookup from every anime we have access to on this
-  // profile, so favorite anime IDs resolve to real titles.
   const animeTitleMap = useMemo(() => {
     const map = {};
     if (!profile?.animeList) return map;
@@ -318,655 +356,558 @@ export default function UserProfileModal({ userId, onClose }) {
 
   return (
     <div
-      className="modal show active"
+      className="modal-overlay"
       onClick={onClose}
       style={{
-        display: "flex",
         position: "fixed",
         inset: 0,
         zIndex: 10000,
+        background: "rgba(0, 0, 0, 0.8)",
+        backdropFilter: "blur(6px)",
+        display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "rgba(0, 0, 0, 0.65)",
-        padding: 20,
+        padding: "16px",
       }}
     >
       <div
-        className="modal-content profile-modal"
+        className="modal-content"
         onClick={(e) => e.stopPropagation()}
         style={{
-          maxWidth: 780,
           width: "100%",
-          maxHeight: "92vh",
-          overflow: "auto",
-          background: "#111111",
-          border: "1px solid #292929",
-          borderRadius: 16,
-          padding: 0,
-          boxShadow: "0 16px 40px rgba(0, 0, 0, 0.40)",
-          color: "#FBFBFB",
-          fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+          maxWidth: "850px",
+          maxHeight: "92dvh",
+          background: "var(--bg-surface)",
+          borderRadius: "16px",
+          border: "1px solid var(--border-default)",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          boxShadow: "0 24px 60px -12px rgba(0,0,0,0.9)",
+          position: "relative",
         }}
       >
+        {/* HEADER (Sticky) */}
         <div
-          className="modal-header"
           style={{
-            padding: "16px 20px",
+            padding: "16px 24px",
             display: "flex",
-            justifyContent: "space-between",
             alignItems: "center",
-            borderBottom: "1px solid #1F1F1F",
-            position: "sticky",
-            top: 0,
-            background: "#111111",
+            justifyContent: "space-between",
+            borderBottom: "1px solid var(--border-subtle)",
+            background: "var(--bg-surface)",
             zIndex: 10,
+            flexShrink: 0,
           }}
         >
-          <h2
-            className="modal-title"
+          <div
             style={{
-              margin: 0,
-              fontSize: "1rem",
-              fontWeight: 600,
               display: "flex",
               alignItems: "center",
-              gap: 8,
+              gap: 10,
+              fontSize: "1.1rem",
+              fontWeight: 600,
             }}
           >
-            <i className="fas fa-user-circle" style={{ color: "#FCE706" }} />
-            User profile
+            <i
+              className="fas fa-user-circle"
+              style={{ color: "var(--brand-yellow)", fontSize: "1.2rem" }}
+            />
+            User Profile
             {isSelf && (
               <span
                 style={{
-                  marginLeft: 4,
-                  fontSize: "0.7rem",
-                  color: "#797979",
+                  fontSize: "0.8rem",
+                  color: "var(--text-muted)",
                   fontWeight: 500,
                 }}
               >
                 (You)
               </span>
             )}
-          </h2>
+          </div>
           <button
-            className="close-modal"
             onClick={onClose}
             style={{
-              background: "transparent",
-              border: "1px solid #292929",
+              background: "var(--bg-card)",
+              border: "1px solid var(--border-default)",
               borderRadius: 8,
-              width: 32,
-              height: 32,
+              width: 36,
+              height: 36,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: "#797979",
-              fontSize: 18,
+              color: "var(--text-secondary)",
               cursor: "pointer",
+              transition: "0.2s",
             }}
           >
-            &times;
+            <i className="fas fa-times" />
           </button>
         </div>
 
-        {loading && (
-          <div
-            style={{
-              padding: 60,
-              textAlign: "center",
-              color: "#797979",
-            }}
-          >
-            <i
-              className="fas fa-spinner fa-spin"
-              style={{ fontSize: 24, color: "#FCE706" }}
-            />
-            <div style={{ marginTop: 12, fontSize: "0.875rem" }}>
-              Loading profile...
-            </div>
-          </div>
-        )}
-
-        {!loading && profile && (
-          <div className="profile-modal-body" style={{ padding: 20 }}>
+        {/* SCROLLABLE BODY */}
+        <div
+          style={{
+            overflowY: "auto",
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {loading ? (
             <div
               style={{
-                borderRadius: 12,
-                padding: 20,
-                marginBottom: 16,
-                backgroundImage: profile.cover
-                  ? `url('${profile.cover}')`
-                  : "none",
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                backgroundColor: profile.cover ? "transparent" : "#171717",
                 display: "flex",
-                gap: 16,
+                flexDirection: "column",
                 alignItems: "center",
-                position: "relative",
-                overflow: "hidden",
-                minHeight: 130,
-                border: "1px solid #292929",
+                justifyContent: "center",
+                minHeight: "300px",
+                gap: 16,
+                color: "var(--text-muted)",
               }}
             >
-              {profile.cover && (
+              <i
+                className="fas fa-spinner fa-spin"
+                style={{ fontSize: 32, color: "var(--brand-yellow)" }}
+              />
+              Loading profile...
+            </div>
+          ) : profile ? (
+            <>
+              {/* BANNER (Inset & Curved) */}
+              <div style={{ padding: "24px 24px 0" }}>
                 <div
+                  className="profile-banner"
                   style={{
-                    position: "absolute",
-                    inset: 0,
-                    background:
-                      "linear-gradient(to right, rgba(0,0,0,0.82), rgba(0,0,0,0.40))",
-                    pointerEvents: "none",
+                    width: "100%",
+                    height: 200,
+                    position: "relative",
+                    borderRadius: "16px",
+                    overflow: "hidden",
+                    background: "var(--bg-card)",
+                    border: "1px solid var(--border-default)",
+                  }}
+                >
+                  {profile.cover ? (
+                    <img
+                      src={profile.cover}
+                      alt="Cover"
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        background:
+                          "linear-gradient(135deg, var(--bg-card-hover) 0%, var(--bg-surface) 100%)",
+                      }}
+                    />
+                  )}
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      background:
+                        "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 60%)",
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* PROFILE HEADER ROW (Overlapping Banner) */}
+              <div className="profile-header-row">
+                <img
+                  src={
+                    profile.avatar ||
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name || "User")}&background=FCE706&color=050505&bold=true&size=200`
+                  }
+                  alt={profile.name}
+                  className="profile-avatar"
+                  onError={(e) => {
+                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name || "User")}&background=FCE706&color=050505`;
                   }}
                 />
-              )}
-              <img
-                src={
-                  profile.avatar ||
-                  `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                    profile.name || "User",
-                  )}&background=FCE706&color=050505&bold=true&size=200`
-                }
-                alt={profile.name}
-                style={{
-                  width: 84,
-                  height: 84,
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                  border: "2px solid #3A3A3A",
-                  position: "relative",
-                  zIndex: 1,
-                  flexShrink: 0,
-                }}
-                onError={(e) => {
-                  e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                    profile.name || "User",
-                  )}&background=FCE706&color=050505`;
-                }}
-              />
+
+                <div className="profile-info-wrapper">
+                  <div className="profile-name-col">
+                    <h2
+                      style={{
+                        margin: 0,
+                        fontSize: "1.8rem",
+                        fontWeight: 700,
+                        color: "var(--text-primary)",
+                        letterSpacing: "-0.02em",
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      {profile.name}
+                    </h2>
+                    {/* LEVEL CARD BELOW NAME */}
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        marginTop: 8,
+                      }}
+                    >
+                      <span
+                        style={{
+                          padding: "4px 12px",
+                          background: "var(--brand-yellow)",
+                          color: "#050505",
+                          borderRadius: 6,
+                          fontWeight: 800,
+                          fontSize: "0.8rem",
+                        }}
+                      >
+                        Lv.{profile.level}
+                      </span>
+                      <span
+                        style={{
+                          color: "var(--text-secondary)",
+                          fontWeight: 600,
+                          fontSize: "0.95rem",
+                        }}
+                      >
+                        {profile.levelTitle}
+                      </span>
+                    </div>
+                  </div>
+
+                  {!profile.isCurrentUser && (
+                    <button
+                      onClick={sendFriendRequest}
+                      disabled={profile.isFriend}
+                      style={{
+                        padding: "10px 20px",
+                        background: profile.isFriend
+                          ? "var(--bg-card)"
+                          : "var(--brand-yellow)",
+                        color: profile.isFriend
+                          ? "var(--text-muted)"
+                          : "#050505",
+                        border: profile.isFriend
+                          ? "1px solid var(--border-default)"
+                          : "none",
+                        borderRadius: 8,
+                        fontWeight: 600,
+                        fontSize: "0.9rem",
+                        cursor: profile.isFriend ? "not-allowed" : "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 8,
+                        transition: "0.2s",
+                        flexShrink: 0,
+                        boxShadow: profile.isFriend
+                          ? "none"
+                          : "0 4px 12px rgba(252, 231, 6, 0.2)",
+                      }}
+                    >
+                      <i
+                        className={`fas ${profile.isFriend ? "fa-user-check" : "fa-user-plus"}`}
+                      />
+                      {profile.isFriend ? "Friend" : "Add Friend"}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* BIO & TAGS */}
               <div
                 style={{
-                  position: "relative",
-                  zIndex: 1,
-                  flex: 1,
-                  minWidth: 0,
+                  padding: "16px 24px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 16,
                 }}
               >
+                {profile.bio && (
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "0.95rem",
+                      color: "var(--text-primary)",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {profile.bio}
+                  </p>
+                )}
+
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    flexWrap: "wrap",
+                    gap: 16,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 12,
+                    }}
+                  >
+                    {profile.status && (
+                      <div>
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 6,
+                            padding: "4px 12px",
+                            background: "var(--bg-card)",
+                            border: "1px solid var(--border-default)",
+                            borderRadius: 999,
+                            fontSize: "0.8rem",
+                            color: "var(--text-secondary)",
+                          }}
+                        >
+                          <i
+                            className="fas fa-circle"
+                            style={{ color: "var(--success)", fontSize: 6 }}
+                          />
+                          {profile.status}
+                        </span>
+                      </div>
+                    )}
+
+                    {profile.favoriteAnime?.length > 0 && (
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 8,
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: "0.75rem",
+                            fontWeight: 600,
+                            color: "var(--text-muted)",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.05em",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6,
+                          }}
+                        >
+                          <i
+                            className="fas fa-heart"
+                            style={{ color: "#ef4444" }}
+                          />{" "}
+                          Favorite Anime
+                        </span>
+                        <div
+                          style={{ display: "flex", gap: 8, flexWrap: "wrap" }}
+                        >
+                          {profile.favoriteAnime.slice(0, 5).map((fav, i) => {
+                            const id = typeof fav === "object" ? fav.id : fav;
+                            const fallbackTitle =
+                              typeof fav === "object" ? fav.title : null;
+                            const title =
+                              fallbackTitle ||
+                              animeTitleMap[id] ||
+                              `Anime #${id}`;
+                            return (
+                              <span
+                                key={i}
+                                style={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  padding: "4px 12px",
+                                  background: "var(--bg-card)",
+                                  border: "1px solid var(--border-default)",
+                                  borderRadius: 999,
+                                  fontSize: "0.8rem",
+                                  color: "var(--text-secondary)",
+                                }}
+                              >
+                                {title}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {socialKeys.length > 0 && (
+                    <div style={{ display: "flex", gap: 8 }}>
+                      {socialKeys.map((k) => (
+                        <a
+                          key={k}
+                          href={getSocialUrl(k, profile.social[k])}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            width: 40,
+                            height: 40,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            background: "var(--bg-card)",
+                            border: "1px solid var(--border-default)",
+                            borderRadius: 10,
+                            color: "var(--text-secondary)",
+                            transition: "0.2s",
+                          }}
+                          title={`${k}: ${profile.social[k]}`}
+                        >
+                          <SocialIcon platform={k} />
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* STATS GRID (NO CUTOFF, EXPLICIT NO BACKGROUND) */}
+              <div style={{ padding: "0 24px 24px" }}>
+                <div
+                  className="profile-stats-grid"
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    padding: 0,
+                  }}
+                >
+                  <StatCard
+                    icon="fa-tv"
+                    value={profile.stats?.totalAnime}
+                    label="Total Anime"
+                  />
+                  <StatCard
+                    icon="fa-check-circle"
+                    value={profile.stats?.completed}
+                    label="Completed"
+                  />
+                  <StatCard
+                    icon="fa-film"
+                    value={profile.stats?.totalEpisodes}
+                    label="Episodes"
+                  />
+                  <StatCard
+                    icon="fa-clock"
+                    value={profile.stats?.totalHours}
+                    label="Hours"
+                  />
+                </div>
+              </div>
+
+              {/* ANIME LIST (NO TABS, JUST COMPLETED LIST) */}
+              <div style={{ padding: "0 24px 24px", minHeight: "250px" }}>
                 <h3
                   style={{
-                    margin: 0,
-                    fontSize: "1.25rem",
-                    fontWeight: 700,
-                    color: "#FBFBFB",
-                  }}
-                >
-                  {profile.name || profile.username || "User"}
-                </h3>
-                <div
-                  style={{
-                    marginTop: 6,
+                    fontSize: "1.1rem",
+                    fontWeight: 600,
+                    color: "var(--text-primary)",
+                    marginBottom: "16px",
                     display: "flex",
-                    gap: 8,
                     alignItems: "center",
-                    flexWrap: "wrap",
-                    fontSize: "0.8rem",
-                  }}
-                >
-                  <span
-                    style={{
-                      padding: "2px 8px",
-                      borderRadius: 4,
-                      background: "#FCE706",
-                      color: "#050505",
-                      fontWeight: 800,
-                      fontSize: "0.7rem",
-                    }}
-                  >
-                    Lv.{profile.level}
-                  </span>
-                  <span
-                    style={{
-                      color: "#C2C4C7",
-                      fontWeight: 500,
-                    }}
-                  >
-                    {profile.levelTitle}
-                  </span>
-                </div>
-                {!profile.isCurrentUser && (
-                  <button
-                    onClick={sendFriendRequest}
-                    disabled={profile.isFriend}
-                    style={{
-                      marginTop: 10,
-                      padding: "6px 14px",
-                      background: profile.isFriend ? "#292929" : "#FCE706",
-                      color: profile.isFriend ? "#797979" : "#050505",
-                      border:
-                        "1px solid " +
-                        (profile.isFriend ? "#3A3A3A" : "#FCE706"),
-                      borderRadius: 8,
-                      cursor: profile.isFriend ? "not-allowed" : "pointer",
-                      fontWeight: 600,
-                      fontSize: "0.8rem",
-                      fontFamily: "inherit",
-                    }}
-                  >
-                    <i
-                      className={`fas ${profile.isFriend ? "fa-user-check" : "fa-user-plus"}`}
-                      style={{ marginRight: 6 }}
-                    />
-                    {profile.isFriend ? "Friends" : "Add friend"}
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div style={{ marginBottom: 16 }}>
-              {profile.bio && (
-                <p
-                  style={{
-                    margin: "0 0 8px 0",
-                    color: "#C2C4C7",
-                    fontSize: "0.875rem",
-                    lineHeight: 1.5,
-                  }}
-                >
-                  {profile.bio}
-                </p>
-              )}
-              {profile.status && (
-                <div
-                  style={{
-                    display: "inline-block",
-                    padding: "3px 12px",
-                    background: "#171717",
-                    border: "1px solid #292929",
-                    borderRadius: 999,
-                    fontSize: "0.8rem",
-                    color: "#C2C4C7",
-                    marginBottom: 8,
+                    gap: 8,
                   }}
                 >
                   <i
-                    className="fas fa-circle"
-                    style={{
-                      color: "#22C55E",
-                      fontSize: 6,
-                      marginRight: 6,
-                      verticalAlign: "middle",
-                    }}
-                  />
-                  {profile.status}
-                </div>
-              )}
-              {profile.favoriteAnime?.length > 0 && (
-                <div
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: 6,
-                    marginTop: 8,
-                  }}
-                >
-                  {profile.favoriteAnime.slice(0, 6).map((fav, i) => {
-                    const id = typeof fav === "object" ? fav.id : fav;
-                    const fallbackTitle =
-                      typeof fav === "object" ? fav.title : null;
-                    const title =
-                      fallbackTitle || animeTitleMap[id] || `Anime #${id}`;
-                    return (
-                      <span
-                        key={i}
-                        style={{
-                          padding: "2px 10px",
-                          background: "#171717",
-                          border: "1px solid #292929",
-                          borderRadius: 999,
-                          fontSize: "0.75rem",
-                          color: "#C2C4C7",
-                        }}
-                      >
-                        {title}
-                      </span>
-                    );
-                  })}
-                </div>
-              )}
-              {socialKeys.length > 0 && (
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 10,
-                    marginTop: 10,
-                  }}
-                >
-                  {socialKeys.map((k) => (
-                    <a
-                      key={k}
-                      href={`https://${k}.com/${profile.social[k]}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        width: 34,
-                        height: 34,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        background: "#171717",
-                        border: "1px solid #292929",
-                        borderRadius: 8,
-                        color: "#C2C4C7",
-                        fontSize: "0.875rem",
-                      }}
-                      title={`${k}: ${profile.social[k]}`}
-                    >
-                      <i
-                        className={`${k === "twitter" || k === "instagram" ? "fab" : "fas"} ${SOCIAL_ICON[k]}`}
-                      />
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(4, 1fr)",
-                gap: 10,
-                marginBottom: 16,
-              }}
-            >
-              <StatCard
-                icon="fa-tv"
-                value={profile.stats?.totalAnime}
-                label="Total anime"
-              />
-              <StatCard
-                icon="fa-check-circle"
-                value={profile.stats?.completed}
-                label="Completed"
-              />
-              <StatCard
-                icon="fa-film"
-                value={profile.stats?.totalEpisodes}
-                label="Episodes"
-              />
-              <StatCard
-                icon="fa-clock"
-                value={profile.stats?.totalHours}
-                label="Hours"
-              />
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                gap: 4,
-                marginBottom: 12,
-                borderBottom: "1px solid #1F1F1F",
-                overflowX: "auto",
-              }}
-            >
-              {TABS.map((t) => (
-                <button
-                  key={t.k}
-                  onClick={() => setTab(t.k)}
-                  style={{
-                    padding: "8px 12px",
-                    background: "none",
-                    border: 0,
-                    color: tab === t.k ? "#FCE706" : "#797979",
-                    cursor: "pointer",
-                    borderBottom:
-                      tab === t.k
-                        ? "2px solid #FCE706"
-                        : "2px solid transparent",
-                    fontSize: "0.8rem",
-                    fontWeight: 600,
-                    whiteSpace: "nowrap",
-                    fontFamily: "inherit",
-                  }}
-                >
-                  <i className={`fas ${t.icon}`} style={{ marginRight: 6 }} />
-                  {t.l}
-                </button>
-              ))}
-            </div>
-
-            <div style={{ minHeight: 200 }}>
-              {(tab === "completed" || tab === "watching" || tab === "plan") &&
-                (() => {
-                  const key = tab === "plan" ? "planToWatch" : tab;
-                  const list = profile.animeList?.[key] || [];
+                    className="fas fa-check-circle"
+                    style={{ color: "var(--brand-yellow)" }}
+                  />{" "}
+                  Completed Anime
+                </h3>
+                {(() => {
+                  const list = profile.animeList?.completed || [];
                   if (!list.length)
                     return (
-                      <EmptyState icon="fa-inbox" message={`No ${tab} anime`} />
+                      <EmptyState
+                        icon="fa-inbox"
+                        message="No completed anime yet"
+                      />
                     );
-
-                  const recent = list.slice(0, 30);
 
                   return (
                     <div
                       style={{
                         display: "grid",
                         gridTemplateColumns:
-                          "repeat(auto-fill, minmax(140px, 1fr))",
-                        gap: 10,
+                          "repeat(auto-fill, minmax(130px, 1fr))",
+                        gap: 16,
                       }}
                     >
-                      {recent.map((a) => (
+                      {list.slice(0, 50).map((a) => (
                         <div
                           key={a.id}
                           style={{
-                            background: "#171717",
-                            borderRadius: 8,
+                            background: "var(--bg-card)",
+                            borderRadius: 10,
                             overflow: "hidden",
-                            border: "1px solid #292929",
+                            border: "1px solid var(--border-default)",
+                            display: "flex",
+                            flexDirection: "column",
+                            transition: "transform 0.2s, border-color 0.2s",
                           }}
+                          className="hover-card"
                         >
                           <img
                             src={
                               a.cover ||
-                              "https://placehold.co/140x200/111111/555555?text=No+Image"
+                              "https://placehold.co/140x210/111111/555555?text=No+Image"
                             }
                             alt={a.title}
                             style={{
                               width: "100%",
-                              height: 200,
+                              aspectRatio: "2 / 3",
                               objectFit: "cover",
                               display: "block",
-                              background: "#0A0A0A",
+                              background: "var(--bg-surface)",
                             }}
                             onError={(e) => {
                               e.target.src =
-                                "https://placehold.co/140x200/111111/555555?text=No+Image";
+                                "https://placehold.co/140x210/111111/555555?text=No+Image";
                             }}
                           />
                           <div
                             style={{
-                              padding: 8,
+                              padding: 10,
+                              flex: 1,
+                              display: "flex",
+                              flexDirection: "column",
+                              justifyContent: "space-between",
                             }}
                           >
                             <div
                               style={{
-                                fontSize: "0.75rem",
-                                fontWeight: 500,
+                                fontSize: "0.8rem",
+                                fontWeight: 600,
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
                                 whiteSpace: "nowrap",
-                                color: "#FBFBFB",
+                                color: "var(--text-primary)",
                               }}
                               title={a.title}
                             >
                               {a.title}
                             </div>
-                            <div style={{ padding: 8 }}>
-                              <div
-                                style={{
-                                  display: "flex",
-                                  justifyContent: "space-between",
-                                  alignItems: "center",
-                                  marginTop: 4,
-                                  fontSize: "0.65rem",
-                                  color: "#797979",
-                                }}
-                              >
-                                <span>{a.type || "Unknown"}</span>
-                                <span>{a.episodes || 0} Eps</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })()}
-
-              {tab === "achievements" &&
-                (() => {
-                  const list = profile.achievements || [];
-                  return (
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns:
-                          "repeat(auto-fill, minmax(220px, 1fr))",
-                        gap: 10,
-                      }}
-                    >
-                      {ACHIEVEMENTS.map((ach) => {
-                        const isUnlocked = list.includes(ach.id);
-                        return (
-                          <div
-                            key={ach.id}
-                            title={ach.desc}
-                            style={{
-                              padding: 10,
-                              background: "#171717",
-                              border:
-                                "1px solid " +
-                                (isUnlocked
-                                  ? "rgba(252, 231, 6, 0.32)"
-                                  : "#292929"),
-                              borderRadius: 8,
-                              display: "flex",
-                              gap: 10,
-                              alignItems: "center",
-                            }}
-                          >
                             <div
                               style={{
-                                fontSize: 18,
-                                color: isUnlocked ? "#FCE706" : "#555555",
-                                width: 28,
-                                textAlign: "center",
-                                flexShrink: 0,
-                              }}
-                            >
-                              <i className={`fas ${ach.icon}`} />
-                            </div>
-                            <div
-                              style={{
-                                flex: 1,
-                                minWidth: 0,
-                              }}
-                            >
-                              <div
-                                style={{
-                                  fontSize: "0.75rem",
-                                  fontWeight: 600,
-                                  color: isUnlocked ? "#FBFBFB" : "#797979",
-                                }}
-                              >
-                                {ach.title}
-                              </div>
-                              <div
-                                style={{
-                                  fontSize: "0.6rem",
-                                  color: "#555555",
-                                  marginTop: 1,
-                                }}
-                              >
-                                {ach.desc}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })()}
-
-              {tab === "activity" &&
-                (() => {
-                  const acts = profile.recentActivity || [];
-                  if (!acts.length)
-                    return (
-                      <EmptyState
-                        icon="fa-history"
-                        message="No recent activity"
-                      />
-                    );
-                  return (
-                    <div>
-                      {acts.map((act, i) => (
-                        <div
-                          key={i}
-                          style={{
-                            display: "flex",
-                            gap: 12,
-                            padding: 10,
-                            borderBottom: "1px solid #1F1F1F",
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: 32,
-                              height: 32,
-                              borderRadius: "50%",
-                              background: "#171717",
-                              border: "1px solid #292929",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              color: "#FCE706",
-                              flexShrink: 0,
-                              fontSize: "0.75rem",
-                            }}
-                          >
-                            <i className="fas fa-history" />
-                          </div>
-                          <div
-                            style={{
-                              flex: 1,
-                              minWidth: 0,
-                            }}
-                          >
-                            <div
-                              style={{
-                                fontSize: "0.85rem",
-                                color: "#FBFBFB",
-                              }}
-                            >
-                              <strong
-                                style={{
-                                  textTransform: "capitalize",
-                                }}
-                              >
-                                {act.action}
-                              </strong>{" "}
-                              — {act.animeTitle}
-                            </div>
-                            <div
-                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                marginTop: 6,
                                 fontSize: "0.7rem",
-                                color: "#797979",
-                                marginTop: 2,
+                                color: "var(--text-muted)",
                               }}
                             >
-                              {new Date(act.timestamp).toLocaleString()}
+                              <span>{a.type || "TV"}</span>
+                              <span>{a.episodes || 0} Eps</span>
                             </div>
                           </div>
                         </div>
@@ -974,59 +915,150 @@ export default function UserProfileModal({ userId, onClose }) {
                     </div>
                   );
                 })()}
-            </div>
-          </div>
-        )}
+              </div>
+            </>
+          ) : null}
+        </div>
       </div>
+
+      {/* CSS for Responsive Layout & Hover Effects */}
+      <style>{`
+        .hover-card:hover {
+          transform: translateY(-2px);
+          border-color: var(--border-strong) !important;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .profile-header-row {
+          display: flex;
+          align-items: flex-end;
+          padding: 0 24px;
+          margin-top: -60px;
+          position: relative;
+          z-index: 2;
+          gap: 20px;
+          margin-bottom: 16px;
+          flex-wrap: wrap;
+        }
+
+        .profile-avatar {
+          width: 120px;
+          height: 120px;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 4px solid var(--bg-surface);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+          background: var(--bg-surface);
+          flex-shrink: 0;
+        }
+
+        .profile-info-wrapper {
+          flex: 1;
+          min-width: 240px;
+          padding-bottom: 8px;
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 16px;
+        }
+
+        .profile-name-col {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+        }
+
+        .profile-stats-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+          gap: 16px;
+        }
+
+        @media (max-width: 650px) {
+          .profile-header-row {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 12px;
+            margin-top: -50px;
+          }
+          .profile-avatar {
+            width: 100px;
+            height: 100px;
+          }
+          .profile-info-wrapper {
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 0;
+          }
+          .profile-name-col {
+            align-items: center;
+          }
+          .profile-stats-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
 
 function StatCard({ icon, value, label }) {
-  const fullValue = formatFull(value);
-  const displayValue = formatCompact(value);
   return (
     <div
-      title={`${fullValue} ${label}`}
       style={{
-        textAlign: "center",
-        padding: 12,
-        background: "#171717",
-        border: "1px solid #292929",
-        borderRadius: 8,
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        padding: "12px",
+        background: "var(--bg-card)",
+        border: "1px solid var(--border-default)",
+        borderRadius: 10,
       }}
     >
-      <i
-        className={`fas ${icon}`}
-        style={{
-          color: "#FCE706",
-          fontSize: "0.85rem",
-          opacity: 0.7,
-          marginBottom: 6,
-          display: "block",
-        }}
-      />
       <div
         style={{
-          fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-          fontSize: "1.1rem",
-          fontWeight: 700,
-          color: "#FBFBFB",
-          lineHeight: 1.1,
+          width: 36,
+          height: 36,
+          borderRadius: 8,
+          background: "var(--bg-surface)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "var(--brand-yellow)",
+          fontSize: "1rem",
+          flexShrink: 0,
         }}
       >
-        {displayValue}
+        <i className={`fas ${icon}`} />
       </div>
-      <div
-        style={{
-          fontSize: "0.65rem",
-          color: "#797979",
-          textTransform: "uppercase",
-          letterSpacing: "0.05em",
-          marginTop: 4,
-        }}
-      >
-        {label}
+      <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+        <span
+          style={{
+            fontSize: "1.1rem",
+            fontWeight: 700,
+            color: "var(--text-primary)",
+            lineHeight: 1.2,
+          }}
+        >
+          {formatCompact(value)}
+        </span>
+        <span
+          style={{
+            fontSize: "0.65rem",
+            color: "var(--text-muted)",
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+            marginTop: 2,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {label}
+        </span>
       </div>
     </div>
   );
@@ -1036,23 +1068,43 @@ function EmptyState({ icon, message }) {
   return (
     <div
       style={{
-        padding: 40,
+        padding: "60px 20px",
         textAlign: "center",
-        color: "#555555",
-        fontSize: "0.875rem",
+        color: "var(--text-muted)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
       }}
     >
-      <i
-        className={`fas ${icon}`}
+      <div
         style={{
-          fontSize: 32,
-          display: "block",
-          marginBottom: 12,
-          opacity: 0.4,
-          color: "#797979",
+          width: 64,
+          height: 64,
+          borderRadius: "50%",
+          background: "var(--bg-card)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          marginBottom: 16,
+          border: "1px solid var(--border-subtle)",
         }}
-      />
-      {message}
+      >
+        <i
+          className={`fas ${icon}`}
+          style={{ fontSize: 28, color: "var(--brand-yellow)", opacity: 0.8 }}
+        />
+      </div>
+      <h3
+        style={{
+          fontSize: "1.2rem",
+          marginBottom: 8,
+          color: "var(--text-primary)",
+        }}
+      >
+        {message}
+      </h3>
+      <p style={{ fontSize: "0.9rem", margin: 0 }}>Nothing to show here yet.</p>
     </div>
   );
 }
