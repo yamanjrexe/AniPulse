@@ -315,8 +315,7 @@ export default function ProfilePreviewBanner({ profile }) {
                     gap: 6,
                   }}
                 >
-                  <i className="fas fa-heart" style={{ color: "#ef4444" }} />{" "}
-                  Favorite Anime
+                  Favorite Anime's
                 </span>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   {profile.favoriteAnime.slice(0, 5).map((fav, i) => {

@@ -46,6 +46,7 @@ export default function AnimeList() {
   const [status, setStatus] = useState("all");
   const [month, setMonth] = useState(currentMonth);
   const [year, setYear] = useState(currentYear);
+  const [genre, setGenre] = useState("all"); 
 
   const [query, setQuery] = useState(
     () => localStorage.getItem(STORAGE_QUERY) || "",
@@ -57,6 +58,18 @@ export default function AnimeList() {
     return () =>
       window.removeEventListener("globalSearchChange", onSearchChange);
   }, []);
+
+  const genreOptions = useMemo(() => {
+    const s = new Set();
+    animeData.forEach((a) => {
+      if (Array.isArray(a.genres)) {
+        a.genres.forEach((g) => {
+          if (g) s.add(g);
+        });
+      }
+    });
+    return Array.from(s).sort();
+  }, [animeData]);
 
   const yearOptions = useMemo(() => {
     const s = new Set([currentYear()]);
@@ -80,6 +93,10 @@ export default function AnimeList() {
       list = list.filter((a) => a.userStatus === status);
     }
 
+    if (genre !== "all") {
+      list = list.filter((a) => a.genres && a.genres.includes(genre));
+    }
+
     if (query.trim()) {
       const q = query.toLowerCase();
       return list.filter((a) => a.title.toLowerCase().includes(q));
@@ -101,7 +118,7 @@ export default function AnimeList() {
     }
 
     return list;
-  }, [animeData, status, month, year, query]);
+  }, [animeData, status, genre, month, year, query]);
 
   const onEdit = (a) =>
     window.dispatchEvent(
@@ -119,11 +136,20 @@ export default function AnimeList() {
 
         <div className="anime-filters">
           <select value={status} onChange={(e) => setStatus(e.target.value)}>
-            <option value="all">All</option>
+            <option value="all">All Status</option>
             <option value="Completed">Completed</option>
             <option value="Watching">Watching</option>
             <option value="Plan to Watch">Plan to Watch</option>
             <option value="Dropped">Dropped</option>
+          </select>
+
+          <select value={genre} onChange={(e) => setGenre(e.target.value)}>
+            <option value="all">All Genres</option>
+            {genreOptions.map((g) => (
+              <option key={g} value={g}>
+                {g}
+              </option>
+            ))}
           </select>
 
           <select value={month} onChange={(e) => setMonth(e.target.value)}>
@@ -148,7 +174,6 @@ export default function AnimeList() {
         </div>
       </div>
 
-      {/* UPDATED EMPTY STATE CHECK */}
       {animeData.length === 0 ? (
         <div
           style={{

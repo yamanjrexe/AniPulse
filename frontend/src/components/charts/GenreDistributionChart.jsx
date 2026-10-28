@@ -149,33 +149,13 @@ export default function GenreDistributionChart({ animeData }) {
       </div>
 
       {labels.length === 0 ? (
-        /* Updated Empty State */
-        <div
-          style={{
-            height: "100%",
-            minHeight: "240px",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "var(--text-muted)",
-            opacity: 0.7,
-          }}
-        >
-          <i
-            className="fas fa-chart-pie"
-            style={{
-              fontSize: "2.5rem",
-              marginBottom: "12px",
-              color: "var(--brand-yellow)",
-            }}
-          />
-          <p
-            style={{ margin: 0, fontWeight: 500, color: "var(--text-primary)" }}
-          >
-            No genres found
-          </p>
-          <small>Complete anime to see your genre breakdown.</small>
+        /* Refactored Empty State with CSS Classes */
+        <div className="chart-empty-state">
+          <i className="fas fa-chart-pie chart-empty-icon" />
+          <p className="chart-empty-title">No genres found</p>
+          <small className="chart-empty-subtitle">
+            Complete anime to see your genre breakdown.
+          </small>
         </div>
       ) : (
         <div className="genre-chart-layout">

@@ -476,7 +476,10 @@ export default function UserProfileModal({ userId, onClose }) {
           ) : profile ? (
             <>
               {/* BANNER (Inset & Curved) */}
-              <div style={{ padding: "24px 24px 0" }}>
+              <div
+                className="profile-banner-container"
+                style={{ padding: "24px 24px 0" }}
+              >
                 <div
                   className="profile-banner"
                   style={{
@@ -621,6 +624,7 @@ export default function UserProfileModal({ userId, onClose }) {
 
               {/* BIO & TAGS */}
               <div
+                className="profile-bio-container"
                 style={{
                   padding: "16px 24px",
                   display: "flex",
@@ -701,11 +705,7 @@ export default function UserProfileModal({ userId, onClose }) {
                             gap: 6,
                           }}
                         >
-                          <i
-                            className="fas fa-heart"
-                            style={{ color: "#ef4444" }}
-                          />{" "}
-                          Favorite Anime
+                          Favorite Anime's
                         </span>
                         <div
                           style={{ display: "flex", gap: 8, flexWrap: "wrap" }}
@@ -772,7 +772,10 @@ export default function UserProfileModal({ userId, onClose }) {
               </div>
 
               {/* STATS GRID (NO CUTOFF, EXPLICIT NO BACKGROUND) */}
-              <div style={{ padding: "0 24px 24px" }}>
+              <div
+                className="profile-stats-container"
+                style={{ padding: "0 24px 24px" }}
+              >
                 <div
                   className="profile-stats-grid"
                   style={{
@@ -805,7 +808,10 @@ export default function UserProfileModal({ userId, onClose }) {
               </div>
 
               {/* ANIME LIST (NO TABS, JUST COMPLETED LIST) */}
-              <div style={{ padding: "0 24px 24px", minHeight: "250px" }}>
+              <div
+                className="profile-anime-container"
+                style={{ padding: "0 24px 24px", minHeight: "250px" }}
+              >
                 <h3
                   style={{
                     fontSize: "1.1rem",
@@ -834,14 +840,7 @@ export default function UserProfileModal({ userId, onClose }) {
                     );
 
                   return (
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns:
-                          "repeat(auto-fill, minmax(130px, 1fr))",
-                        gap: 16,
-                      }}
-                    >
+                    <div className="anime-grid">
                       {list.slice(0, 50).map((a) => (
                         <div
                           key={a.id}
@@ -928,6 +927,19 @@ export default function UserProfileModal({ userId, onClose }) {
           border-color: var(--border-strong) !important;
           box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
+
+        .anime-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr); /* Force exactly 2 columns on mobile */
+          gap: 12px;
+        }
+
+        @media (min-width: 500px) {
+          .anime-grid {
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 16px;
+          }
+        }
         
         .profile-header-row {
           display: flex;
@@ -976,12 +988,19 @@ export default function UserProfileModal({ userId, onClose }) {
         }
 
         @media (max-width: 650px) {
+          /* Reduce horizontal padding to maximize space for cards on mobile */
+          .profile-banner-container { padding: 16px 16px 0 !important; }
+          .profile-bio-container { padding: 16px !important; }
+          .profile-stats-container { padding: 0 16px 16px !important; }
+          .profile-anime-container { padding: 0 16px 16px !important; }
+
           .profile-header-row {
             flex-direction: column;
             align-items: center;
             text-align: center;
             gap: 12px;
             margin-top: -50px;
+            padding: 0 16px !important;
           }
           .profile-avatar {
             width: 100px;

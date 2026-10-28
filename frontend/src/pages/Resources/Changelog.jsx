@@ -6,6 +6,7 @@ const RELEASES = [
     date: "October 27th 2026",
     tag: "",
     items: [
+      "Anime List: Added dynamic genre filtering and updated the Total Anime counter to reflect active filters.",
       "Streaks: Fixed sync issues, added automatic midnight recalculation, and improved cloud syncing.",
       "User Profiles: Redesigned the layout, improved responsiveness, and updated anime lists, badges, and labels.",
       "Social Links: Fixed AniList and MyAnimeList profile URLs.",
