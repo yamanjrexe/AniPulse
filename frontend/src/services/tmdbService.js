@@ -1,16 +1,14 @@
-// src/services/tmdbService.js
 import { api } from "./api.js";
 
 const MEMORY_CACHE = new Map();
 const INFLIGHT = new Map();
 const TTL = 1000 * 60 * 60 * 24 * 7;
 const ERROR_TTL = 1000 * 60 * 5;
-const CACHE_VERSION = "v11"; // Bumped to v11 for strict matching
+const CACHE_VERSION = "v12";
 const LS_PREFIX = `tmdb_poster_${CACHE_VERSION}:`;
 const CHUNK = 10;
 
 function cacheKey(anime) {
-    // Use a random identifier if both ID and title are missing to prevent cache collision
     const id = anime?.id || anime?.anilistId || anime?.title || Math.random().toString(36).substring(7);
     return `anilist:${id}`;
 }
@@ -100,7 +98,6 @@ function getPosterBatched(anime) {
         }
     });
 }
-// ----------------------
 
 export const tmdbService = {
     async getPoster(anime) {

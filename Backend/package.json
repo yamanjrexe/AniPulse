@@ -1,6 +1,6 @@
 {
   "name": "anipulse-backend",
-  "version": "1.0.0",
+  "version": "3.1.6",
   "description": "AniPulse Backend with Firebase",
   "main": "server.js",
   "scripts": {

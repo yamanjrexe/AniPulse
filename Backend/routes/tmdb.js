@@ -1,4 +1,3 @@
-// server/routes/tmdb.js
 const express = require("express");
 const router = express.Router();
 
@@ -23,11 +22,8 @@ function titleScore(a, b) {
     const aWords = A.split(" ").filter(Boolean);
     const bWords = B.split(" ").filter(Boolean);
     const maxLen = Math.max(aWords.length, bWords.length);
-    const minLen = Math.min(aWords.length, bWords.length);
 
     if (A.includes(B) || B.includes(A)) {
-        // If the length difference is huge, it's not a match (e.g. "Naruto" vs "Naruto Shippuden" is fine, but "One" vs "One Piece Film Red" is bad)
-        if (maxLen - minLen > 3) return 0.3;
         return 1.5;
     }
 
@@ -72,15 +68,13 @@ async function findBestTmdb(anime) {
 
         if (!results.length) continue;
 
-        // STRICT FILTER: Must be Animation
+        // Filter for Asian Animation
         const validCandidates = results.filter(r => {
             const isAnimation = r.genre_ids && r.genre_ids.includes(16);
-            if (!isAnimation) return false;
-
             const lang = r.original_language;
             const isAsian = ["ja", "zh", "ko", "cn", "tw"].includes(lang) ||
                 (r.origin_country && r.origin_country.some(c => ["JP", "CN", "KR", "TW"].includes(c)));
-            return isAsian;
+            return isAnimation || isAsian;
         });
 
         for (let i = 0; i < Math.min(validCandidates.length, 5); i++) {
@@ -96,8 +90,6 @@ async function findBestTmdb(anime) {
                 }
             }
 
-            // STRICT REJECTION: If the title doesn't match at all, skip it.
-            // No more blind trust. If it doesn't match, it returns null and falls back to AniList.
             if (maxTitleScore < 0.4) continue;
 
             score += maxTitleScore;
@@ -114,7 +106,7 @@ async function findBestTmdb(anime) {
                 bestMatch = { tmdb: r, score: score };
             }
         }
-        if (bestMatch && bestMatch.score >= 1.5) break;
+        if (bestMatch && bestMatch.score >= 2.0) break;
     }
 
     return bestMatch && bestMatch.score >= 0.5 ? bestMatch : null;

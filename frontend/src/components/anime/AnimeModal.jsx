@@ -1,4 +1,3 @@
-// src/components/anime/AnimeModal.jsx
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import Modal from "../ui/Modal.jsx";
@@ -628,12 +627,10 @@ export default function AnimeModal() {
     (_, i) => new Date().getFullYear() - 20 + i,
   );
 
-  // The preview shows ONLY if we have a cover image selected (not just typing)
   const showPreview = Boolean(form.cover);
 
   return (
     <>
-      {/* FLOATING PREVIEW PORTAL (OUTSIDE MODAL) */}
       {open &&
         showPreview &&
         typeof document !== "undefined" &&
@@ -688,7 +685,7 @@ export default function AnimeModal() {
               onChange={(e) => {
                 const val = e.target.value;
                 if (!isEditing) {
-                  // If the user types or clears the text, clear the cover so the preview hides
+                  // Clear the cover on EVERY keystroke to force the preview to hide
                   setForm((f) => ({ ...f, title: val, cover: "" }));
                   setQuery(val);
                 } else {
