@@ -23,8 +23,7 @@ export default function Watchlist() {
   useEffect(() => {
     const t = setTimeout(() => {
       setDebouncedSearch(search);
-      setPage(1);
-    }, 300);
+    }, 250);
     return () => clearTimeout(t);
   }, [search]);
 
@@ -37,6 +36,10 @@ export default function Watchlist() {
     }
     return list.reverse();
   }, [animeData, status, debouncedSearch]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, status]);
 
   const totalPages = Math.ceil(filtered.length / PER_PAGE) || 1;
   const pageItems = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
@@ -52,10 +55,7 @@ export default function Watchlist() {
           <button
             key={f.k}
             className={`filter-btn ${status === f.k ? "active" : ""}`}
-            onClick={() => {
-              setStatus(f.k);
-              setPage(1);
-            }}
+            onClick={() => setStatus(f.k)}
           >
             {f.l}
           </button>
@@ -70,6 +70,22 @@ export default function Watchlist() {
           />
         </div>
       </div>
+
+      {animeData.length > 0 && (
+        <div
+          style={{
+            textAlign: "center",
+            margin: "24px 0 16px 0",
+            color: "var(--text-muted)",
+            fontSize: "0.95rem",
+            fontWeight: "500",
+            letterSpacing: "0.02em",
+            animation: "fadeIn 0.3s ease-out",
+          }}
+        >
+          {filtered.length} {filtered.length === 1 ? "anime" : "anime"} found
+        </div>
+      )}
 
       <div className="top-anime-grid">
         {pageItems.map((a) => (

@@ -68,13 +68,13 @@ async function findBestTmdb(anime) {
 
         if (!results.length) continue;
 
-        // Filter for Asian Animation
         const validCandidates = results.filter(r => {
             const isAnimation = r.genre_ids && r.genre_ids.includes(16);
             const lang = r.original_language;
             const isAsian = ["ja", "zh", "ko", "cn", "tw"].includes(lang) ||
                 (r.origin_country && r.origin_country.some(c => ["JP", "CN", "KR", "TW"].includes(c)));
-            return isAnimation || isAsian;
+
+            return isAnimation && isAsian;
         });
 
         for (let i = 0; i < Math.min(validCandidates.length, 5); i++) {
@@ -90,12 +90,17 @@ async function findBestTmdb(anime) {
                 }
             }
 
-            if (maxTitleScore < 0.4) continue;
-
-            score += maxTitleScore;
-
             const relDate = r.first_air_date || r.release_date;
             const yearMatches = anime.year && relDate && String(relDate).startsWith(String(anime.year));
+
+            if (maxTitleScore >= 0.5) {
+                score += maxTitleScore;
+            } else if (i === 0 && yearMatches) {
+                score += 0.8;
+            } else {
+                continue;
+            }
+
             if (yearMatches) score += 0.5;
 
             const isAnimeMovie = anime.type === "Movie" || anime.type === "MOVIE";

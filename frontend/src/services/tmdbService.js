@@ -4,7 +4,7 @@ const MEMORY_CACHE = new Map();
 const INFLIGHT = new Map();
 const TTL = 1000 * 60 * 60 * 24 * 7;
 const ERROR_TTL = 1000 * 60 * 5;
-const CACHE_VERSION = "v12";
+const CACHE_VERSION = "v15"; 
 const LS_PREFIX = `tmdb_poster_${CACHE_VERSION}:`;
 const CHUNK = 10;
 

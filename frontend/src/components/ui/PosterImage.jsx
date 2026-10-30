@@ -1,4 +1,3 @@
-// src/components/ui/PosterImage.jsx
 import React, { useEffect, useState } from "react";
 import { tmdbService } from "../../services/tmdbService.js";
 
@@ -13,13 +12,16 @@ function isAnilistUrl(url) {
   return url.includes("anilist.co") || url.includes("anili.st");
 }
 
-// --- TOP 8 CACHE LOGIC ---
 let _top8Ids = null;
+let _cachedAnimeData = null;
 
 function getTop8Ids() {
-  if (_top8Ids) return _top8Ids;
   try {
-    const data = JSON.parse(localStorage.getItem("animeData") || "[]");
+    const raw = localStorage.getItem("animeData") || "[]";
+    if (raw === _cachedAnimeData && _top8Ids) return _top8Ids;
+
+    _cachedAnimeData = raw;
+    const data = JSON.parse(raw);
     const sorted = [...data].sort(
       (a, b) => (Number(b.score) || 0) - (Number(a.score) || 0),
     );
@@ -30,13 +32,12 @@ function getTop8Ids() {
   return _top8Ids;
 }
 
-// Reset the cache whenever the anime list updates (e.g., new anime added, score changed)
 if (typeof window !== "undefined") {
   window.addEventListener("animeUpdate", () => {
     _top8Ids = null;
+    _cachedAnimeData = null;
   });
 }
-// -------------------------
 
 export default function PosterImage({
   anime,
@@ -46,41 +47,45 @@ export default function PosterImage({
   aspectRatio = "2 / 3",
   ...rest
 }) {
-  const [src, setSrc] = useState(() => anime?.cover || null);
-  const [failed, setFailed] = useState(false);
+  const originalCover = anime?.cover || null;
+
+  const [src, setSrc] = useState(() => {
+    if (originalCover) {
+      const isTop8 = getTop8Ids().has(String(anime.id));
+      const isCustom =
+        !isAnilistUrl(originalCover) && !isTmdbUrl(originalCover);
+      if ((isCustom && isTop8) || isTmdbUrl(originalCover)) {
+        return originalCover;
+      }
+    }
+    return originalCover;
+  });
+
+  const [fallbackSrc, setFallbackSrc] = useState(originalCover);
 
   useEffect(() => {
     if (!anime) return;
 
     const cover = anime.cover;
+    setFallbackSrc(cover);
+
     const isTop8 = getTop8Ids().has(String(anime.id));
     const isCustom = cover && !isAnilistUrl(cover) && !isTmdbUrl(cover);
 
-    // 1. Top 8 Custom URL: Show immediately
     if (isCustom && isTop8) {
       setSrc(cover);
-      setFailed(false);
       return;
     }
 
-    // 2. TMDB URL: Show immediately
     if (isTmdbUrl(cover)) {
       setSrc(cover);
-      setFailed(false);
       return;
     }
-
-    // 3. Everything else: Fetch TMDB, fallback to AniList/Custom if TMDB fails
     let cancelled = false;
-
-    // Set initial source to the cover (AniList or Custom) to prevent blank flashes
     setSrc(cover || null);
-    setFailed(false);
 
     tmdbService.getPoster(anime).then((tmdbUrl) => {
       if (!cancelled) {
-        // If TMDB returns a poster, use it. If not, keep the AniList/Custom cover.
-        // Only show PLACEHOLDER if both TMDB and AniList are missing.
         setSrc(tmdbUrl || cover || PLACEHOLDER);
       }
     });
@@ -90,11 +95,17 @@ export default function PosterImage({
     };
   }, [anime?.id, anime?.title, anime?.cover]);
 
-  const displaySrc = failed ? PLACEHOLDER : src || PLACEHOLDER;
+  const handleError = () => {
+    if (src !== fallbackSrc && fallbackSrc) {
+      setSrc(fallbackSrc);
+    } else {
+      setSrc(PLACEHOLDER);
+    }
+  };
 
   return (
     <img
-      src={displaySrc}
+      src={src || PLACEHOLDER}
       alt={alt || anime?.title || "Anime poster"}
       className={className}
       style={{
@@ -105,7 +116,7 @@ export default function PosterImage({
         background: "var(--bg-surface)",
         ...style,
       }}
-      onError={() => setFailed(true)}
+      onError={handleError}
       loading="lazy"
       {...rest}
     />
