@@ -1,8 +1,8 @@
-const ANILIST_URL = 'https://graphql.anilist.co';
+// src/services/anilist.js
+const ANILIST_URL = "https://graphql.anilist.co";
 const CACHE = new Map();
 const CACHE_TTL = 10 * 60 * 1000;
-
-const CACHE_VERSION = 2;
+const CACHE_VERSION = 4; // Bumped to fetch images again
 
 export async function searchAniList(query, { signal, limit = 8 } = {}) {
   if (!query || query.trim().length < 2) return [];
@@ -16,46 +16,45 @@ export async function searchAniList(query, { signal, limit = 8 } = {}) {
         media(search: $search, type: ANIME, sort: POPULARITY_DESC) {
           id
           title { english romaji native }
-          coverImage { extraLarge large medium }
+          synonyms
           episodes
           format
           averageScore
           genres
           duration
+          seasonYear
+          startDate { year }
+          coverImage { extraLarge large medium } 
         }
       }
     }
   `;
 
   const res = await fetch(ANILIST_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({ query: gql, variables: { search: query } }),
-    signal
+    signal,
   });
   if (!res.ok) return [];
   const json = await res.json();
   const media = json.data?.Page?.media || [];
 
-  const results = media.map(m => ({
+  const results = media.map((m) => ({
     id: m.id,
-    title: m.title.english || m.title.romaji || m.title.native || 'Unknown',
-    title_english: m.title.english || '',
-    title_romaji: m.title.romaji || '',
-    type: m.format || 'TV',
+    title: m.title.english || m.title.romaji || m.title.native || "Unknown",
+    title_english: m.title.english || "",
+    title_romaji: m.title.romaji || "",
+    title_native: m.title.native || "",
+    synonyms: m.synonyms || [],
+    type: m.format || "TV",
     episodes: m.episodes || 0,
     score: m.averageScore ? m.averageScore / 10 : null,
-    images: {
-      jpg: {
-        image_url:
-          m.coverImage?.extraLarge ||
-          m.coverImage?.large ||
-          m.coverImage?.medium ||
-          null,
-      },
-    },
+    images: { jpg: { image_url: m.coverImage?.large || m.coverImage?.medium || null } }, // Restored AniList image
     genres: m.genres || [],
-    duration: m.duration || 20
+    duration: m.duration || 20,
+    seasonYear: m.seasonYear || m.startDate?.year || null,
+    year: m.seasonYear || m.startDate?.year || null,
   }));
 
   CACHE.set(key, { data: results, timestamp: Date.now() });

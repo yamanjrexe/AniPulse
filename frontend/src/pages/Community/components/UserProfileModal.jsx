@@ -5,6 +5,7 @@ import { useAuth } from "../../../context/AuthContext.jsx";
 import { ACHIEVEMENTS } from "../../../services/achievements.js";
 import { getLevelFromXP } from "../../../services/levelSystem.js";
 import { firebase } from "../../../firebaseClient.js";
+import PosterImage from "../../../components/ui/PosterImage.jsx";
 
 function getSocialUrl(platform, username) {
   if (!username) return "#";
@@ -24,7 +25,7 @@ function getSocialUrl(platform, username) {
 }
 
 function SocialIcon({ platform }) {
-  if (platform === "anilist") {
+  if (platform === "anilist")
     return (
       <img
         src="/svg/anilist.svg"
@@ -37,8 +38,7 @@ function SocialIcon({ platform }) {
         }}
       />
     );
-  }
-  if (platform === "myanimelist") {
+  if (platform === "myanimelist")
     return (
       <img
         src="/svg/myanimelist.svg"
@@ -51,13 +51,10 @@ function SocialIcon({ platform }) {
         }}
       />
     );
-  }
-  if (platform === "twitter") {
+  if (platform === "twitter")
     return <i className="fab fa-twitter" style={{ fontSize: "1.2rem" }} />;
-  }
-  if (platform === "instagram") {
+  if (platform === "instagram")
     return <i className="fab fa-instagram" style={{ fontSize: "1.2rem" }} />;
-  }
   return null;
 }
 
@@ -137,9 +134,8 @@ function buildLocalProfile(user) {
         localStorage.getItem("unlockedAchievements") || "[]",
       );
       if (!Array.isArray(s)) return [];
-      if (s.length > 0 && typeof s[0] === "number") {
+      if (s.length > 0 && typeof s[0] === "number")
         return s.map((i) => ACHIEVEMENTS[i]?.id).filter(Boolean);
-      }
       return s;
     } catch {
       return [];
@@ -192,9 +188,7 @@ function buildLocalProfile(user) {
 
 function normalizeServerProfile(data) {
   if (!data || typeof data !== "object") return null;
-
   const totalXP = Number(data.totalXP ?? data.totalExp ?? data.xp ?? 0) || 0;
-
   const animeList = {
     completed: sortRecentFirst(data.animeList?.completed || []),
     watching: sortRecentFirst(data.animeList?.watching || []),
@@ -237,7 +231,6 @@ function normalizeServerProfile(data) {
 export default function UserProfileModal({ userId, onClose }) {
   const { user } = useAuth();
   const { showToast } = useToast();
-
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -298,10 +291,8 @@ export default function UserProfileModal({ userId, onClose }) {
           raw = await api.get(`/user/profile/${userId}`);
         }
         if (cancelled) return;
-
         const normalized = normalizeServerProfile(raw);
         if (!normalized) throw new Error("Invalid profile data");
-
         _profileCache.set(userId, {
           profile: normalized,
           timestamp: Date.now(),
@@ -309,7 +300,6 @@ export default function UserProfileModal({ userId, onClose }) {
         setProfile(normalized);
       } catch (err) {
         if (cancelled) return;
-        console.error("[UserProfileModal] load failed:", err);
         showToast(err.message || "Failed to load profile", "error");
         onClose?.();
       } finally {
@@ -387,7 +377,6 @@ export default function UserProfileModal({ userId, onClose }) {
           position: "relative",
         }}
       >
-        {/* HEADER (Sticky) */}
         <div
           style={{
             padding: "16px 24px",
@@ -412,7 +401,7 @@ export default function UserProfileModal({ userId, onClose }) {
             <i
               className="fas fa-user-circle"
               style={{ color: "var(--brand-yellow)", fontSize: "1.2rem" }}
-            />
+            />{" "}
             User Profile
             {isSelf && (
               <span
@@ -446,7 +435,6 @@ export default function UserProfileModal({ userId, onClose }) {
           </button>
         </div>
 
-        {/* SCROLLABLE BODY */}
         <div
           style={{
             overflowY: "auto",
@@ -470,12 +458,11 @@ export default function UserProfileModal({ userId, onClose }) {
               <i
                 className="fas fa-spinner fa-spin"
                 style={{ fontSize: 32, color: "var(--brand-yellow)" }}
-              />
+              />{" "}
               Loading profile...
             </div>
           ) : profile ? (
             <>
-              {/* BANNER (Inset & Curved) */}
               <div
                 className="profile-banner-container"
                 style={{ padding: "24px 24px 0" }}
@@ -523,7 +510,6 @@ export default function UserProfileModal({ userId, onClose }) {
                 </div>
               </div>
 
-              {/* PROFILE HEADER ROW (Overlapping Banner) */}
               <div className="profile-header-row">
                 <img
                   src={
@@ -536,7 +522,6 @@ export default function UserProfileModal({ userId, onClose }) {
                     e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name || "User")}&background=FCE706&color=050505`;
                   }}
                 />
-
                 <div className="profile-info-wrapper">
                   <div className="profile-name-col">
                     <h2
@@ -551,7 +536,6 @@ export default function UserProfileModal({ userId, onClose }) {
                     >
                       {profile.name}
                     </h2>
-                    {/* LEVEL CARD BELOW NAME */}
                     <div
                       style={{
                         display: "flex",
@@ -583,7 +567,6 @@ export default function UserProfileModal({ userId, onClose }) {
                       </span>
                     </div>
                   </div>
-
                   {!profile.isCurrentUser && (
                     <button
                       onClick={sendFriendRequest}
@@ -615,14 +598,13 @@ export default function UserProfileModal({ userId, onClose }) {
                     >
                       <i
                         className={`fas ${profile.isFriend ? "fa-user-check" : "fa-user-plus"}`}
-                      />
+                      />{" "}
                       {profile.isFriend ? "Friend" : "Add Friend"}
                     </button>
                   )}
                 </div>
               </div>
 
-              {/* BIO & TAGS */}
               <div
                 className="profile-bio-container"
                 style={{
@@ -644,7 +626,6 @@ export default function UserProfileModal({ userId, onClose }) {
                     {profile.bio}
                   </p>
                 )}
-
                 <div
                   style={{
                     display: "flex",
@@ -679,12 +660,11 @@ export default function UserProfileModal({ userId, onClose }) {
                           <i
                             className="fas fa-circle"
                             style={{ color: "var(--success)", fontSize: 6 }}
-                          />
+                          />{" "}
                           {profile.status}
                         </span>
                       </div>
                     )}
-
                     {profile.favoriteAnime?.length > 0 && (
                       <div
                         style={{
@@ -740,7 +720,6 @@ export default function UserProfileModal({ userId, onClose }) {
                       </div>
                     )}
                   </div>
-
                   {socialKeys.length > 0 && (
                     <div style={{ display: "flex", gap: 8 }}>
                       {socialKeys.map((k) => (
@@ -771,7 +750,6 @@ export default function UserProfileModal({ userId, onClose }) {
                 </div>
               </div>
 
-              {/* STATS GRID (NO CUTOFF, EXPLICIT NO BACKGROUND) */}
               <div
                 className="profile-stats-container"
                 style={{ padding: "0 24px 24px" }}
@@ -807,7 +785,6 @@ export default function UserProfileModal({ userId, onClose }) {
                 </div>
               </div>
 
-              {/* ANIME LIST (NO TABS, JUST COMPLETED LIST) */}
               <div
                 className="profile-anime-container"
                 style={{ padding: "0 24px 24px", minHeight: "250px" }}
@@ -838,7 +815,6 @@ export default function UserProfileModal({ userId, onClose }) {
                         message="No completed anime yet"
                       />
                     );
-
                   return (
                     <div className="anime-grid">
                       {list.slice(0, 50).map((a) => (
@@ -855,24 +831,7 @@ export default function UserProfileModal({ userId, onClose }) {
                           }}
                           className="hover-card"
                         >
-                          <img
-                            src={
-                              a.cover ||
-                              "https://placehold.co/140x210/111111/555555?text=No+Image"
-                            }
-                            alt={a.title}
-                            style={{
-                              width: "100%",
-                              aspectRatio: "2 / 3",
-                              objectFit: "cover",
-                              display: "block",
-                              background: "var(--bg-surface)",
-                            }}
-                            onError={(e) => {
-                              e.target.src =
-                                "https://placehold.co/140x210/111111/555555?text=No+Image";
-                            }}
-                          />
+                          <PosterImage anime={a} alt={a.title} />
                           <div
                             style={{
                               padding: 10,
@@ -920,104 +879,25 @@ export default function UserProfileModal({ userId, onClose }) {
         </div>
       </div>
 
-      {/* CSS for Responsive Layout & Hover Effects */}
       <style>{`
-        .hover-card:hover {
-          transform: translateY(-2px);
-          border-color: var(--border-strong) !important;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-
-        .anime-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr); /* Force exactly 2 columns on mobile */
-          gap: 12px;
-        }
-
-        @media (min-width: 500px) {
-          .anime-grid {
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            gap: 16px;
-          }
-        }
-        
-        .profile-header-row {
-          display: flex;
-          align-items: flex-end;
-          padding: 0 24px;
-          margin-top: -60px;
-          position: relative;
-          z-index: 2;
-          gap: 20px;
-          margin-bottom: 16px;
-          flex-wrap: wrap;
-        }
-
-        .profile-avatar {
-          width: 120px;
-          height: 120px;
-          border-radius: 50%;
-          object-fit: cover;
-          border: 4px solid var(--bg-surface);
-          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-          background: var(--bg-surface);
-          flex-shrink: 0;
-        }
-
-        .profile-info-wrapper {
-          flex: 1;
-          min-width: 240px;
-          padding-bottom: 8px;
-          display: flex;
-          align-items: flex-end;
-          justify-content: space-between;
-          flex-wrap: wrap;
-          gap: 16px;
-        }
-
-        .profile-name-col {
-          display: flex;
-          flex-direction: column;
-          min-width: 0;
-        }
-
-        .profile-stats-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-          gap: 16px;
-        }
-
+        .hover-card:hover { transform: translateY(-2px); border-color: var(--border-strong) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .anime-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        @media (min-width: 500px) { .anime-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px; } }
+        .profile-header-row { display: flex; align-items: flex-end; padding: 0 24px; margin-top: -60px; position: relative; z-index: 2; gap: 20px; margin-bottom: 16px; flex-wrap: wrap; }
+        .profile-avatar { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid var(--bg-surface); box-shadow: 0 4px 12px rgba(0,0,0,0.3); background: var(--bg-surface); flex-shrink: 0; }
+        .profile-info-wrapper { flex: 1; min-width: 240px; padding-bottom: 8px; display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+        .profile-name-col { display: flex; flex-direction: column; min-width: 0; }
+        .profile-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 16px; }
         @media (max-width: 650px) {
-          /* Reduce horizontal padding to maximize space for cards on mobile */
           .profile-banner-container { padding: 16px 16px 0 !important; }
           .profile-bio-container { padding: 16px !important; }
           .profile-stats-container { padding: 0 16px 16px !important; }
           .profile-anime-container { padding: 0 16px 16px !important; }
-
-          .profile-header-row {
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            gap: 12px;
-            margin-top: -50px;
-            padding: 0 16px !important;
-          }
-          .profile-avatar {
-            width: 100px;
-            height: 100px;
-          }
-          .profile-info-wrapper {
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding-bottom: 0;
-          }
-          .profile-name-col {
-            align-items: center;
-          }
-          .profile-stats-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-          }
+          .profile-header-row { flex-direction: column; align-items: center; text-align: center; gap: 12px; margin-top: -50px; padding: 0 16px !important; }
+          .profile-avatar { width: 100px; height: 100px; }
+          .profile-info-wrapper { flex-direction: column; align-items: center; justify-content: center; padding-bottom: 0; }
+          .profile-name-col { align-items: center; }
+          .profile-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
         }
       `}</style>
     </div>

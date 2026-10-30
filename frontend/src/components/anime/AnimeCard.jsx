@@ -1,9 +1,8 @@
 import React from "react";
+import PosterImage from "../ui/PosterImage.jsx";
 
 export default function AnimeCard({ anime, onClick }) {
   const score = anime.score ? parseFloat(anime.score).toFixed(1) : null;
-  const cover =
-    anime.cover || "https://placehold.co/300x400/6a5acd/white?text=No+Image";
   const episodesText = anime.episodes ? `${anime.episodes} Eps` : "";
 
   const totalEpisodes = anime.episodes || 0;
@@ -20,16 +19,7 @@ export default function AnimeCard({ anime, onClick }) {
       style={{ minWidth: 0 }}
     >
       <div className="anime-img-wrapper">
-        <img
-          src={cover}
-          alt={anime.title}
-          className="anime-cover"
-          loading="lazy"
-          onError={(e) => {
-            e.target.src =
-              "https://placehold.co/300x400/6a5acd/white?text=No+Image";
-          }}
-        />
+        <PosterImage anime={anime} alt={anime.title} className="anime-cover" />
         {score && <div className="rating-badge">⭐ {score}</div>}
       </div>
       <div className="anime-info" style={{ minWidth: 0 }}>

@@ -14,6 +14,7 @@ const uploadRoutes = require('./routes/upload');
 const chatRoutes = require('./routes/chat');
 const anilistRoutes = require('./routes/anilist');
 const animeRoutes = require('./routes/anime');
+const tmdbRoutes = require("./routes/tmdb");
 
 const app = express();
 
@@ -120,6 +121,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/anilist', anilistRoutes);
 app.use('/api/anime', animeRoutes);
+app.use('/api/tmdb', tmdbRoutes);
 app.get('/api/health', (req, res) => {
     res.json({
         status: 'ok',
@@ -127,7 +129,6 @@ app.get('/api/health', (req, res) => {
         environment: process.env.NODE_ENV || 'development'
     });
 });
-
 // ============================================
 // 404 — JSON only (frontend is on Netlify)
 // ============================================

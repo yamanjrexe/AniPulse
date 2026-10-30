@@ -1,6 +1,6 @@
 {
     "name": "anipulse-react-frontend",
-    "version": "3.1.4",
+    "version": "3.1.6",
     "private": true,
     "dependencies": {
         "chart.js": "^4.4.0",

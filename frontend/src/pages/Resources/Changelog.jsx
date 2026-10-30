@@ -1,6 +1,19 @@
 import React from "react";
 
 const RELEASES = [
+    {
+    version: "3.1.6",
+    date: "October 30th 2026",
+    tag: "",
+    items: [
+      "Posters: Integrated TMDB as the primary poster provider for high-quality, textless, and English artwork.",
+      "Posters: Implemented strict genre and country validation to ensure only accurate anime matches are returned, blocking live-action shows and western cartoons.",
+      "Posters: Replaced the 'No Poster' placeholder with a seamless fallback system that instantly restores AniList covers if TMDB fails.",
+      "Performance: Added a smart batching queue to fetch posters efficiently without triggering TMDB API rate limits.",
+      "Customization: Custom poster URLs are now fully respected for the Top 8 highest-rated anime in your list.",
+      "Anime Modal: Added a live floating poster preview on the left side of the Add/Edit modal that updates instantly upon selection.",
+    ],
+  },
   {
     version: "3.1.5",
     date: "October 27th 2026",

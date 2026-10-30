@@ -1,4 +1,6 @@
+// src/components/anime/AnimeModal.jsx
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import Modal from "../ui/Modal.jsx";
 import ConfirmDialog from "../ui/ConfirmDialog.jsx";
 import { useAnime } from "../../context/AnimeContext.jsx";
@@ -6,9 +8,11 @@ import { useToast } from "../../context/ToastContext.jsx";
 import { useLevel } from "../../context/LevelContext.jsx";
 import { useSync } from "../../context/SyncContext.jsx";
 import { searchAniList } from "../../services/anilist.js";
+import { tmdbService } from "../../services/tmdbService.js";
 import { animeService } from "../../services/animeService.js";
 import { openDayPrompt } from "../ui/DayPromptModal.jsx";
 import { anilistSync } from "../../services/anilistSync.js";
+import PosterImage from "../ui/PosterImage.jsx";
 
 const DEFAULT_DURATION = {
   Movie: 120,
@@ -33,7 +37,6 @@ const MONTHS = [
   "11",
   "12",
 ];
-
 const MONTH_NAMES = [
   "January",
   "February",
@@ -311,7 +314,26 @@ export default function AnimeModal() {
         const controller = new AbortController();
         abortRef.current = controller;
         const r = await searchAniList(q, { signal: controller.signal });
-        if (!controller.signal.aborted) setResults(r || []);
+        if (controller.signal.aborted) return;
+
+        setResults(r || []);
+
+        if (r && r.length) {
+          tmdbService.getPostersBatch(r).then((posters) => {
+            if (controller.signal.aborted) return;
+            setResults((prev) =>
+              prev.map((a) => ({
+                ...a,
+                images: {
+                  jpg: {
+                    image_url:
+                      posters[a.id] || a.images?.jpg?.image_url || null,
+                  },
+                },
+              })),
+            );
+          });
+        }
       } catch (err) {
         if (err?.name !== "AbortError") {
           setResults([]);
@@ -357,7 +379,7 @@ export default function AnimeModal() {
     });
   };
 
-  const selectResult = (r) => {
+  const selectResult = async (r) => {
     const type =
       r.type === "MOVIE"
         ? "Movie"
@@ -366,13 +388,31 @@ export default function AnimeModal() {
           : r.type || "TV";
     const dur = r.duration || DEFAULT_DURATION[type] || 20;
 
+    let cover = r.images?.jpg?.image_url || "";
+    if (!cover) {
+      try {
+        cover =
+          (await tmdbService.getPoster({
+            id: r.id,
+            title: r.title,
+            title_english: r.title_english,
+            title_romaji: r.title_romaji,
+            title_native: r.title_native,
+            synonyms: r.synonyms,
+            year: r.year,
+            seasonYear: r.seasonYear,
+            type: type,
+          })) || "";
+      } catch {}
+    }
+
     setForm((f) => ({
       ...f,
       title: r.title || "",
       type,
       episodes: r.episodes || 1,
       duration: dur,
-      cover: r.images?.jpg?.image_url || "",
+      cover,
       genres: (r.genres || []).filter((g) => g !== "Award Winning").join(", "),
       score: r.score != null ? String(r.score) : f.score,
     }));
@@ -408,7 +448,14 @@ export default function AnimeModal() {
     if (status === "Watching" && progress < 1) progress = 1;
 
     const score = form.score !== "" ? parseFloat(form.score) : null;
-    const cover = form.cover || "";
+
+    let cover = form.cover || "";
+    if (!cover && title) {
+      try {
+        cover = (await tmdbService.getPoster({ title, type })) || "";
+      } catch {}
+    }
+
     const genres = (form.genres || "")
       .split(",")
       .map((g) => g.trim())
@@ -490,7 +537,6 @@ export default function AnimeModal() {
         const newId = animeService.getNextAvailableId(animeDataSnapshot);
         const newAnime = { id: newId, ...payload, createdAt: nowTimestamp };
 
-        // FIXED: Changed 'anime' to 'animeData'
         updatedList = [...animeData, newAnime];
 
         try {
@@ -511,11 +557,9 @@ export default function AnimeModal() {
         anilistSync.syncAnime(newAnime, "upsert").catch(() => {});
       }
 
-      // 1. Update local state and local storage immediately
       setAnimeData(updatedList);
       localStorage.setItem("animeData", JSON.stringify(updatedList, null, 2));
 
-      // 2. Directly save to the cloud via animeService
       await animeService.saveCloud(updatedList);
 
       window.dispatchEvent(new CustomEvent("animeUpdate"));
@@ -584,8 +628,25 @@ export default function AnimeModal() {
     (_, i) => new Date().getFullYear() - 20 + i,
   );
 
+  // The preview shows ONLY if we have a cover image selected (not just typing)
+  const showPreview = Boolean(form.cover);
+
   return (
     <>
+      {/* FLOATING PREVIEW PORTAL (OUTSIDE MODAL) */}
+      {open &&
+        showPreview &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div className="floating-preview-portal">
+            <PosterImage
+              anime={{ ...form, id: editing?.id || "preview-temp-id" }}
+              alt={form.title || "Preview"}
+            />
+          </div>,
+          document.body,
+        )}
+
       <Modal
         open={open}
         onClose={close}
@@ -625,8 +686,14 @@ export default function AnimeModal() {
               type="text"
               value={form.title}
               onChange={(e) => {
-                setField("title", e.target.value);
-                if (!isEditing) setQuery(e.target.value);
+                const val = e.target.value;
+                if (!isEditing) {
+                  // If the user types or clears the text, clear the cover so the preview hides
+                  setForm((f) => ({ ...f, title: val, cover: "" }));
+                  setQuery(val);
+                } else {
+                  setField("title", val);
+                }
               }}
               placeholder={
                 isEditing ? "Title cannot be changed" : "Search for an anime..."
@@ -650,15 +717,15 @@ export default function AnimeModal() {
                     className="search-result-item"
                     onClick={() => selectResult(r)}
                   >
-                    <img
-                      src={
-                        r.images?.jpg?.image_url ||
-                        "https://placehold.co/45x65/2DA3FB/white?text=No+Image"
-                      }
+                    <PosterImage
+                      anime={{ ...r, cover: r.images?.jpg?.image_url }}
                       alt={r.title}
-                      onError={(e) => {
-                        e.target.src =
-                          "https://placehold.co/45x65/2DA3FB/white?text=No+Image";
+                      style={{
+                        width: "45px",
+                        height: "65px",
+                        borderRadius: "4px",
+                        objectFit: "cover",
+                        flexShrink: 0,
                       }}
                     />
                     <div className="search-result-info">
@@ -670,12 +737,10 @@ export default function AnimeModal() {
                         </span>
                         {r.score != null && (
                           <span className="score">
-                            <i className="fas fa-star" />
-                            {r.score}
+                            <i className="fas fa-star" /> {r.score}
                           </span>
                         )}
                       </div>
-
                       {r.genres?.length > 0 && (
                         <div className="search-result-genres">
                           {r.genres.slice(0, 4).map((g, i, arr) => (
@@ -795,7 +860,6 @@ export default function AnimeModal() {
                 ))}
               </select>
             </div>
-
             <div className="form-group">
               <label htmlFor="animeMonth">
                 <i className="fas fa-calendar" /> Completion Month
@@ -821,7 +885,7 @@ export default function AnimeModal() {
               type="text"
               value={form.cover}
               disabled
-              placeholder="Auto-filled from search"
+              placeholder="Auto-filled from TMDB"
             />
           </div>
 
@@ -884,6 +948,36 @@ export default function AnimeModal() {
         onConfirm={confirmDeleteAction}
         onCancel={() => setConfirmDelete(false)}
       />
+
+      <style>{`
+        .floating-preview-portal {
+          position: fixed;
+          top: 50%;
+          right: calc(50% + 440px); 
+          transform: translateY(-50%);
+          width: 240px;
+          aspect-ratio: 2 / 3;
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+          border: 2px solid var(--border-strong);
+          z-index: 10000;
+          pointer-events: none;
+          animation: slideInLeft 0.3s ease-out;
+          background: var(--bg-surface);
+        }
+
+        @keyframes slideInLeft {
+          from { opacity: 0; transform: translateY(-50%) translateX(20px); }
+          to { opacity: 1; transform: translateY(-50%) translateX(0); }
+        }
+
+        @media (max-width: 1300px) {
+          .floating-preview-portal {
+            display: none;
+          }
+        }
+      `}</style>
     </>
   );
 }
