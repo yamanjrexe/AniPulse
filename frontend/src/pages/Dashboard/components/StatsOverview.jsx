@@ -40,7 +40,7 @@ function compare(current, previous) {
   if (previous === 0 && current > 0)
     return { cls: "neutral", icon: "fa-minus", text: "New activity" };
   if (previous > 0 && current === 0)
-    return { cls: "negative", icon: "fa-arrow-down", text: "No activity" };
+    return { cls: "neutral", icon: "fa-minus", text: "No activity" };
 
   const change = ((current - previous) / previous) * 100;
   const abs = Math.abs(change);

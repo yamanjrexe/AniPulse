@@ -86,7 +86,6 @@ export default function Leaderboard() {
     }
   }, []);
 
-  // On mount and on stat change: paint cached instantly, fetch in bg
   useEffect(() => {
     const cached = readCache(stat);
     if (cached?.rows?.length) {
@@ -100,7 +99,6 @@ export default function Leaderboard() {
     localStorage.setItem("leaderboardStat", stat);
   }, [stat, load]);
 
-  // Warm the backend on mount so the next navigation is fast
   useEffect(() => {
     fetch(`${window.API_BASE_URL}/api/health`).catch(() => {});
   }, []);
@@ -200,7 +198,21 @@ export default function Leaderboard() {
                 className={`lb-podium-slot lb-rank-${rank}`}
                 onClick={() => openProfile(u.uid)}
               >
-                <div className="lb-podium-rank">#{rank}</div>
+                <div className="lb-podium-rank">
+                  {rank === 1 ? (
+                    <i
+                      className="fas fa-crown"
+                      style={{
+                        color: "#FFD700",
+                        fontSize: "1.2em",
+                        filter: "drop-shadow(0 0 5px rgba(255, 215, 0, 0.6))",
+                      }}
+                      aria-label="Rank 1"
+                    />
+                  ) : (
+                    rank
+                  )}
+                </div>
                 <img
                   src={
                     u.avatar ||

@@ -19,7 +19,6 @@ function getTop8Ids() {
   try {
     const raw = localStorage.getItem("animeData") || "[]";
     if (raw === _cachedAnimeData && _top8Ids) return _top8Ids;
-
     _cachedAnimeData = raw;
     const data = JSON.parse(raw);
     const sorted = [...data].sort(
@@ -51,14 +50,12 @@ export default function PosterImage({
 
   const [src, setSrc] = useState(() => {
     if (originalCover) {
+      if (isTmdbUrl(originalCover)) return originalCover;
       const isTop8 = getTop8Ids().has(String(anime.id));
-      const isCustom =
-        !isAnilistUrl(originalCover) && !isTmdbUrl(originalCover);
-      if ((isCustom && isTop8) || isTmdbUrl(originalCover)) {
-        return originalCover;
-      }
+      const isCustom = !isAnilistUrl(originalCover);
+      if (isCustom && isTop8) return originalCover;
     }
-    return originalCover;
+    return originalCover || null;
   });
 
   const [fallbackSrc, setFallbackSrc] = useState(originalCover);
@@ -69,21 +66,24 @@ export default function PosterImage({
     const cover = anime.cover;
     setFallbackSrc(cover);
 
+    // If it's already a TMDB URL, use it immediately
+    if (cover && isTmdbUrl(cover)) {
+      setSrc(cover);
+      return;
+    }
+
     const isTop8 = getTop8Ids().has(String(anime.id));
-    const isCustom = cover && !isAnilistUrl(cover) && !isTmdbUrl(cover);
+    const isCustom = cover && !isAnilistUrl(cover);
 
     if (isCustom && isTop8) {
       setSrc(cover);
       return;
     }
 
-    if (isTmdbUrl(cover)) {
-      setSrc(cover);
-      return;
-    }
     let cancelled = false;
     setSrc(cover || null);
 
+    // If it's an AniList cover or missing, fetch TMDB
     tmdbService.getPoster(anime).then((tmdbUrl) => {
       if (!cancelled) {
         setSrc(tmdbUrl || cover || PLACEHOLDER);

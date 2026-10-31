@@ -4,12 +4,13 @@ const MEMORY_CACHE = new Map();
 const INFLIGHT = new Map();
 const TTL = 1000 * 60 * 60 * 24 * 7;
 const ERROR_TTL = 1000 * 60 * 5;
-const CACHE_VERSION = "v15"; 
+const CACHE_VERSION = "v20"; // Bumped to clear all corrupted posters
 const LS_PREFIX = `tmdb_poster_${CACHE_VERSION}:`;
 const CHUNK = 10;
 
 function cacheKey(anime) {
-    const id = anime?.id || anime?.anilistId || anime?.title || Math.random().toString(36).substring(7);
+    // ONLY use the actual AniList ID. NEVER use the local database ID.
+    const id = anime?.anilistId || `${anime?.title || "unknown"}_${anime?.year || anime?.seasonYear || "0"}`;
     return `anilist:${id}`;
 }
 
@@ -34,12 +35,12 @@ function writeLocal(key, data) {
 
 function payloadFor(anime) {
     return {
-        anilistId: anime.id || anime.anilistId,
+        anilistId: anime.anilistId, // ONLY send the real AniList ID
         title: anime.title,
         title_english: anime.title_english,
         title_romaji: anime.title_romaji,
         title_native: anime.title_native,
-        synonyms: anime.synonyms,
+        synonyms: [], // Synonyms removed to prevent mismatch poisoning
         year: anime.year || anime.seasonYear || null,
         seasonYear: anime.seasonYear,
         type: anime.type || anime.format,
@@ -66,15 +67,15 @@ function processQueue() {
                 items: chunkItems.map(payloadFor),
             });
             const results = data?.results || [];
-            const resultMap = {};
-            results.forEach(r => resultMap[r.anilistId] = r);
 
             chunkItems.forEach((item, index) => {
-                const r = resultMap[item.id] || { poster: null, tmdbId: null };
+                const r = results[index] || { poster: null, tmdbId: null };
                 const key = cacheKey(item);
                 const entry = { poster: r.poster || null, tmdbId: r.tmdbId || null, ts: Date.now() };
+
                 MEMORY_CACHE.set(key, entry);
                 writeLocal(key, entry);
+
                 chunkResolvers[index](entry.poster);
             });
         } catch (err) {
@@ -139,14 +140,14 @@ export const tmdbService = {
             if (mem) {
                 const ttl = mem.poster ? TTL : ERROR_TTL;
                 if (Date.now() - mem.ts < ttl) {
-                    result[a.id] = mem.poster;
+                    result[a.anilistId || a.title] = mem.poster; // Map by anilistId
                     continue;
                 }
             }
             const local = readLocal(key);
             if (local) {
                 MEMORY_CACHE.set(key, local);
-                result[a.id] = local.poster;
+                result[a.anilistId || a.title] = local.poster;
                 continue;
             }
             missing.push(a);
@@ -160,13 +161,19 @@ export const tmdbService = {
                 const data = await api.post("/tmdb/posters/batch", {
                     items: chunk.map(payloadFor),
                 });
-                for (const r of data?.results || []) {
-                    const key = `anilist:${r.anilistId}`;
+
+                const results = data?.results || [];
+
+                chunk.forEach((a, index) => {
+                    const r = results[index] || { poster: null, tmdbId: null };
+                    const key = cacheKey(a);
                     const entry = { poster: r.poster || null, tmdbId: r.tmdbId || null, ts: Date.now() };
+
                     MEMORY_CACHE.set(key, entry);
                     writeLocal(key, entry);
-                    result[r.anilistId] = r.poster || null;
-                }
+
+                    result[a.anilistId || a.title] = entry.poster;
+                });
             } catch (err) {
                 console.warn("[tmdbService] Batch fetch failed", err);
             }

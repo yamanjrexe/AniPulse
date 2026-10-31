@@ -56,6 +56,7 @@ const isDurationEditable = (type) => type === "Movie";
 function defaultForm() {
   const now = new Date();
   return {
+    anilistId: null, // ADDED: Store the true AniList ID
     title: "",
     type: "TV",
     episodes: 1,
@@ -197,15 +198,12 @@ export default function AnimeModal() {
       document.body.style.paddingRight = prevBodyPaddingRight;
       document.documentElement.style.overflow = prevHtmlOverflow;
       document.documentElement.style.overscrollBehavior = prevHtmlOverscroll;
-
       document.body.classList.remove("modal-open");
       document.body.removeAttribute("data-anime-modal-open");
-
       document.removeEventListener("wheel", blockWheel, { capture: true });
       document.removeEventListener("touchmove", blockTouchMove, {
         capture: true,
       });
-
       window.dispatchEvent = originalDispatch;
     };
   }, [open]);
@@ -218,7 +216,6 @@ export default function AnimeModal() {
     setSearching(false);
     setSubmitting(false);
     setConfirmDelete(false);
-
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
       searchTimeoutRef.current = null;
@@ -263,6 +260,7 @@ export default function AnimeModal() {
 
       setEditing(anime);
       setForm({
+        anilistId: anime.anilistId || null, // LOADED: Pull the real ID from DB
         title: anime.title || "",
         type: anime.type || "TV",
         episodes: anime.episodes || 0,
@@ -334,9 +332,7 @@ export default function AnimeModal() {
           });
         }
       } catch (err) {
-        if (err?.name !== "AbortError") {
-          setResults([]);
-        }
+        if (err?.name !== "AbortError") setResults([]);
       } finally {
         setSearching(false);
       }
@@ -387,26 +383,27 @@ export default function AnimeModal() {
           : r.type || "TV";
     const dur = r.duration || DEFAULT_DURATION[type] || 20;
 
-    let cover = r.images?.jpg?.image_url || "";
-    if (!cover) {
-      try {
-        cover =
-          (await tmdbService.getPoster({
-            id: r.id,
-            title: r.title,
-            title_english: r.title_english,
-            title_romaji: r.title_romaji,
-            title_native: r.title_native,
-            synonyms: r.synonyms,
-            year: r.year,
-            seasonYear: r.seasonYear,
-            type: type,
-          })) || "";
-      } catch {}
+    let cover = "";
+    try {
+      const tmdbCover = await tmdbService.getPoster({
+        anilistId: r.id, // THE FIX: Pass the true AniList ID
+        title: r.title,
+        title_english: r.title_english,
+        title_romaji: r.title_romaji,
+        title_native: r.title_native,
+        synonyms: [],
+        year: r.seasonYear,
+        type: type,
+      });
+      if (tmdbCover) cover = tmdbCover;
+      else cover = r.images?.jpg?.image_url || "";
+    } catch {
+      cover = r.images?.jpg?.image_url || "";
     }
 
     setForm((f) => ({
       ...f,
+      anilistId: r.id, // THE FIX: Save the true AniList ID to the form
       title: r.title || "",
       type,
       episodes: r.episodes || 1,
@@ -451,7 +448,12 @@ export default function AnimeModal() {
     let cover = form.cover || "";
     if (!cover && title) {
       try {
-        cover = (await tmdbService.getPoster({ title, type })) || "";
+        cover =
+          (await tmdbService.getPoster({
+            anilistId: form.anilistId,
+            title,
+            type,
+          })) || "";
       } catch {}
     }
 
@@ -493,6 +495,7 @@ export default function AnimeModal() {
       }
 
       const payload = {
+        anilistId: form.anilistId, // SAVE TO DATABASE
         title,
         type,
         episodes,
@@ -558,7 +561,6 @@ export default function AnimeModal() {
 
       setAnimeData(updatedList);
       localStorage.setItem("animeData", JSON.stringify(updatedList, null, 2));
-
       await animeService.saveCloud(updatedList);
 
       window.dispatchEvent(new CustomEvent("animeUpdate"));
@@ -593,11 +595,9 @@ export default function AnimeModal() {
 
     try {
       const newList = animeData.filter((a) => a.id !== targetId);
-
       setAnimeData(newList);
       localStorage.setItem("animeData", JSON.stringify(newList, null, 2));
       logActivity("deleted", deletedTitle);
-
       await animeService.saveCloud(newList);
 
       anilistSync.invalidateStatus();
@@ -637,7 +637,7 @@ export default function AnimeModal() {
         createPortal(
           <div className="floating-preview-portal">
             <PosterImage
-              anime={{ ...form, id: editing?.id || "preview-temp-id" }}
+              anime={{ ...form, id: editing?.id }}
               alt={form.title || "Preview"}
             />
           </div>,
@@ -685,7 +685,6 @@ export default function AnimeModal() {
               onChange={(e) => {
                 const val = e.target.value;
                 if (!isEditing) {
-                  // Clear the cover on EVERY keystroke to force the preview to hide
                   setForm((f) => ({ ...f, title: val, cover: "" }));
                   setQuery(val);
                 } else {
@@ -771,7 +770,6 @@ export default function AnimeModal() {
                 <option value="Special">Special</option>
               </select>
             </div>
-
             <div className="form-group">
               <label htmlFor="animeEpisodes">Episodes</label>
               <input
@@ -783,7 +781,6 @@ export default function AnimeModal() {
                 required
               />
             </div>
-
             <div className="form-group">
               <label htmlFor="animeDuration">Duration (min)</label>
               <input
@@ -812,7 +809,6 @@ export default function AnimeModal() {
                 <option value="Dropped">Dropped</option>
               </select>
             </div>
-
             <div className="form-group">
               <label htmlFor="animeProgress">Progress</label>
               <input
@@ -824,7 +820,6 @@ export default function AnimeModal() {
                 onChange={(e) => handleProgressChange(e.target.value)}
               />
             </div>
-
             <div className="form-group">
               <label htmlFor="animeScore">Score</label>
               <input
@@ -906,7 +901,6 @@ export default function AnimeModal() {
             >
               Cancel
             </button>
-
             {isEditing && (
               <button
                 type="button"
@@ -917,7 +911,6 @@ export default function AnimeModal() {
                 <i className="fas fa-trash" /> Delete
               </button>
             )}
-
             <button
               type="submit"
               className="btn btn-primary"
@@ -963,16 +956,12 @@ export default function AnimeModal() {
           animation: slideInLeft 0.3s ease-out;
           background: var(--bg-surface);
         }
-
         @keyframes slideInLeft {
           from { opacity: 0; transform: translateY(-50%) translateX(20px); }
           to { opacity: 1; transform: translateY(-50%) translateX(0); }
         }
-
         @media (max-width: 1300px) {
-          .floating-preview-portal {
-            display: none;
-          }
+          .floating-preview-portal { display: none; }
         }
       `}</style>
     </>
