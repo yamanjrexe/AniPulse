@@ -1,96 +1,15 @@
 const express = require('express');
 const { db, COLLECTIONS } = require('../services/firebase');
 const { verifyToken } = require('../middleware/auth');
+const {
+  getLevelFromXP,
+  getTitleForLevel,
+  calculateTotalXPFromAnimeList,
+  calculateTotalHours
+} = require('../utils/levelSystem');
 const router = express.Router();
 
 router.use(express.json({ limit: '50mb' }));
-
-function calculateExpFromParts({ episodes = 0, progress = 0, duration = 20, type = 'TV', score = 0, hasScore = false }, options = {}) {
-  const epsForEpisodeBonus = options.useProgress ? Math.max(0, progress) : Math.max(0, episodes);
-  const episodeBonus = Math.floor(epsForEpisodeBonus / 2);
-
-  let scoreBonus = 0;
-  if (score >= 9) scoreBonus = 8;
-  else if (score >= 8) scoreBonus = 5;
-  else if (score >= 7) scoreBonus = 3;
-
-  const movieBonus = (type && type.toLowerCase() === 'movie') ? 15 : 0;
-  const progressBonus = Math.floor(progress / 5);
-  const ratingBonus = hasScore ? 2 : 0;
-  const totalMinutes = progress * duration;
-  const timeBonus = Math.floor((totalMinutes / 60) * 2);
-
-  const total = episodeBonus + scoreBonus + movieBonus + progressBonus + ratingBonus + timeBonus;
-  return Math.max(0, Math.floor(total));
-}
-
-function calculateTotalXPFromAnimeList(animeList) {
-  if (!animeList || !Array.isArray(animeList)) return 0;
-  let totalXP = 0;
-  animeList.forEach(anime => {
-    if (anime.userStatus === 'Completed') {
-      const xp = calculateExpFromParts({
-        episodes: anime.episodes || 0,
-        progress: anime.progress || 0,
-        duration: anime.duration || 20,
-        type: anime.type,
-        score: anime.score || 0,
-        hasScore: !!anime.score
-      }, { useProgress: true });
-      totalXP += xp + 10;
-    }
-  });
-  return Math.max(0, Math.floor(totalXP));
-}
-
-function getLevelFromXP(xp) {
-  const LEVEL_THRESHOLDS = [
-    0, 100, 250, 500, 800, 1200, 1700, 2300, 3000, 4000,
-    5200, 6500, 8000, 10000, 12500, 15000, 18000, 22000, 27000, 35000,
-    45000, 53000, 62000, 72000, 83000, 95000, 108000, 122000, 137000, 153000,
-    170000, 188000, 207000, 227000, 248000, 270000, 293000, 317000, 342000, 368000,
-    395000, 423000, 452000, 482000, 513000, 545000, 578000, 612000, 647000, 683000
-  ];
-  let level = 1;
-  for (let i = LEVEL_THRESHOLDS.length - 1; i >= 0; i--) {
-    if (xp >= LEVEL_THRESHOLDS[i]) {
-      level = i + 1;
-      break;
-    }
-  }
-  return Math.min(level, 50);
-}
-
-function getTitleForLevel(level) {
-  const titles = [
-    'Newbie', 'Scout', 'Viewer', 'Otaku', 'Fanatic',
-    'Binge', 'Senpai', 'Shonen', 'Elite', 'Legend',
-    'Sage', 'Keeper', 'Traveler', 'Master', 'Grand',
-    'Hokage', 'Transc', 'Veteran', 'Watcher', 'Myth',
-    'Deity', 'Mythic', 'Ascend', 'Divine', 'Cosmic',
-    'Eternal', 'Godly', 'Celest', 'Potent', 'Absol',
-    'Supreme', 'VLord', 'StarE', 'Galaxy', 'Walker',
-    'DimLord', 'Weaver', 'TimeM', 'SpaceG', 'Etern',
-    'Infini', 'Omni', 'Creator', 'Prime', 'Alpha',
-    'Omega', 'Genesis', 'Apoc', 'Nirvana', 'Max'
-  ];
-  return titles[Math.min(level - 1, titles.length - 1)] || 'Max';
-}
-
-function calculateTotalHours(animeList) {
-  if (!animeList || !Array.isArray(animeList)) return 0;
-  let totalMinutes = 0;
-  animeList.forEach(anime => {
-    if (anime.type === 'Movie') {
-      totalMinutes += anime.duration || 120;
-    } else {
-      const eps = anime.progress || anime.episodes || 0;
-      const epDur = anime.duration || 20;
-      totalMinutes += eps * epDur;
-    }
-  });
-  return Math.round(totalMinutes / 60);
-}
 
 const MAX_ANIME_LIST = 10000;
 const MAX_ACTIVITY_LOG = 500;

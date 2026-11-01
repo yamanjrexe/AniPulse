@@ -1,11 +1,12 @@
 const express = require("express");
+const { verifyToken } = require('../middleware/auth'); 
 const router = express.Router();
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const IMG_BASE = "https://image.tmdb.org/t/p/w500";
 
-const BACKEND_CACHE_VERSION = "v4"; // Bumped to clear old backend memory
+const BACKEND_CACHE_VERSION = "v4";
 const posterCache = new Map();
 const CACHE_TTL = 1000 * 60 * 60 * 24 * 7;
 const ERROR_TTL = 1000 * 60 * 5;
@@ -18,7 +19,7 @@ function titleScore(a, b) {
     const A = normalize(a);
     const B = normalize(b);
     if (!A || !B) return 0;
-    if (A === B) return 2.0; // Exact match
+    if (A === B) return 2.0;
 
     const aWords = A.split(" ").filter(Boolean);
     const bWords = B.split(" ").filter(Boolean);
@@ -29,7 +30,6 @@ function titleScore(a, b) {
     const union = new Set([...setA, ...setB]);
     const jaccard = intersection.size / union.size;
 
-    // Allow substring matches ONLY if the shorter string is at least 5 chars long
     if (A.includes(B) && B.length >= 5) return 1.8;
     if (B.includes(A) && A.length >= 5) return 1.8;
 
@@ -95,7 +95,6 @@ async function findBestTmdb(anime) {
                 }
             }
 
-            // STRICT MATCHING: Require at least a 1.8 match score (90%+ match)
             if (maxTitleScore < 1.8) continue;
 
             score += maxTitleScore;
@@ -119,7 +118,6 @@ async function findBestTmdb(anime) {
         if (bestMatch && bestMatch.score >= 3.0) break;
     }
 
-    // Extremely strict: If it's not a near-perfect match, return null (shows AniList cover instead of a wrong TMDB poster)
     return bestMatch && bestMatch.score >= 2.0 ? bestMatch : null;
 }
 
@@ -152,7 +150,6 @@ async function mapLimit(items, limit, fn) {
 }
 
 async function lookupOne(anime) {
-    // Use the true AniList ID for the backend cache
     const cacheKey = `${BACKEND_CACHE_VERSION}:anilist:${anime.anilistId || anime.title}`;
     const cached = posterCache.get(cacheKey);
 
@@ -174,7 +171,8 @@ async function lookupOne(anime) {
     return { anilistId: anime.anilistId, poster, tmdbId: match.tmdb.id };
 }
 
-router.post("/poster", async (req, res) => {
+// ADDED verifyToken TO ROUTES:
+router.post("/poster", verifyToken, async (req, res) => {
     if (!TMDB_API_KEY) return res.status(500).json({ error: "TMDB_API_KEY not configured" });
     try {
         const result = await lookupOne(req.body);
@@ -184,7 +182,7 @@ router.post("/poster", async (req, res) => {
     }
 });
 
-router.post("/posters/batch", async (req, res) => {
+router.post("/posters/batch", verifyToken, async (req, res) => {
     if (!TMDB_API_KEY) return res.status(500).json({ error: "TMDB_API_KEY not configured" });
     try {
         const { items } = req.body || {};

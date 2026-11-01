@@ -8,8 +8,14 @@ async function verifyToken(req, res, next) {
   const token = authHeader.split(' ')[1];
   try {
     const decoded = await auth.verifyIdToken(token);
-    req.user = decoded;          // contains uid, email, name, picture, etc.
-    req.userId = decoded.uid;    // convenience
+
+    const isGoogle = decoded.firebase?.sign_in_provider === 'google.com';
+    if (!decoded.email_verified && !isGoogle) {
+      return res.status(403).json({ error: 'Please verify your email address first.' });
+    }
+
+    req.user = decoded;
+    req.userId = decoded.uid;
     next();
   } catch (error) {
     console.error('Token verification failed:', error);

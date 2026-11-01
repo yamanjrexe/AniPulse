@@ -116,10 +116,6 @@ router.get('/profile/:userId', verifyToken, async (req, res) => {
     const level = getLevelFromXP(totalXP);
     const title = getTitleForLevel(level);
 
-    console.log(
-      `📊 /profile XP for ${userId}: stored=${storedXP}, computed=${computedXP}, final=${totalXP} → Lv.${level} ${title}`
-    );
-
     res.json({
       uid: userId,
       name: displayName,
@@ -286,8 +282,6 @@ router.get('/full-profile/:userId', verifyToken, async (req, res) => {
   const { userId } = req.params;
   const currentUserId = req.userId;
   try {
-    // ⚡ Fire every independent read in parallel — total latency becomes
-    // the slowest single read instead of the sum of all reads.
     const [
       profileDoc,
       userDoc,
@@ -306,7 +300,6 @@ router.get('/full-profile/:userId', verifyToken, async (req, res) => {
         : Promise.resolve(null),
     ]);
 
-    // Profile data — USER_PROFILES wins, falls back to USERS
     const userData = profileDoc.exists
       ? profileDoc.data()
       : userDoc.exists
@@ -317,7 +310,6 @@ router.get('/full-profile/:userId', verifyToken, async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Anime list — ANIME_LISTS wins, falls back to USERS.animeList
     let animeList = [];
     if (animeListDoc.exists && Array.isArray(animeListDoc.data().animeList)) {
       animeList = animeListDoc.data().animeList;
@@ -328,6 +320,8 @@ router.get('/full-profile/:userId', verifyToken, async (req, res) => {
     const displayName = userData.name || userData.username || 'Anime Fan';
     const avatar = userData.avatar || null;
     const cover = userData.cover || null;
+
+    // Public community data - visible to everyone
     const bio = userData.bio || '';
     const status = userData.status || '';
     const favoriteAnimeRaw = userData.favoriteAnime || [];
@@ -340,7 +334,6 @@ router.get('/full-profile/:userId', verifyToken, async (req, res) => {
         new Date(a.updatedAt || a.createdAt || 0)
     );
 
-    // ⚡ Resolve favorite IDs to { id, title }
     const favoriteAnime = resolveFavoriteAnime(favoriteAnimeRaw, sorted);
 
     const completed = sorted.filter((a) => a.userStatus === 'Completed');
@@ -375,17 +368,14 @@ router.get('/full-profile/:userId', verifyToken, async (req, res) => {
     const nextXP = getXPToNextLevel(level, totalXP);
     const progress = getXPProgress(level, totalXP);
 
-    console.log(
-      `📊 /full-profile XP for ${userId}: stored=${storedXP}, computed=${computedXP}, final=${totalXP} → Lv.${level} ${levelTitle}`
-    );
-
     let isFriend = false;
     if (friendsDoc && friendsDoc.exists) {
       const fList = friendsDoc.data()?.friends || [];
       isFriend = fList.includes(userId);
     }
 
-    const recentActivity = activityDoc.exists
+    // Activity is strictly private (only the owner can see their recent activity)
+    const recentActivity = currentUserId === userId && activityDoc.exists
       ? (activityDoc.data().activities || []).slice(0, 10)
       : [];
 
@@ -413,6 +403,7 @@ router.get('/full-profile/:userId', verifyToken, async (req, res) => {
         totalHours,
         totalEpisodes,
       },
+      // Everyone can see the anime lists now
       animeList: {
         completed: completed.slice(0, 30),
         watching: watching.slice(0, 30),

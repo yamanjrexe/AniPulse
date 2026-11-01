@@ -4,12 +4,11 @@ const MEMORY_CACHE = new Map();
 const INFLIGHT = new Map();
 const TTL = 1000 * 60 * 60 * 24 * 7;
 const ERROR_TTL = 1000 * 60 * 5;
-const CACHE_VERSION = "v20"; // Bumped to clear all corrupted posters
+const CACHE_VERSION = "v20"; 
 const LS_PREFIX = `tmdb_poster_${CACHE_VERSION}:`;
 const CHUNK = 10;
 
 function cacheKey(anime) {
-    // ONLY use the actual AniList ID. NEVER use the local database ID.
     const id = anime?.anilistId || `${anime?.title || "unknown"}_${anime?.year || anime?.seasonYear || "0"}`;
     return `anilist:${id}`;
 }
@@ -35,12 +34,12 @@ function writeLocal(key, data) {
 
 function payloadFor(anime) {
     return {
-        anilistId: anime.anilistId, // ONLY send the real AniList ID
+        anilistId: anime.anilistId,
         title: anime.title,
         title_english: anime.title_english,
         title_romaji: anime.title_romaji,
         title_native: anime.title_native,
-        synonyms: [], // Synonyms removed to prevent mismatch poisoning
+        synonyms: [], 
         year: anime.year || anime.seasonYear || null,
         seasonYear: anime.seasonYear,
         type: anime.type || anime.format,
@@ -140,7 +139,7 @@ export const tmdbService = {
             if (mem) {
                 const ttl = mem.poster ? TTL : ERROR_TTL;
                 if (Date.now() - mem.ts < ttl) {
-                    result[a.anilistId || a.title] = mem.poster; // Map by anilistId
+                    result[a.anilistId || a.title] = mem.poster; 
                     continue;
                 }
             }

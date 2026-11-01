@@ -42,3 +42,9 @@ temp/
 
 #auto push 
 autopush.ps1
+
+# Firebase config 
+firebase.json
+.firebaserc
+firestore.rules
+storage.rules

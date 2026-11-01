@@ -55,24 +55,29 @@ function getXPProgress(currentLevel, currentXP) {
 
 // ============================================================
 // XP CALCULATION — shared by /sync and /user routes
-// Same formula as frontend services/levelSystem.js
 // ============================================================
 function calculateExpFromParts(
   { episodes = 0, progress = 0, duration = 20, type = 'TV', score = 0, hasScore = false } = {},
   options = {}
 ) {
-  const eps = options.useProgress ? Math.max(0, progress) : Math.max(0, episodes);
+  // Plausibility Caps to prevent leaderboard cheating
+  const safeEpisodes = Math.min(episodes, 2000);
+  const safeProgress = Math.min(progress, safeEpisodes);
+  const safeDuration = Math.min(duration, 180);
+  const safeScore = Math.min(Math.max(score, 0), 10);
+
+  const eps = options.useProgress ? Math.max(0, safeProgress) : Math.max(0, safeEpisodes);
   const episodeBonus = Math.floor(eps / 2);
 
   let scoreBonus = 0;
-  if (score >= 9) scoreBonus = 8;
-  else if (score >= 8) scoreBonus = 5;
-  else if (score >= 7) scoreBonus = 3;
+  if (safeScore >= 9) scoreBonus = 8;
+  else if (safeScore >= 8) scoreBonus = 5;
+  else if (safeScore >= 7) scoreBonus = 3;
 
   const movieBonus = type && type.toLowerCase() === 'movie' ? 15 : 0;
-  const progressBonus = Math.floor(progress / 5);
+  const progressBonus = Math.floor(safeProgress / 5);
   const ratingBonus = hasScore ? 2 : 0;
-  const totalMinutes = progress * duration;
+  const totalMinutes = safeProgress * safeDuration;
   const timeBonus = Math.floor((totalMinutes / 60) * 2);
 
   return Math.max(
@@ -97,9 +102,24 @@ function calculateTotalXPFromAnimeList(animeList) {
           hasScore: !!a.score,
         },
         { useProgress: true }
-      ) + 10; // completion bonus
+      ) + 10; 
   });
   return Math.max(0, Math.floor(total));
+}
+
+function calculateTotalHours(animeList) {
+  if (!animeList || !Array.isArray(animeList)) return 0;
+  let totalMinutes = 0;
+  animeList.forEach((anime) => {
+    if (anime.type === 'Movie') {
+      totalMinutes += anime.duration || 120;
+    } else {
+      const eps = anime.progress || anime.episodes || 0;
+      const epDur = anime.duration || 20;
+      totalMinutes += eps * epDur;
+    }
+  });
+  return Math.round(totalMinutes / 60);
 }
 
 module.exports = {
@@ -111,4 +131,5 @@ module.exports = {
   getXPProgress,
   calculateExpFromParts,
   calculateTotalXPFromAnimeList,
+  calculateTotalHours,
 };

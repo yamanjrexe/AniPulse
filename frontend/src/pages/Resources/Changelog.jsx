@@ -1,7 +1,22 @@
 import React from "react";
 
 const RELEASES = [
-    {
+  {
+    version: "3.2.0",
+    date: "November 1st 2026",
+    tag: "",
+    items: [
+      "Security: Completely locked down the database to prevent unauthorized scripts, direct API abuse, and data scraping.",
+      "Security: Integrated Google Fraud Defense (App Check) to block malicious bots and protect API quotas.",
+      "Security: Enforced email verification for new accounts to prevent spam and fake profiles.",
+      "Security: Protected the TMDB poster proxy to prevent external abuse of our API limits.",
+      "Security: Added robust backend validation to the XP and Leaderboard system to prevent stat manipulation and cheating.",
+      "Security: Built a secure admin authorization foundation using Firebase Custom Claims for future moderation tools.",
+      "System: Unified the Level and XP calculation logic between the frontend and backend for perfect accuracy and zero desync.",
+      "Performance: Optimized backend routes and data fetching for faster profile loads and smoother syncing.",
+    ],
+  },
+  {
     version: "3.1.6",
     date: "October 30th 2026",
     tag: "",

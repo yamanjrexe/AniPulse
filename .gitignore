@@ -16,3 +16,9 @@ build/
 
 # Logs
 *.log
+
+# Firebase config 
+firebase.json
+.firebaserc
+firestore.rules
+storage.rules
