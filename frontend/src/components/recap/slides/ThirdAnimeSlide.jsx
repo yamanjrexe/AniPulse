@@ -1,23 +1,26 @@
 import React from "react";
+import PosterImage from "../../../components/ui/PosterImage.jsx";
 
 export default function ThirdAnimeSlide({ data }) {
-    return (
-        <>
-            <div className="slide-icon">
-                <i className="fas fa-award" />
-            </div>
-            <h1>{data.thirdAnime?.title || "None"}</h1>
-            <p className="subtitle">Third Highest Rated</p>
-            {data.thirdAnime ? (
-                <>
-                    <p className="score">
-                        <i className="fas fa-star" /> {data.thirdAnime.score}
-                    </p>
-                    <p className="hint">Completing the podium!</p>
-                </>
-            ) : (
-                <p className="hint">Keep watching and rating</p>
-            )}
-        </>
-    );
+  return (
+    <>
+      <p className="subtitle">Third Highest Rated</p>
+
+      {data.thirdAnime ? (
+        <div className="top-anime-showcase">
+          <div className="recap-poster-wrapper">
+            <PosterImage anime={data.thirdAnime} alt={data.thirdAnime.title} />
+          </div>
+          <h1 className="clamped-title" title={data.thirdAnime.title}>
+            {data.thirdAnime.title}
+          </h1>
+          <div className="score-badge-large">
+            <i className="fas fa-star" /> {data.thirdAnime.score}
+          </div>
+        </div>
+      ) : (
+        <h1>None</h1>
+      )}
+    </>
+  );
 }

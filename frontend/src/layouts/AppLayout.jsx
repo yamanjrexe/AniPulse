@@ -6,6 +6,7 @@ import FabMenu from "../components/layout/FabMenu.jsx";
 import ChatBot from "../components/layout/ChatBot.jsx";
 import NameEntryModal from "../components/layout/NameEntryModal.jsx";
 import SearchBridge from "../components/layout/SearchBridge.jsx";
+import GlobalBanner from "../components/layout/GlobalBanner.jsx";
 
 import AnimeModal from "../components/anime/AnimeModal.jsx";
 import ImportModal from "../components/anime/ImportModal.jsx";
@@ -56,6 +57,8 @@ export default function AppLayout() {
   return (
     <div className="main-content">
       <Header onMenuClick={() => setDrawer((v) => !v)} />
+
+      <GlobalBanner />
 
       <main className="page active" key={location.pathname}>
         <Suspense

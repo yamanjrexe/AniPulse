@@ -1,6 +1,32 @@
 import React from "react";
 
-const RELEASES = [
+ export const RELEASES = [
+  // {
+  //   version: "3.3.0",
+  //   date: "Late November 2026",
+  //   tag: "The Final Chapter",
+  //   items: [
+  //     "Welcome to the final major milestone of AniPulse.",
+  //     "The project is now officially feature-complete. Moving forward, no new features or major releases will be added.",
+  //     "Maintenance Mode: The site is not abandoned. Any critical bugs, security vulnerabilities, or UI/UX issues that arise will still be actively patched and fixed.",
+  //     "Thank you to everyone who used AniPulse to track, visualize, and celebrate their anime journey. It has been an incredible ride.",
+  //   ],
+  // },
+  {
+    version: "3.2.1",
+    date: "November 4th 2026",
+    tag: "",
+    items: [
+      "Recap: Completely redesigned the Monthly and Yearly Recaps to feel like an interactive, premium story experience.",
+      "Recap: Added full mobile swipe support so you can easily swipe left and right to navigate through your stats.",
+      "Recap: Integrated high-quality TMDB anime posters for your Top, 2nd, and 3rd highest-rated anime, replacing the plain text.",
+      "Recap: Added smooth, animated counting numbers for your total hours watched, episodes completed, and active days.",
+      "Recap: Implemented dynamic entry animations for text and icons, making every slide feel alive as it loads.",
+      "Settings: Added a 'Compact View' toggle to shrink anime cards, allowing you to fit more posters on your dashboard.",
+      "Settings: Added a 'Reduce Motion' toggle for accessibility, allowing you to disable page transitions, popups, and animations globally.",
+      "Experience: Added a dynamic 'Level Roadmap' to the settings tab, showing you exactly which titles and XP thresholds you can unlock next.",
+    ],
+  },
   {
     version: "3.2.0",
     date: "November 1st 2026",
