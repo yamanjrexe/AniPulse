@@ -1,15 +1,15 @@
+
 import React from "react";
 
- export const RELEASES = [
+export const RELEASES = [
   // {
   //   version: "3.3.0",
   //   date: "Late November 2026",
   //   tag: "The Final Chapter",
   //   items: [
-  //     "Welcome to the final major milestone of AniPulse.",
-  //     "The project is now officially feature-complete. Moving forward, no new features or major releases will be added.",
-  //     "Maintenance Mode: The site is not abandoned. Any critical bugs, security vulnerabilities, or UI/UX issues that arise will still be actively patched and fixed.",
-  //     "Thank you to everyone who used AniPulse to track, visualize, and celebrate their anime journey. It has been an incredible ride.",
+  //     "Final major release. AniPulse is now feature-complete.",
+  //     "Maintenance Mode: Critical bugs, security issues, and UI/UX problems will still be fixed.",
+  //     "Thank you for being part of the AniPulse journey!",
   //   ],
   // },
   {
@@ -17,14 +17,14 @@ import React from "react";
     date: "November 4th 2026",
     tag: "",
     items: [
-      "Recap: Completely redesigned the Monthly and Yearly Recaps to feel like an interactive, premium story experience.",
-      "Recap: Added full mobile swipe support so you can easily swipe left and right to navigate through your stats.",
-      "Recap: Integrated high-quality TMDB anime posters for your Top, 2nd, and 3rd highest-rated anime, replacing the plain text.",
-      "Recap: Added smooth, animated counting numbers for your total hours watched, episodes completed, and active days.",
-      "Recap: Implemented dynamic entry animations for text and icons, making every slide feel alive as it loads.",
-      "Settings: Added a 'Compact View' toggle to shrink anime cards, allowing you to fit more posters on your dashboard.",
-      "Settings: Added a 'Reduce Motion' toggle for accessibility, allowing you to disable page transitions, popups, and animations globally.",
-      "Experience: Added a dynamic 'Level Roadmap' to the settings tab, showing you exactly which titles and XP thresholds you can unlock next.",
+      "Recap: Redesigned monthly and yearly recaps as interactive stories.",
+      "Recap: Added mobile swipe navigation.",
+      "Recap: Added TMDB posters for your top 3 rated anime.",
+      "Recap: Animated watch time, episode, and active-day counts.",
+      "Recap: Added slide text and icon animations.",
+      "Settings: Added Compact View for smaller anime cards.",
+      "Settings: Added Reduce Motion to disable animations and transitions.",
+      "Settings: Added a Level Roadmap showing upcoming unlocks and XP targets.",
     ],
   },
   {
@@ -32,14 +32,14 @@ import React from "react";
     date: "November 1st 2026",
     tag: "",
     items: [
-      "Security: Completely locked down the database to prevent unauthorized scripts, direct API abuse, and data scraping.",
-      "Security: Integrated Google Fraud Defense (App Check) to block malicious bots and protect API quotas.",
-      "Security: Enforced email verification for new accounts to prevent spam and fake profiles.",
-      "Security: Protected the TMDB poster proxy to prevent external abuse of our API limits.",
-      "Security: Added robust backend validation to the XP and Leaderboard system to prevent stat manipulation and cheating.",
-      "Security: Built a secure admin authorization foundation using Firebase Custom Claims for future moderation tools.",
-      "System: Unified the Level and XP calculation logic between the frontend and backend for perfect accuracy and zero desync.",
-      "Performance: Optimized backend routes and data fetching for faster profile loads and smoother syncing.",
+      "Security: Restricted database access and blocked unauthorized API use.",
+      "Security: Added Firebase App Check to block bots and protect API quotas.",
+      "Security: Required email verification for new accounts.",
+      "Security: Protected the TMDB poster proxy from API abuse.",
+      "Security: Added server validation for XP and leaderboard data.",
+      "Security: Added Firebase admin authorization groundwork.",
+      "System: Synced frontend and backend Level/XP calculations.",
+      "Performance: Improved profile loading and data syncing.",
     ],
   },
   {
@@ -47,12 +47,12 @@ import React from "react";
     date: "October 30th 2026",
     tag: "",
     items: [
-      "Posters: Integrated TMDB as the primary poster provider for high-quality, textless, and English artwork.",
-      "Posters: Implemented strict genre and country validation to ensure only accurate anime matches are returned, blocking live-action shows and western cartoons.",
-      "Posters: Replaced the 'No Poster' placeholder with a seamless fallback system that instantly restores AniList covers if TMDB fails.",
-      "Performance: Added a smart batching queue to fetch posters efficiently without triggering TMDB API rate limits.",
-      "Customization: Custom poster URLs are now fully respected for the Top 8 highest-rated anime in your list.",
-      "Anime Modal: Added a live floating poster preview on the left side of the Add/Edit modal that updates instantly upon selection.",
+      "Posters: Made TMDB the primary source for textless English artwork.",
+      "Posters: Added genre and country checks to filter out non-anime matches.",
+      "Posters: Fall back to AniList covers when TMDB posters fail.",
+      "Performance: Batched poster requests to avoid TMDB rate limits.",
+      "Posters: Applied custom URLs to your top 8 rated anime.",
+      "Anime Modal: Added a live poster preview to Add/Edit.",
     ],
   },
   {
@@ -60,12 +60,12 @@ import React from "react";
     date: "October 27th 2026",
     tag: "",
     items: [
-      "Anime List: Added dynamic genre filtering and updated the Total Anime counter to reflect active filters.",
-      "Streaks: Fixed sync issues, added automatic midnight recalculation, and improved cloud syncing.",
-      "User Profiles: Redesigned the layout, improved responsiveness, and updated anime lists, badges, and labels.",
-      "Social Links: Fixed AniList and MyAnimeList profile URLs.",
-      "Settings: Updated Profile Preview to match the new Community Profile design.",
-      "Danger Zone: Added Force Cloud Sync, Reset Gamification, and Clear Local Cache tools.",
+      "Anime List: Added genre filters and filter-aware counts.",
+      "Streaks: Fixed syncing and added midnight recalculation.",
+      "Profiles: Redesigned layout, responsiveness, lists, and badges.",
+      "Profiles: Fixed AniList and MyAnimeList links.",
+      "Settings: Updated Profile Preview to match Community Profiles.",
+      "Danger Zone: Added cloud sync, gamification reset, and cache tools.",
     ],
   },
   {
@@ -73,14 +73,14 @@ import React from "react";
     date: "October 19th 2026",
     tag: "",
     items: [
-      "Routing: Fixed navigation issues and added loading spinners.",
-      "Layout: Kept the header and navigation visible while loading.",
-      "Profile: Redesigned the banner, avatar, image cropper, and join date.",
-      "Danger Zone: Added Firebase data clearing and a custom warning modal.",
-      "Empty States: Added 'Add your first anime' prompts across lists and charts.",
-      "Anime Modal: Fixed deleted anime reappearing after refresh.",
-      "Backend: Added the missing /api/anime/save route.",
-      "Performance: Fixed infinite rendering loops causing browser lag.",
+      "Routing: Fixed navigation and added loading indicators.",
+      "Layout: Kept the header and navigation visible during loading.",
+      "Profile: Updated banner, avatar, cropper, and join date.",
+      "Danger Zone: Added cloud data clearing with a warning.",
+      "Empty States: Added prompts for empty lists and charts.",
+      "Anime Modal: Fixed deleted anime returning after refresh.",
+      "Backend: Added the missing anime save route.",
+      "Performance: Fixed rendering loops that caused lag.",
     ],
   },
   {
@@ -88,10 +88,10 @@ import React from "react";
     date: "October 18th 2026",
     tag: "",
     items: [
-      "Anime Modal: Improved keyboard navigation and auto-focus.",
-      "ChatBot: Added live AniList recommendations, smart filters, poster cards, voice input, and chat history.",
-      "Recent Activity: Added inline history, time filters, delete/clear controls, and cloud sync.",
-      "Recent Activity: Added saved filter preferences, increased history limit to 500 entries, and fixed dark mode styling.",
+      "Anime Modal: Improved keyboard navigation and focus.",
+      "ChatBot: Added AniList recommendations, filters, poster cards, voice input, and history.",
+      "Recent Activity: Added history, time filters, delete controls, and cloud sync.",
+      "Recent Activity: Saved filters, raised history limit to 500, and fixed dark mode.",
     ],
   },
   {
@@ -99,11 +99,11 @@ import React from "react";
     date: "October 10th 2026",
     tag: "",
     items: [
-      "AniList Sync: Added automatic two-way library syncing for additions, edits, and deletions.",
-      "AniList Sync: Supported combined-season entries and capped progress to the actual episode count.",
-      "AniList Sync: Added a live progress bar for queued and syncing anime.",
-      "AniList Sync: Improved title matching across romaji, English, native titles, and synonyms.",
-      "AniList Sync: Added Deep Re-sync to rematch anime from scratch.",
+      "AniList Sync: Added two-way syncing for anime additions, edits, and deletions.",
+      "AniList Sync: Supported combined seasons and valid episode limits.",
+      "AniList Sync: Added sync progress tracking.",
+      "AniList Sync: Improved matching across alternate titles.",
+      "AniList Sync: Added Deep Re-sync for full rematching.",
     ],
   },
   {
@@ -111,9 +111,9 @@ import React from "react";
     date: "October 9th 2026",
     tag: "",
     items: [
-      "Period Stats: Preserved month and year filters across reloads and sessions.",
-      "Completion Journey: Fixed the missing Most Active Year statistic.",
-      "Achievements: Fixed 7-Day and 30-Day Streak badge unlocking.",
+      "Period Stats: Saved month and year filters between sessions.",
+      "Completion Journey: Restored the Most Active Year stat.",
+      "Achievements: Fixed 7- and 30-day streak badges.",
     ],
   },
   {
@@ -121,9 +121,9 @@ import React from "react";
     date: "October 3rd 2026",
     tag: "",
     items: [
-      "Gamification: Rebuilt the daily XP counter from the anime library to prevent inflated totals.",
-      "XP Queue: Displayed actual daily XP earnings within the daily limit.",
-      "Mobile: Prevented automatic input zoom on iOS Safari.",
+      "Gamification: Recalculated daily XP from your anime library.",
+      "XP Queue: Showed daily XP within the earning limit.",
+      "Mobile: Prevented input zoom on iOS Safari.",
     ],
   },
   {
@@ -131,20 +131,20 @@ import React from "react";
     date: "September 25th 2026",
     tag: "",
     items: [
-      "Design: Refreshed the design system and rebuilt page layouts.",
-      "Streaks: Reworked the streak engine to use server-authoritative data.",
-      "Cloud Sync: Prevented older streak data from overwriting newer progress.",
-      "Modals: Applied scroll locking throughout the app.",
-      "Migration: Moved AniPulse from vanilla JavaScript to React.",
+      "Design: Updated the design system and page layouts.",
+      "Streaks: Switched to server-verified data.",
+      "Cloud Sync: Prevented old streak data from overwriting progress.",
+      "Modals: Added scroll locking across the app.",
+      "Migration: Rebuilt AniPulse with React.",
     ],
   },
   {
-    version: "3 Bata Part 2",
+    version: "3 Beta Part 2",
     date: "August 16th 2026",
     tag: "",
     items: [
-      "ChatBot: Added the chatbot to that the site for the help of new users",
-      "Dashboard: Refined the statistics page layout and presentation.",
+      "ChatBot: Added an assistant to help new users.",
+      "Dashboard: Improved the statistics page layout.",
     ],
   },
   {
@@ -152,8 +152,8 @@ import React from "react";
     date: "June 24th 2026",
     tag: "",
     items: [
-      "Sync: Made the global sync to all device feature so users can login from any devices.",
-      "Dashboard: Refine the page and made the ui/ux more users friendly.",
+      "Sync: Added cross-device account syncing.",
+      "Dashboard: Improved the UI and usability.",
     ],
   },
   {
@@ -161,9 +161,9 @@ import React from "react";
     date: "June 24th 2026",
     tag: "",
     items: [
-      "Statistics: Introduced a personalized anime-journey hero section with greeting, insights, and key stats.",
-      "Leaderboard: Made a Global Leaderbord for all the users to see their ranking.",
-      "Dashboard: Updated the statistics page structure and styling.",
+      "Statistics: Added a personalized hero with insights and key stats.",
+      "Leaderboard: Added global user rankings.",
+      "Dashboard: Updated statistics layout and styling.",
     ],
   },
   {
@@ -171,9 +171,9 @@ import React from "react";
     date: "May 30th 2026",
     tag: "",
     items: [
-      "Features: Expanded the level and rank system with more tiers and visual flair.",
-      "UI: Added new themes and customization options.",
-      "Performance: Optimized data loading and rendering for larger lists.",
+      "Gamification: Expanded level and rank tiers.",
+      "UI: Added themes and customization options.",
+      "Performance: Improved loading for large anime lists.",
     ],
   },
   {
@@ -181,10 +181,10 @@ import React from "react";
     date: "April 15th 2026",
     tag: "",
     items: [
-      "Backend: Major overhaul with a new Express API and Firebase integration.",
-      "Accounts: Introduced user accounts, authentication, and profiles.",
+      "Backend: Added an Express API and Firebase.",
+      "Accounts: Added authentication and user profiles.",
       "Social: Added friends, rankings, and community features.",
-      "Sync: Implemented initial cloud syncing for anime data.",
+      "Sync: Added cloud syncing for anime data.",
     ],
   },
   {
@@ -192,8 +192,8 @@ import React from "react";
     date: "February 20th 2026",
     tag: "",
     items: [
-      "Dashboard: Refined the statistics page layout and presentation.",
-      "Fixes: Squashed various UI bugs and improved stability.",
+      "Dashboard: Improved statistics layout.",
+      "Fixes: Improved UI stability and fixed bugs.",
     ],
   },
   {
@@ -201,9 +201,9 @@ import React from "react";
     date: "February 5th 2026",
     tag: "",
     items: [
-      "Branding: Finalized the AniPulse name and visual identity.",
-      "SEO: Added meta descriptions and keywords for better discoverability.",
-      "Core: Minor improvements to the anime tracking logic.",
+      "Branding: Finalized the AniPulse name and identity.",
+      "SEO: Added meta descriptions and keywords.",
+      "Core: Improved anime tracking.",
     ],
   },
   {
@@ -211,8 +211,8 @@ import React from "react";
     date: "December 31st 2025",
     tag: "",
     items: [
-      "Foundation: Established AniPulse as an anime tracker dashboard.",
-      "Branding: Updated the page title to AniPulse and added SEO description and keyword metadata.",
+      "Foundation: Launched AniPulse as an anime tracker.",
+      "Branding: Set the AniPulse title and SEO metadata.",
     ],
   },
 ];
@@ -254,7 +254,6 @@ function parseReadableDate(input) {
 
 function daysBetween(from, to) {
   const start = Date.UTC(from.getFullYear(), from.getMonth(), from.getDate());
-
   const end = Date.UTC(to.getFullYear(), to.getMonth(), to.getDate());
 
   return Math.round((end - start) / 86400000);
