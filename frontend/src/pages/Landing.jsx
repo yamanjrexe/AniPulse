@@ -1,74 +1,105 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import CountUp from "../components/ui/CountUp.jsx";
 
 const FEATURES = [
   {
-    icon: "fa-chart-line",
-    title: "Advanced Analytics",
-    desc: "Deep insights into your watching habits, genre preferences, and interactive charts.",
-    list: ["Monthly progress", "Genre distribution", "Watch time stats"],
+    icon: "fa-fire",
+    title: "Global Spotlight",
+    desc: "Discover what the world is watching right now with our real-time trending anime hero slider.",
+    list: ["Live AniList data", "Auto-playing slider", "Smart season badges"],
   },
   {
-    icon: "fa-heart",
-    title: "Smart Watchlist",
-    desc: "Organize anime with custom status, priority, and episode tracking.",
-    list: ["Custom categories", "Priority sorting", "Seasonal planning"],
+    icon: "fa-magic",
+    title: "Story-Style Recaps",
+    desc: "Experience your anime journey like never before with interactive, swipeable monthly and yearly recaps.",
+    list: ["Interactive slides", "Poster showcases", "Animated stats"],
   },
   {
-    icon: "fa-trophy",
-    title: "Achievements",
-    desc: "Unlock badges, celebrate milestones, and join seasonal challenges.",
-    list: ["50+ badges", "Progress milestones", "Achievement showcase"],
+    icon: "fa-chart-pie",
+    title: "Deep Analytics",
+    desc: "Dive into your viewing habits with GitHub-style heatmaps, genre distribution charts, and rating personalities.",
+    list: ["Activity heatmaps", "Rating insights", "Watch time stats"],
   },
   {
-    icon: "fa-calendar-day",
-    title: "Activity Heatmaps",
-    desc: "Yearly activity visualization, daily patterns, and seasonal trends.",
-    list: ["Heatmap calendar", "Watching patterns", "Custom ranges"],
+    icon: "fa-shield-alt",
+    title: "Privacy & Security",
+    desc: "Your watch history is strictly yours. We enforce strict database rules and email verification to keep your data safe.",
+    list: ["Firebase App Check", "Strict data rules", "Private activity logs"],
   },
   {
-    icon: "fa-robot",
-    title: "AI Recommendations",
-    desc: "Personalized anime suggestions based on your taste and ratings.",
-    list: ["Smart matching", "Hidden gems", "Seasonal picks"],
+    icon: "fa-sync-alt",
+    title: "Two-Way AniList Sync",
+    desc: "Keep your AniPulse library perfectly aligned with your AniList profile using our smart background worker.",
+    list: ["Auto-sync updates", "Deep re-sync", "Format matching"],
   },
   {
-    icon: "fa-users",
-    title: "Community Hub",
-    desc: "Connect with fans, share progress, and join discussions.",
-    list: ["User profiles", "Discussion forums", "Shared watchlists"],
+    icon: "fa-mobile-alt",
+    title: "Installable PWA",
+    desc: "AniPulse works beautifully as a Progressive Web App. Install it on your phone or desktop for a native experience.",
+    list: ["Offline mode", "Home screen install", "Lightning fast"],
   },
 ];
 
 const STATS = [
   { end: 1000, suffix: "+", label: "Active Users", duration: 1200, delay: 0 },
   {
-    end: 1500,
+    end: 25000,
     suffix: "+",
-    label: "Anime Entries",
+    label: "Episodes Tracked",
     duration: 1500,
     delay: 120,
   },
+  { end: 99, suffix: "%", label: "Uptime", duration: 900, delay: 240 },
   {
-    end: 98,
-    suffix: "%",
-    label: "User Satisfaction",
-    duration: 900,
-    delay: 240,
-  },
-  {
-    end: 4.8,
+    end: 4.9,
     decimals: 1,
-    suffix: "?",
-    label: "Average Rating",
+    suffix: "★",
+    label: "User Rating",
     duration: 1100,
     delay: 360,
   },
 ];
 
+const STEPS = [
+  {
+    num: "01",
+    title: "Create your account",
+    desc: "Sign up securely with email or Google. Enable 2FA for extra security.",
+  },
+  {
+    num: "02",
+    title: "Build your library",
+    desc: "Search our massive AniList database to add anime and track your progress.",
+  },
+  {
+    num: "03",
+    title: "Analyze & Sync",
+    desc: "Watch your stats come alive, unlock achievements, and sync to your AniList profile.",
+  },
+];
+
+const FAQS = [
+  {
+    q: "Is AniPulse completely free?",
+    a: "Yes! AniPulse is a passion project and is completely free to use. There are no premium tiers, hidden fees, or ads.",
+  },
+  {
+    q: "Does it sync with MyAnimeList?",
+    a: "Currently, we offer deep, two-way synchronization with AniList. We are exploring MyAnimeList integration for future updates.",
+  },
+  {
+    q: "Can I use AniPulse offline?",
+    a: "Absolutely. Because AniPulse is a Progressive Web App (PWA), you can install it on your device and access your cached data offline.",
+  },
+  {
+    q: "Is my watch history private?",
+    a: "Privacy is our top priority. We use strict Firebase Security Rules and App Check. Your private data is never shared with other users.",
+  },
+];
+
 const HERO_PREVIEW_STATS = [
-  { label: "Completed", end: 42, duration: 1000, delay: 0 },
+  { label: "Completed", end: 142, duration: 1000, delay: 0 },
   { label: "Hours", end: 328, duration: 1300, delay: 100 },
   { label: "Episodes", end: 1240, duration: 1600, delay: 200 },
   { label: "Score Avg", end: 8.2, decimals: 1, duration: 900, delay: 300 },
@@ -101,7 +132,7 @@ export default function Landing() {
 
   useEffect(() => {
     const els = document.querySelectorAll(
-      ".feature-card, .stats-section .stat-card",
+      ".feature-card, .stats-section .stat-card, .step-card",
     );
     if (!els.length) return;
 
@@ -183,7 +214,7 @@ export default function Landing() {
         <div className="container hero-content">
           <div className="hero-text">
             <div className="hero-tag">
-              <i className="fas fa-rocket" /> Version 3.2.1 launched
+              <i className="fas fa-rocket" /> Version 3.2.2 is live
             </div>
 
             <h1 className="hero-title">
@@ -194,22 +225,22 @@ export default function Landing() {
 
             <p className="hero-subtitle">
               AniPulse is more than an anime tracker. Track every episode,
-              analyze habits, discover patterns, and connect with a community
-              that shares your passion.
+              discover global trends in our new Spotlight tab, and celebrate
+              your milestones with interactive story-style recaps.
             </p>
 
             <div className="hero-features">
               <div className="feature-item">
                 <i className="fas fa-check-circle feature-check" />
-                <span>Real-time progress</span>
+                <span>Privacy-first</span>
               </div>
               <div className="feature-item">
                 <i className="fas fa-check-circle feature-check" />
-                <span>Advanced analytics</span>
+                <span>AniList Sync</span>
               </div>
               <div className="feature-item">
                 <i className="fas fa-check-circle feature-check" />
-                <span>AI recommendations</span>
+                <span>Installable PWA</span>
               </div>
             </div>
 
@@ -218,7 +249,7 @@ export default function Landing() {
                 className="btn-primary"
                 onClick={() => navigate("/login?register=true")}
               >
-                <i className="fas fa-play-circle" /> Start free
+                <i className="fas fa-play-circle" /> Start tracking free
               </button>
               <button
                 className="btn-secondary"
@@ -231,18 +262,22 @@ export default function Landing() {
 
           <div className="hero-visual">
             <div className="dashboard-preview">
-              <div className="preview-header">
-                <img
-                  src="/icon/Anipulse.png"
-                  alt="AniPulse Logo"
-                  className="logo-img"
-                />
-                <div className="preview-icons">
-                  {["fa-search", "fa-bell", "fa-sun"].map((ic) => (
-                    <div key={ic} className="preview-icon-btn">
-                      <i className={`fas ${ic}`} />
-                    </div>
-                  ))}
+              <div className="preview-window-bar">
+                <div className="window-dots">
+                  <span className="dot red"></span>
+                  <span className="dot yellow"></span>
+                  <span className="dot green"></span>
+                </div>
+                <div className="window-title">
+                  <img
+                    src="/icon/Anipulse.png"
+                    alt="Logo"
+                    className="logo-img"
+                  />
+                </div>
+                <div className="window-actions">
+                  <i className="fas fa-search" />
+                  <i className="fas fa-bell" />
                 </div>
               </div>
 
@@ -250,8 +285,8 @@ export default function Landing() {
                 <div className="stats-grid-preview">
                   {HERO_PREVIEW_STATS.map((s) => (
                     <div key={s.label} className="stat-preview">
-                      <div>{s.label}</div>
-                      <div>
+                      <div className="stat-label">{s.label}</div>
+                      <div className="stat-value">
                         <CountUp
                           end={s.end}
                           decimals={s.decimals || 0}
@@ -264,7 +299,7 @@ export default function Landing() {
                 </div>
 
                 <div className="preview-chart">
-                  {[75, 60, 90, 45, 80, 70, 55].map((h, i) => (
+                  {[45, 70, 60, 90, 55, 85, 70].map((h, i) => (
                     <div
                       key={i}
                       className="chart-bar"
@@ -274,6 +309,27 @@ export default function Landing() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="how-it-works">
+        <div className="container">
+          <div className="section-header">
+            <span className="section-tag">How it works</span>
+            <h2 className="section-title">Start tracking in seconds</h2>
+            <p className="section-subtitle">
+              Three simple steps to transform your anime journey.
+            </p>
+          </div>
+          <div className="steps-grid">
+            {STEPS.map((step, i) => (
+              <div key={i} className="step-card">
+                <div className="step-num">{step.num}</div>
+                <h3 className="step-title">{step.title}</h3>
+                <p className="step-desc">{step.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -290,7 +346,6 @@ export default function Landing() {
               lovers.
             </p>
           </div>
-
           <div className="features-grid">
             {FEATURES.map((f) => (
               <div key={f.title} className="feature-card">
@@ -321,7 +376,6 @@ export default function Landing() {
               Join thousands who transformed their tracking experience.
             </p>
           </div>
-
           <div className="stats-grid">
             {STATS.map((s) => (
               <div key={s.label} className="stat-card">
@@ -338,6 +392,26 @@ export default function Landing() {
                 </div>
                 <div className="stat-label">{s.label}</div>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="faq-section">
+        <div className="container">
+          <div className="section-header">
+            <span className="section-tag">FAQ</span>
+            <h2 className="section-title">Frequently Asked Questions</h2>
+            <p className="section-subtitle">
+              Everything you need to know before getting started.
+            </p>
+          </div>
+          <div className="faq-grid">
+            {FAQS.map((faq, i) => (
+              <details key={i} className="faq-item">
+                <summary>{faq.q}</summary>
+                <p>{faq.a}</p>
+              </details>
             ))}
           </div>
         </div>

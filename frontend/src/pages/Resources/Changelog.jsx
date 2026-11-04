@@ -13,6 +13,17 @@ export const RELEASES = [
   //   ],
   // },
   {
+    version: "3.2.2",
+    date: "November 5th 2026",
+    tag: "",
+    items: [
+      "Community: Replaced the unused Feed tab with Spotlight for improved privacy.",
+      "Spotlight: Added an autoplaying cinematic slider featuring the top 6 globally trending anime, with blurred banners, high-res posters, full synopses, and smart season badges (S2, S3).",
+      "Spotlight: Added a paginated 40-anime grid powered by real-time AniList data, with skeleton loaders.",
+      "Landing Page: Redesigned with a premium dark theme, interactive app mockup with realistic charts and stats, and new How It Works and FAQ sections.",
+    ],
+  },
+  {
     version: "3.2.1",
     date: "November 4th 2026",
     tag: "",
