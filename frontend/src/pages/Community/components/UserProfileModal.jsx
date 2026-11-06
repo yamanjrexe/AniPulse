@@ -74,11 +74,14 @@ function timestampOf(a) {
   );
 }
 
+// FIX: Added ID tie-breaker so identical timestamps don't scramble the order
 function sortRecentFirst(list) {
   return [...list].sort((a, b) => {
     const da = timestampOf(a);
     const db = timestampOf(b);
-    return String(db).localeCompare(String(da));
+    const compare = String(db).localeCompare(String(da));
+    if (compare !== 0) return compare;
+    return (Number(b.id) || 0) - (Number(a.id) || 0);
   });
 }
 
@@ -878,7 +881,6 @@ export default function UserProfileModal({ userId, onClose }) {
           ) : null}
         </div>
       </div>
-
       <style>{`
         .hover-card:hover { transform: translateY(-2px); border-color: var(--border-strong) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
         .anime-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
