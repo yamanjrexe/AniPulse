@@ -283,27 +283,6 @@ export default function AnimeModal() {
       setSubmitting(false);
       setConfirmDelete(false);
       setOpen(true);
-
-      // NEW: Check if this anime is in the Top 8 to protect its custom cover
-      const sortedByScore = [...animeDataRef.current].sort(
-        (a, b) => (Number(b.score) || 0) - (Number(a.score) || 0),
-      );
-      const top8Ids = new Set(
-        sortedByScore.slice(0, 8).map((a) => String(a.id)),
-      );
-      const isTop8 = top8Ids.has(String(anime.id));
-
-      // Only fetch TMDB poster if it is NOT a Top 8 anime
-      if (!isTop8 && (anime.anilistId || anime.title)) {
-        tmdbService
-          .getPoster(anime)
-          .then((tmdbCover) => {
-            if (tmdbCover) {
-              setForm((f) => ({ ...f, cover: tmdbCover }));
-            }
-          })
-          .catch(() => {});
-      }
     };
 
     window.addEventListener("openAddAnimeModal", onNew);
@@ -404,7 +383,8 @@ export default function AnimeModal() {
           : r.type || "TV";
     const dur = r.duration || DEFAULT_DURATION[type] || 20;
 
-    let cover = "";
+    let cover = r.images?.jpg?.image_url || ""; // AniList fallback
+
     try {
       const tmdbCover = await tmdbService.getPoster({
         anilistId: r.id,
@@ -412,14 +392,13 @@ export default function AnimeModal() {
         title_english: r.title_english,
         title_romaji: r.title_romaji,
         title_native: r.title_native,
-        synonyms: [],
+        synonyms: r.synonyms || [],
         year: r.seasonYear,
         type: type,
       });
       if (tmdbCover) cover = tmdbCover;
-      else cover = r.images?.jpg?.image_url || "";
-    } catch {
-      cover = r.images?.jpg?.image_url || "";
+    } catch (err) {
+      console.warn("TMDB failed, using AniList cover", err);
     }
 
     setForm((f) => ({
@@ -559,6 +538,7 @@ export default function AnimeModal() {
       } else {
         const newId = animeService.getNextAvailableId(animeDataSnapshot);
         const newAnime = { id: newId, ...payload, createdAt: nowTimestamp };
+
         updatedList = [...animeData, newAnime];
 
         try {
@@ -646,6 +626,7 @@ export default function AnimeModal() {
     { length: 40 },
     (_, i) => new Date().getFullYear() - 20 + i,
   );
+
   const showPreview = Boolean(form.cover);
 
   return (
@@ -683,8 +664,8 @@ export default function AnimeModal() {
                     "input:not([disabled]), select:not([disabled])",
                   ),
                 ).filter((el) => el.offsetParent !== null);
-                const index = focusable.indexOf(e.target);
 
+                const index = focusable.indexOf(e.target);
                 if (index === -1 || index === focusable.length - 1) {
                   if (!submitting) handleSubmit(e);
                 } else {
