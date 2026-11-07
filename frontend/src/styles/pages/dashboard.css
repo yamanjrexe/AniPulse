@@ -27,6 +27,10 @@
     font-size: var(--fs-16);
 }
 
+/* ============================================================
+   GREETING BANNER
+   ============================================================ */
+
 .greeting-banner {
     position: relative;
     padding: var(--sp-8) var(--sp-6);
@@ -123,13 +127,96 @@
     display: none;
 }
 
-.stats-grid {
+/* ============================================================
+   STATS OVERVIEW CARDS
+   ============================================================ */
+
+/* Removed max-width so it fills the screen naturally */
+.dashboard-section .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: var(--sp-4);
     margin-bottom: var(--shell-section-gap);
     width: 100%;
 }
+
+.dashboard-section .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-lg);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-section .stat-card:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-2px);
+}
+
+.dashboard-section .stat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    width: 100%;
+}
+
+.dashboard-section .stat-value {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: clamp(2rem, 3.5vw, 2.5rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.dashboard-section .stat-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    line-height: 1.2;
+}
+
+.dashboard-section .stat-icon {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    border-radius: var(--r-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    background: var(--bg-surface);
+    color: var(--brand-yellow);
+    border: 1px solid var(--border-default);
+    flex-shrink: 0;
+}
+
+.dashboard-section .stat-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 16px;
+    padding: 4px 10px;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    width: fit-content;
+}
+
+/* ============================================================
+   DNA GRID & QUICK ACTIONS
+   ============================================================ */
 
 .dna-grid {
     display: grid;
@@ -149,131 +236,6 @@
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: var(--sp-4);
     margin-bottom: var(--shell-section-gap);
-}
-
-.activity-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border-default);
-    border-radius: var(--r-md);
-    overflow: hidden;
-    margin-bottom: var(--shell-section-gap);
-}
-
-.activity-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: var(--sp-3);
-    padding: var(--sp-4) var(--sp-5);
-    border-bottom: 1px solid var(--border-subtle);
-}
-
-.activity-title {
-    font-size: var(--fs-15);
-    font-weight: var(--fw-semibold);
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: var(--sp-2);
-}
-
-.activity-title i {
-    color: var(--brand-yellow);
-}
-
-.activity-count {
-    font-size: var(--fs-12);
-    color: var(--text-muted);
-    padding: 3px 10px;
-    background: var(--bg-surface);
-    border-radius: var(--r-pill);
-    border: 1px solid var(--border-subtle);
-}
-
-.view-all-link {
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    font-size: var(--fs-12);
-    font-family: var(--font-sans);
-    font-weight: var(--fw-medium);
-    cursor: pointer;
-    padding: 4px 10px;
-    border-radius: var(--r-sm);
-    transition: background-color var(--dur-fast) var(--ease-standard),
-        color var(--dur-fast) var(--ease-standard);
-}
-
-.view-all-link:hover {
-    background: var(--bg-card-hover);
-    color: var(--brand-yellow);
-}
-
-.activity-list {
-    max-height: 380px;
-    overflow-y: auto;
-    padding: var(--sp-2) var(--sp-5) var(--sp-5);
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.activity-item {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-3);
-    padding: var(--sp-3);
-    border-radius: var(--r-sm);
-    cursor: pointer;
-    transition: background-color var(--dur-fast) var(--ease-standard);
-}
-
-.activity-item:hover {
-    background: var(--bg-card-hover);
-}
-
-.activity-icon {
-    width: 34px;
-    height: 34px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--r-sm);
-    background: var(--bg-surface);
-    color: var(--brand-yellow);
-    font-size: var(--fs-12);
-    flex-shrink: 0;
-}
-
-.activity-content {
-    flex: 1;
-    min-width: 0;
-}
-
-.activity-anime {
-    font-size: var(--fs-13);
-    font-weight: var(--fw-medium);
-    color: var(--text-primary);
-    overflow-wrap: anywhere;
-}
-
-.activity-desc {
-    font-size: 0.6875rem;
-    color: var(--text-muted);
-}
-
-.activity-time {
-    font-size: 0.6875rem;
-    color: var(--text-muted);
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-
-.no-activity {
-    padding: 32px var(--sp-4);
-    text-align: center;
-    color: var(--text-muted);
-    font-size: var(--fs-13);
 }
 
 /* ============================================================
@@ -334,8 +296,32 @@
     pointer-events: none;
 }
 
+.watching-delete-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #FFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    z-index: 10;
+    transition: background 0.2s, transform 0.2s;
+}
 
-/* --- BOTTOM BADGES --- */
+.watching-delete-btn:hover {
+    background: var(--brand-red);
+    transform: scale(1.1);
+    border-color: var(--brand-red);
+}
+
 .watching-bottom-badges {
     position: absolute;
     bottom: 16px;
@@ -369,7 +355,6 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
-/* --- RED PROGRESS BAR --- */
 .watching-progress-track {
     position: absolute;
     bottom: 0;
@@ -387,7 +372,6 @@
     transition: width 0.3s ease;
 }
 
-/* --- INFO AREA --- */
 .watching-info {
     padding: 16px;
 }
@@ -401,43 +385,14 @@
     text-overflow: ellipsis;
 }
 
-@media (max-width: 480px) {
-    .watching-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-.watching-delete-btn {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #FFF;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 14px;
-    z-index: 10; /* Ensures it's above the overlay */
-    transition: background 0.2s, transform 0.2s;
-}
-
-.watching-delete-btn:hover {
-    background: var(--brand-red);
-    transform: scale(1.1);
-    border-color: var(--brand-red);
-}
+/* ============================================================
+   TOP RATED GRID
+   ============================================================ */
 
 #top-rated-anime {
     width: 100%;
 }
 
-/* UPDATED: Matches Spotlight & Watchlist Grid sizes perfectly */
 .top-anime-grid,
 #top-rated-anime {
     display: grid;
@@ -445,11 +400,271 @@
     gap: 16px;
 }
 
-@media (max-width: 768px) {
-    #top-rated-anime>*:nth-child(n+5) {
-        display: none;
-    }
+/* ============================================================
+   RECENT ACTIVITY
+   ============================================================ */
+
+.activity-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    margin-bottom: var(--shell-section-gap);
+    display: flex;
+    flex-direction: column;
 }
+
+.activity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 16px 20px;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-default);
+    flex-shrink: 0;
+}
+
+.activity-title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.activity-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Counter integrated seamlessly into the title */
+.activity-count {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.activity-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.activity-select-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.activity-filter-select {
+    appearance: none;
+    -webkit-appearance: none;
+    width: auto;
+    padding: 8px 36px 8px 14px;
+    font-size: 0.8rem;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    border-radius: var(--r-sm);
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    color: var(--text-primary);
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238A8A8A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px;
+}
+
+.activity-filter-select:hover {
+    border-color: var(--border-strong);
+}
+
+.activity-filter-select:focus {
+    border-color: var(--brand-yellow);
+}
+
+.activity-filter-select option {
+    background-color: var(--bg-surface);
+    color: var(--text-primary);
+}
+
+.activity-clear-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    padding: 8px 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.activity-clear-btn:hover:not(:disabled) {
+    color: var(--brand-red);
+    background: var(--brand-red-soft);
+}
+
+.activity-clear-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* EXACT HEIGHT FOR 5 ITEMS (No 6th item peeking) */
+.activity-list {
+    /* 5 items * 68px (height) + 16px padding = 356px */
+    max-height: 356px;
+    overflow-y: auto;
+    padding: 8px 12px;
+    scroll-snap-type: y mandatory;
+    /* Forces snapping to exact item boundaries */
+    scroll-behavior: smooth;
+    flex: 1;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 68px;
+    /* Fixed height */
+    box-sizing: border-box;
+    padding: 0 16px;
+    border-radius: var(--r-sm);
+    transition: background 0.2s;
+    scroll-snap-align: start;
+}
+
+.activity-item:hover {
+    background: var(--bg-card-hover);
+}
+
+.activity-icon {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--r-sm);
+    background: var(--bg-surface);
+    color: var(--brand-yellow);
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.activity-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.activity-anime {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.activity-desc {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.2;
+}
+
+.activity-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.activity-time {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.activity-delete-btn {
+    background: rgba(231, 76, 60, 0.1);
+    border: none;
+    border-radius: 6px;
+    color: var(--brand-red);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s, background 0.2s;
+}
+
+.activity-item:hover .activity-delete-btn {
+    opacity: 1;
+}
+
+.activity-delete-btn:hover {
+    background: rgba(231, 76, 60, 0.25);
+}
+
+.activity-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
+    height: 100%;
+}
+
+.activity-empty-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--bg-surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    border: 1px solid var(--border-default);
+    color: var(--brand-yellow);
+    font-size: 28px;
+}
+
+.activity-empty-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.activity-empty-desc {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    max-width: 320px;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* ============================================================
+   FAB MENU
+   ============================================================ */
 
 #fab-container {
     position: fixed;
@@ -562,6 +777,10 @@
     text-align: center;
 }
 
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
 @media (max-width: 768px) {
     .greeting-banner {
         padding: var(--sp-5) var(--sp-4);
@@ -572,8 +791,23 @@
         width: 100%;
     }
 
-    .stats-grid {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    .dashboard-section .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+
+    .dashboard-section .stat-card {
+        padding: 16px;
+    }
+
+    .dashboard-section .stat-value {
+        font-size: 1.75rem;
+    }
+
+    .dashboard-section .stat-icon {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        font-size: 1rem;
     }
 
     .dashboard-grid {
@@ -584,6 +818,10 @@
     #top-rated-anime {
         grid-template-columns: repeat(2, 1fr);
         gap: 12px;
+    }
+
+    #top-rated-anime>*:nth-child(n+5) {
+        display: none;
     }
 }
 
@@ -603,9 +841,29 @@
         font-size: var(--fs-16);
     }
 
-    .stats-grid {
+    .dashboard-section .stats-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: var(--sp-2);
+    }
+
+    .dashboard-section .stat-card {
+        padding: 12px;
+    }
+
+    .dashboard-section .stat-value {
+        font-size: 1.5rem;
+    }
+
+    .dashboard-section .stat-icon {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        font-size: 0.9rem;
+    }
+
+    .dashboard-section .stat-change {
+        font-size: 0.65rem;
+        padding: 3px 8px;
     }
 
     .quick-actions {
@@ -621,6 +879,10 @@
     .top-anime-grid,
     #top-rated-anime {
         gap: var(--sp-2);
+    }
+
+    .watching-grid {
+        grid-template-columns: 1fr;
     }
 
     #fab-container {
@@ -648,266 +910,4 @@
         animation: none !important;
         transition: none !important;
     }
-}
-
-/* ============================================================
-   RECENT ACTIVITY
-   ============================================================ */
-
-.activity-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border-default);
-    border-radius: var(--r-md);
-    overflow: hidden;
-    margin-bottom: var(--shell-section-gap);
-    display: flex;
-    flex-direction: column;
-}
-
-.activity-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 16px;
-    padding: 16px 20px;
-    background: var(--bg-surface);
-    border-bottom: 1px solid var(--border-default);
-    flex-shrink: 0;
-}
-
-.activity-title-group {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.activity-title {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    letter-spacing: -0.01em;
-}
-
-/* Clean Counter Badge - No Glow */
-.activity-count-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2px 10px;
-    background: var(--bg-card);
-    color: var(--text-secondary);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--r-sm);
-    font-size: 0.75rem;
-    font-weight: 600;
-    font-family: var(--font-sans);
-    white-space: nowrap;
-}
-
-.activity-actions {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-}
-
-/* Custom Select Dropdown */
-.activity-select-wrapper {
-    position: relative;
-    display: inline-block;
-}
-
-.activity-filter-select {
-    appearance: none;
-    -webkit-appearance: none;
-    width: auto;
-    padding: 8px 36px 8px 14px;
-    font-size: 0.8rem;
-    font-family: var(--font-sans);
-    font-weight: 500;
-    border-radius: var(--r-sm);
-    background: var(--bg-card);
-    border: 1px solid var(--border-default);
-    color: var(--text-primary);
-    cursor: pointer;
-    outline: none;
-    transition: border-color 0.2s;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238A8A8A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 14px;
-}
-
-.activity-filter-select:hover {
-    border-color: var(--border-strong);
-}
-
-.activity-filter-select:focus {
-    border-color: var(--brand-yellow);
-}
-
-.activity-filter-select option {
-    background-color: var(--bg-surface);
-    color: var(--text-primary);
-}
-
-/* Clear Button */
-.activity-clear-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: transparent;
-    border: 1px solid transparent;
-    color: var(--text-muted);
-    padding: 8px 14px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    border-radius: var(--r-sm);
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.activity-clear-btn:hover:not(:disabled) {
-    color: var(--brand-red);
-    background: var(--brand-red-soft);
-}
-
-.activity-clear-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* List & Snap Scrolling */
-.activity-list {
-    /* 5 items * ~72px per item = 360px */
-    max-height: 360px;
-    overflow-y: auto;
-    padding: 8px 12px;
-    scroll-snap-type: y proximity;
-    scroll-behavior: smooth;
-    flex: 1;
-}
-
-.activity-item {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 12px 16px;
-    border-radius: var(--r-sm);
-    transition: background 0.2s;
-    scroll-snap-align: start;
-}
-
-.activity-item:hover {
-    background: var(--bg-card-hover);
-}
-
-.activity-icon {
-    width: 34px;
-    height: 34px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--r-sm);
-    background: var(--bg-surface);
-    color: var(--brand-yellow);
-    font-size: 0.85rem;
-    flex-shrink: 0;
-}
-
-.activity-content {
-    flex: 1;
-    min-width: 0;
-}
-
-.activity-anime {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.activity-desc {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-}
-
-/* Meta (Time + Delete) */
-.activity-meta {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-shrink: 0;
-}
-
-.activity-time {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    white-space: nowrap;
-    font-weight: 500;
-}
-
-.activity-delete-btn {
-    background: rgba(231, 76, 60, 0.1);
-    border: none;
-    border-radius: 6px;
-    color: var(--brand-red);
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.2s, background 0.2s;
-}
-
-.activity-item:hover .activity-delete-btn {
-    opacity: 1;
-}
-
-.activity-delete-btn:hover {
-    background: rgba(231, 76, 60, 0.25);
-}
-
-/* Empty State */
-.activity-empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 48px 24px;
-    text-align: center;
-}
-
-.activity-empty-icon {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background: var(--bg-surface);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 16px;
-    border: 1px solid var(--border-default);
-    color: var(--brand-yellow);
-    font-size: 28px;
-}
-
-.activity-empty-title {
-    font-size: 1.1rem;
-    font-weight: 700;
-    margin-bottom: 8px;
-    color: var(--text-primary);
-}
-
-.activity-empty-desc {
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    max-width: 320px;
-    margin: 0;
-    line-height: 1.6;
 }
