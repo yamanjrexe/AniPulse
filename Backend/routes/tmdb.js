@@ -5,8 +5,7 @@ const router = express.Router();
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const IMG_BASE = "https://image.tmdb.org/t/p/w500";
-
-const BACKEND_CACHE_VERSION = "v7"; 
+const BACKEND_CACHE_VERSION = "v6";
 const posterCache = new Map();
 const CACHE_TTL = 1000 * 60 * 60 * 24 * 7;
 const ERROR_TTL = 1000 * 60 * 5;
@@ -30,8 +29,9 @@ function titleScore(a, b) {
     const union = new Set([...setA, ...setB]);
     const jaccard = intersection.size / union.size;
 
-    if (A.includes(B) && B.length >= 5) return 1.8;
-    if (B.includes(A) && A.length >= 5) return 1.8;
+    // Relaxed: Allow substring matching if the word is at least 4 chars
+    if (A.includes(B) && B.length >= 4) return 1.8;
+    if (B.includes(A) && A.length >= 4) return 1.8;
 
     return jaccard * 1.5;
 }
@@ -60,25 +60,22 @@ async function findBestTmdb(anime) {
 
     let bestMatch = null;
     const year = anime.year || anime.seasonYear;
-    const isAnimeMovie = anime.type === "Movie" || anime.type === "MOVIE";
 
     for (const t of uniqueTitles) {
-        let results = [];
+        const tvYearParam = year ? `&first_air_date_year=${year}` : "";
+        const movieYearParam = year ? `&primary_release_year=${year}` : "";
 
-        if (isAnimeMovie) {
-            const movieYearParam = year ? `&primary_release_year=${year}` : "";
-            const data = await fetchJson(`${TMDB_BASE}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(t)}${movieYearParam}`);
-            if (data?.results) results = data.results.map((r) => ({ ...r, media_type: "movie" }));
-        } else {
-            const tvYearParam = year ? `&first_air_date_year=${year}` : "";
-            const data = await fetchJson(`${TMDB_BASE}/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(t)}${tvYearParam}`);
-            if (data?.results) results = data.results.map((r) => ({ ...r, media_type: "tv" }));
-        }
+        const tvData = await fetchJson(`${TMDB_BASE}/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(t)}${tvYearParam}`);
+        const movieData = await fetchJson(`${TMDB_BASE}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(t)}${movieYearParam}`);
+
+        const results = [];
+        if (tvData?.results) results.push(...tvData.results.map((r) => ({ ...r, media_type: "tv" })));
+        if (movieData?.results) results.push(...movieData.results.map((r) => ({ ...r, media_type: "movie" })));
 
         if (!results.length) continue;
 
         const validCandidates = results.filter(r => {
-            const isAnimation = r.genre_ids && r.genre_ids.includes(16);
+            const isAnimation = r.genre_ids ? r.genre_ids.includes(16) : true;
             const lang = r.original_language;
             const isAsian = ["ja", "zh", "ko", "cn", "tw"].includes(lang) ||
                 (r.origin_country && r.origin_country.some(c => ["JP", "CN", "KR", "TW"].includes(c)));
@@ -98,30 +95,32 @@ async function findBestTmdb(anime) {
                 }
             }
 
-            if (maxTitleScore < 1.8) continue;
+            // Relaxed: Was 1.8, now 1.2 (allows partial word matches)
+            if (maxTitleScore < 1.2) continue;
+
             score += maxTitleScore;
 
             const relDate = r.first_air_date || r.release_date;
             const tmdbYear = relDate ? parseInt(String(relDate).substring(0, 4)) : null;
 
-            // STRICT YEAR MATCHING
-            if (year && tmdbYear) {
-                if (Math.abs(year - tmdbYear) <= 1) {
-                    score += 1.5; // Big bonus for right year
-                } else {
-                    score -= 2.0; // Massive penalty for wrong year
-                }
+            if (year && tmdbYear && Math.abs(year - tmdbYear) <= 1) {
+                score += 0.8;
             }
+
+            const isAnimeMovie = anime.type === "Movie" || anime.type === "MOVIE";
+            if (isAnimeMovie && r.media_type === "movie") score += 0.5;
+            if (!isAnimeMovie && r.media_type === "tv") score += 0.5;
 
             if (!bestMatch || score > bestMatch.score) {
                 bestMatch = { tmdb: r, score: score };
             }
         }
 
-        if (bestMatch && bestMatch.score >= 3.0) break;
+        if (bestMatch && bestMatch.score >= 2.5) break;
     }
 
-    return bestMatch && bestMatch.score >= 2.0 ? bestMatch : null;
+    // Relaxed: Was 2.0, now 1.5
+    return bestMatch && bestMatch.score >= 1.5 ? bestMatch : null;
 }
 
 async function getBestPoster(tmdbId, mediaType) {
@@ -169,10 +168,7 @@ async function lookupOne(anime) {
         return { anilistId: anime.anilistId, poster: null, tmdbId: null };
     }
 
-    const poster = match.tmdb.poster_path
-        ? `${IMG_BASE}${match.tmdb.poster_path}`
-        : await getBestPoster(match.tmdb.id, match.tmdb.media_type);
-
+    const poster = await getBestPoster(match.tmdb.id, match.tmdb.media_type);
     posterCache.set(cacheKey, { poster, tmdbId: match.tmdb.id, ts: Date.now() });
     return { anilistId: anime.anilistId, poster, tmdbId: match.tmdb.id };
 }
