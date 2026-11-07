@@ -123,9 +123,7 @@ export default function RecentActivity() {
         <div className="activity-header">
           <div className="activity-title-group">
             <div className="activity-title">Latest Changes</div>
-            <span className="activity-count-badge">
-              {filteredLog.length} items
-            </span>
+            <span className="activity-count-badge">{filteredLog.length} items</span>
           </div>
 
           <div className="activity-actions">

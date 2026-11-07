@@ -56,7 +56,7 @@ const isDurationEditable = (type) => type === "Movie";
 function defaultForm() {
   const now = new Date();
   return {
-    anilistId: null, // ADDED: Store the true AniList ID
+    anilistId: null,
     title: "",
     type: "TV",
     episodes: 1,
@@ -260,7 +260,7 @@ export default function AnimeModal() {
 
       setEditing(anime);
       setForm({
-        anilistId: anime.anilistId || null, // LOADED: Pull the real ID from DB
+        anilistId: anime.anilistId || null,
         title: anime.title || "",
         type: anime.type || "TV",
         episodes: anime.episodes || 0,
@@ -283,6 +283,27 @@ export default function AnimeModal() {
       setSubmitting(false);
       setConfirmDelete(false);
       setOpen(true);
+
+      // NEW: Check if this anime is in the Top 8 to protect its custom cover
+      const sortedByScore = [...animeDataRef.current].sort(
+        (a, b) => (Number(b.score) || 0) - (Number(a.score) || 0),
+      );
+      const top8Ids = new Set(
+        sortedByScore.slice(0, 8).map((a) => String(a.id)),
+      );
+      const isTop8 = top8Ids.has(String(anime.id));
+
+      // Only fetch TMDB poster if it is NOT a Top 8 anime
+      if (!isTop8 && (anime.anilistId || anime.title)) {
+        tmdbService
+          .getPoster(anime)
+          .then((tmdbCover) => {
+            if (tmdbCover) {
+              setForm((f) => ({ ...f, cover: tmdbCover }));
+            }
+          })
+          .catch(() => {});
+      }
     };
 
     window.addEventListener("openAddAnimeModal", onNew);
@@ -386,7 +407,7 @@ export default function AnimeModal() {
     let cover = "";
     try {
       const tmdbCover = await tmdbService.getPoster({
-        anilistId: r.id, // THE FIX: Pass the true AniList ID
+        anilistId: r.id,
         title: r.title,
         title_english: r.title_english,
         title_romaji: r.title_romaji,
@@ -403,7 +424,7 @@ export default function AnimeModal() {
 
     setForm((f) => ({
       ...f,
-      anilistId: r.id, // THE FIX: Save the true AniList ID to the form
+      anilistId: r.id,
       title: r.title || "",
       type,
       episodes: r.episodes || 1,
@@ -495,7 +516,7 @@ export default function AnimeModal() {
       }
 
       const payload = {
-        anilistId: form.anilistId, // SAVE TO DATABASE
+        anilistId: form.anilistId,
         title,
         type,
         episodes,
@@ -538,7 +559,6 @@ export default function AnimeModal() {
       } else {
         const newId = animeService.getNextAvailableId(animeDataSnapshot);
         const newAnime = { id: newId, ...payload, createdAt: nowTimestamp };
-
         updatedList = [...animeData, newAnime];
 
         try {
@@ -626,7 +646,6 @@ export default function AnimeModal() {
     { length: 40 },
     (_, i) => new Date().getFullYear() - 20 + i,
   );
-
   const showPreview = Boolean(form.cover);
 
   return (
@@ -664,8 +683,8 @@ export default function AnimeModal() {
                     "input:not([disabled]), select:not([disabled])",
                   ),
                 ).filter((el) => el.offsetParent !== null);
-
                 const index = focusable.indexOf(e.target);
+
                 if (index === -1 || index === focusable.length - 1) {
                   if (!submitting) handleSubmit(e);
                 } else {
@@ -729,7 +748,7 @@ export default function AnimeModal() {
                       <div className="search-result-meta">
                         <span>{r.type || "TV"}</span>
                         <span>
-                          {r.episodes ? `${r.episodes} eps` : "— eps"}
+                          {r.episodes ? `${r.episodes} eps` : "  eps"}
                         </span>
                         {r.score != null && (
                           <span className="score">

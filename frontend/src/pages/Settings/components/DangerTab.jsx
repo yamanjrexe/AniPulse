@@ -3,6 +3,7 @@ import { useToast } from "../../../context/ToastContext.jsx";
 import { useAnime } from "../../../context/AnimeContext.jsx";
 import { useSync } from "../../../context/SyncContext.jsx";
 import { animeService } from "../../../services/animeService.js";
+import { tmdbService } from "../../../services/tmdbService.js";
 
 function extractYear(value) {
   if (!value || typeof value !== "string") return null;
@@ -32,7 +33,7 @@ function downloadJson(data, filename) {
 
 export default function DangerTab() {
   const { showToast } = useToast();
-  const { animeData } = useAnime();
+  const { animeData, setAnimeData } = useAnime();
   const { syncToCloud, loadFromCloud } = useSync();
 
   const [exportOpen, setExportOpen] = useState(false);
@@ -40,7 +41,6 @@ export default function DangerTab() {
   const [processing, setProcessing] = useState(false);
   const menuRef = useRef(null);
 
-  // Close dropdown if clicked outside
   useEffect(() => {
     if (!exportOpen) return;
     const onDocClick = (e) => {
@@ -66,10 +66,7 @@ export default function DangerTab() {
       if (cy) comp.set(cy, (comp.get(cy) || 0) + 1);
     }
     const sortDesc = (m) => [...m.entries()].sort((a, b) => b[0] - a[0]);
-    return {
-      completionYears: sortDesc(comp),
-      totalCount: animeData.length,
-    };
+    return { completionYears: sortDesc(comp), totalCount: animeData.length };
   }, [animeData]);
 
   const exportAll = () => {
@@ -91,6 +88,74 @@ export default function DangerTab() {
     downloadJson(filtered, `My Anime List - Completed ${year}.json`);
     showToast(`Exported ${count} anime from ${year}`, "success");
     setExportOpen(false);
+  };
+
+  // UPDATED MIGRATION FUNCTION
+  const migrateCovers = async () => {
+    if (
+      !window.confirm(
+        "This will scan your library and replace old covers with TMDB covers. Your Top 8 highest-rated anime will be skipped to preserve custom covers. Continue?",
+      )
+    )
+      return;
+
+    setProcessing(true);
+    try {
+      const allAnime = [...animeData];
+
+      // 1. Calculate Top 8 IDs to protect them
+      const sortedByScore = [...allAnime].sort(
+        (a, b) => (Number(b.score) || 0) - (Number(a.score) || 0),
+      );
+      const top8Ids = new Set(
+        sortedByScore.slice(0, 8).map((a) => String(a.id)),
+      );
+
+      // 2. Fetch TMDB covers for the batch
+      const posters = await tmdbService.getPostersBatch(allAnime);
+
+      let updatedCount = 0;
+      let skippedCount = 0;
+
+      const updatedList = allAnime.map((anime) => {
+        // Skip the Top 8 highest-rated anime
+        if (top8Ids.has(String(anime.id))) {
+          skippedCount++;
+          return anime;
+        }
+
+        const key = anime.anilistId || anime.title;
+        const tmdbCover = posters[key];
+
+        // If TMDB found a cover and it's different, update it
+        if (tmdbCover && anime.cover !== tmdbCover) {
+          updatedCount++;
+          return { ...anime, cover: tmdbCover };
+        }
+        return anime;
+      });
+
+      if (updatedCount > 0) {
+        setAnimeData(updatedList);
+        localStorage.setItem("animeData", JSON.stringify(updatedList, null, 2));
+
+        await animeService.saveCloud(updatedList);
+        await syncToCloud();
+
+        showToast(
+          `Migrated ${updatedCount} covers to TMDB (Skipped Top ${skippedCount} rated).`,
+          "success",
+        );
+        window.dispatchEvent(new CustomEvent("animeUpdate"));
+      } else {
+        showToast("All eligible covers are already up to date.", "info");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to migrate covers. Check your connection.", "error");
+    } finally {
+      setProcessing(false);
+    }
   };
 
   const forcePushToCloud = async () => {
@@ -236,7 +301,42 @@ export default function DangerTab() {
         </div>
       </div>
 
-      {/* 2. GAMIFICATION RESET */}
+      {/* 2. DATA MIGRATION */}
+      <div className="settings-group">
+        <h3>
+          <i className="fas fa-images" aria-hidden="true" /> Poster Migration
+        </h3>
+        <p
+          style={{
+            fontSize: "0.85rem",
+            color: "var(--text-muted)",
+            marginBottom: "16px",
+            lineHeight: 1.5,
+          }}
+        >
+          Scanning your library to replace old or missing AniList covers with
+          high-quality, textless TMDB posters. This permanently fixes imported
+          JSON files and older entries.{" "}
+          <strong>
+            Your Top 8 highest-rated anime will be skipped to protect custom
+            covers.
+          </strong>
+        </p>
+        <div className="danger-actions">
+          <button
+            className="btn btn-primary"
+            onClick={migrateCovers}
+            disabled={processing}
+          >
+            <i
+              className={`fas ${processing ? "fa-spinner fa-spin" : "fa-magic"}`}
+            />{" "}
+            {processing ? "Migrating Covers..." : "Migrate Covers to TMDB"}
+          </button>
+        </div>
+      </div>
+
+      {/* 3. GAMIFICATION RESET */}
       <div className="settings-group">
         <h3>
           <i className="fas fa-gamepad" aria-hidden="true" /> Gamification Reset
@@ -266,7 +366,7 @@ export default function DangerTab() {
         </div>
       </div>
 
-      {/* 3. DATA EXPORT */}
+      {/* 4. DATA EXPORT */}
       <div className="settings-group">
         <h3>
           <i className="fas fa-file-export" aria-hidden="true" /> Export Data
@@ -282,7 +382,6 @@ export default function DangerTab() {
           Download a permanent backup of your anime list in JSON format.
         </p>
 
-        {/* FIXED EXPORT DROPDOWN WRAPPER */}
         <div
           style={{ position: "relative", display: "inline-block" }}
           ref={menuRef}
@@ -300,69 +399,22 @@ export default function DangerTab() {
           </button>
 
           {exportOpen && (
-            <div
-              className="export-menu"
-              role="menu"
-              style={{
-                position: "absolute",
-                top: "calc(100% + 8px)",
-                left: 0,
-                zIndex: 9999,
-                minWidth: "240px",
-                background: "var(--bg-surface)",
-                border: "1px solid var(--border-default)",
-                borderRadius: "8px",
-                boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
-                padding: "6px",
-                animation: "fadeIn 0.15s ease-out",
-              }}
-            >
+            <div className="export-menu" role="menu">
               <button
                 className="export-menu-item export-menu-item-all"
                 onClick={exportAll}
-                style={{
-                  width: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                  padding: "10px",
-                }}
               >
                 <i
                   className="fas fa-database"
                   style={{ color: "var(--brand-yellow)" }}
                 />
-                <span style={{ flex: 1, textAlign: "left", fontWeight: 500 }}>
-                  All Data
-                </span>
-                <span
-                  style={{
-                    fontFamily: "monospace",
-                    background: "var(--bg-card)",
-                    padding: "2px 8px",
-                    borderRadius: "99px",
-                    fontSize: "0.8em",
-                  }}
-                >
-                  {totalCount}
-                </span>
+                <span className="export-menu-label">All Data</span>
+                <span className="export-menu-count">{totalCount}</span>
               </button>
 
               {completionYears.length > 0 && (
                 <>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      padding: "12px 10px 6px",
-                      fontSize: "0.7rem",
-                      textTransform: "uppercase",
-                      color: "var(--text-muted)",
-                      borderTop: "1px solid var(--border-subtle)",
-                      marginTop: "4px",
-                    }}
-                  >
+                  <div className="export-menu-section">
                     <i className="fas fa-check-circle" /> By Completion Year
                   </div>
                   {completionYears.map(([year, count]) => (
@@ -370,30 +422,13 @@ export default function DangerTab() {
                       key={`c-${year}`}
                       className="export-menu-item"
                       onClick={() => exportByCompletionYear(year, count)}
-                      style={{
-                        width: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "10px",
-                        padding: "10px",
-                      }}
                     >
                       <i
                         className="fas fa-calendar-check"
                         style={{ color: "var(--text-muted)" }}
                       />
-                      <span style={{ flex: 1, textAlign: "left" }}>{year}</span>
-                      <span
-                        style={{
-                          fontFamily: "monospace",
-                          background: "var(--bg-card)",
-                          padding: "2px 8px",
-                          borderRadius: "99px",
-                          fontSize: "0.8em",
-                        }}
-                      >
-                        {count}
-                      </span>
+                      <span className="export-menu-label">{year}</span>
+                      <span className="export-menu-count">{count}</span>
                     </button>
                   ))}
                 </>
@@ -403,7 +438,7 @@ export default function DangerTab() {
         </div>
       </div>
 
-      {/* 4. ACTUAL DANGER ZONE */}
+      {/* 5. ACTUAL DANGER ZONE */}
       <div className="danger-zone" style={{ marginTop: "24px" }}>
         <h3>
           <i className="fas fa-exclamation-triangle" aria-hidden="true" />{" "}
@@ -483,7 +518,6 @@ export default function DangerTab() {
             background: "rgba(0, 0, 0, 0.75)",
             backdropFilter: "blur(4px)",
             padding: "20px",
-            animation: "fadeIn 150ms ease-out",
           }}
         >
           <div
@@ -496,7 +530,6 @@ export default function DangerTab() {
               width: "100%",
               textAlign: "center",
               boxShadow: "0 24px 60px -20px rgba(0,0,0,0.8)",
-              animation: "zoomIn 200ms cubic-bezier(0.16, 1, 0.3, 1)",
             }}
           >
             <div
@@ -515,7 +548,6 @@ export default function DangerTab() {
             >
               <i className="fas fa-exclamation-triangle" />
             </div>
-
             <h3
               style={{
                 fontSize: "1.25rem",
@@ -526,7 +558,6 @@ export default function DangerTab() {
             >
               Delete All Data?
             </h3>
-
             <p
               style={{
                 fontSize: "0.9rem",
@@ -536,8 +567,7 @@ export default function DangerTab() {
               }}
             >
               This will permanently delete your entire anime list, activity
-              history, and achievements from{" "}
-              <strong>both this device and the cloud</strong>.
+              history, and achievements from both this device and the cloud.
               <br />
               <br />
               <span
@@ -546,7 +576,6 @@ export default function DangerTab() {
                 This action CANNOT be undone.
               </span>
             </p>
-
             <div
               style={{ display: "flex", gap: "12px", justifyContent: "center" }}
             >

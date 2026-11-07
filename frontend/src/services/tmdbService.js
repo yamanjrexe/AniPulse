@@ -4,7 +4,7 @@ const MEMORY_CACHE = new Map();
 const INFLIGHT = new Map();
 const TTL = 1000 * 60 * 60 * 24 * 7;
 const ERROR_TTL = 1000 * 60 * 5;
-const CACHE_VERSION = "v20"; 
+const CACHE_VERSION = "v27";
 const LS_PREFIX = `tmdb_poster_${CACHE_VERSION}:`;
 const CHUNK = 10;
 
@@ -39,14 +39,13 @@ function payloadFor(anime) {
         title_english: anime.title_english,
         title_romaji: anime.title_romaji,
         title_native: anime.title_native,
-        synonyms: [], 
+        synonyms: [],
         year: anime.year || anime.seasonYear || null,
         seasonYear: anime.seasonYear,
         type: anime.type || anime.format,
     };
 }
 
-// --- BATCHING QUEUE ---
 let queue = [];
 let queueResolvers = [];
 let queueTimer = null;
@@ -139,7 +138,7 @@ export const tmdbService = {
             if (mem) {
                 const ttl = mem.poster ? TTL : ERROR_TTL;
                 if (Date.now() - mem.ts < ttl) {
-                    result[a.anilistId || a.title] = mem.poster; 
+                    result[a.anilistId || a.title] = mem.poster;
                     continue;
                 }
             }

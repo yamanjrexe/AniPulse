@@ -49,13 +49,20 @@ export default function PosterImage({
   const originalCover = anime?.cover || null;
 
   const [src, setSrc] = useState(() => {
-    if (originalCover) {
-      if (isTmdbUrl(originalCover)) return originalCover;
-      const isTop8 = getTop8Ids().has(String(anime.id));
-      const isCustom = !isAnilistUrl(originalCover);
-      if (isCustom && isTop8) return originalCover;
+    if (!originalCover) return null;
+
+    const isTop8 = getTop8Ids().has(String(anime.id));
+
+    // If it's Top 8, use the database cover immediately (preserve custom covers)
+    if (isTop8) return originalCover;
+
+    // If it's a custom user upload (not AniList, not TMDB), preserve it
+    if (!isAnilistUrl(originalCover) && !isTmdbUrl(originalCover)) {
+      return originalCover;
     }
-    return originalCover || null;
+
+    // Otherwise, start with null and fetch the correct one
+    return null;
   });
 
   const [fallbackSrc, setFallbackSrc] = useState(originalCover);
@@ -66,24 +73,25 @@ export default function PosterImage({
     const cover = anime.cover;
     setFallbackSrc(cover);
 
-    // If it's already a TMDB URL, use it immediately
-    if (cover && isTmdbUrl(cover)) {
-      setSrc(cover);
-      return;
-    }
-
     const isTop8 = getTop8Ids().has(String(anime.id));
-    const isCustom = cover && !isAnilistUrl(cover);
 
-    if (isCustom && isTop8) {
+    // 1. Protect Top 8 anime
+    if (isTop8 && cover) {
       setSrc(cover);
       return;
     }
 
+    // 2. Protect custom user-uploaded covers
+    const isCustom = cover && !isAnilistUrl(cover) && !isTmdbUrl(cover);
+    if (isCustom) {
+      setSrc(cover);
+      return;
+    }
+
+    // 3. FORCE FETCH for everything else (This fixes the old wrong TMDB URLs)
     let cancelled = false;
     setSrc(cover || null);
 
-    // If it's an AniList cover or missing, fetch TMDB
     tmdbService.getPoster(anime).then((tmdbUrl) => {
       if (!cancelled) {
         setSrc(tmdbUrl || cover || PLACEHOLDER);
