@@ -3,7 +3,7 @@ import { useAnime } from "../context/AnimeContext.jsx";
 import AnimeCard from "../components/anime/AnimeCard.jsx";
 import Pagination from "../components/ui/Pagination.jsx";
 
-const PER_PAGE = 30;
+const PER_PAGE = 32;
 const FILTERS = [
   { k: "all", l: "All" },
   { k: "Watching", l: "Watching" },
@@ -83,11 +83,11 @@ export default function Watchlist() {
             animation: "fadeIn 0.3s ease-out",
           }}
         >
-          {filtered.length} {filtered.length === 1 ? "anime" : "anime"} found
+          {filtered.length} anime found
         </div>
       )}
 
-      <div className="top-anime-grid">
+      <div className="watchlist-grid">
         {pageItems.map((a) => (
           <AnimeCard
             key={a.id}
@@ -102,7 +102,6 @@ export default function Watchlist() {
           />
         ))}
 
-        {/* UPDATED EMPTY STATES */}
         {pageItems.length === 0 && (
           <div
             className="no-anime"

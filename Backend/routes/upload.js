@@ -1,28 +1,19 @@
-// routes/upload.js – Avatar stored as base64 in Firestore (with size limit)
 const express = require('express');
 const { db, COLLECTIONS } = require('../services/firebase');
 const { verifyToken } = require('../middleware/auth');
 const router = express.Router();
 
-// Max avatar size: 200KB (we already compress on frontend)
 const MAX_AVATAR_SIZE_BYTES = 200 * 1024;
 
-// ──────────────────────────────────────────────
-// UPLOAD AVATAR (Base64 → Firestore)
-// ──────────────────────────────────────────────
 router.post('/avatar', verifyToken, async (req, res) => {
   try {
-    const { avatar } = req.body; // base64 data URL
+    const { avatar } = req.body;
     if (!avatar) {
       return res.status(400).json({ error: 'No avatar data provided' });
     }
-
-    // Validate: must be a valid base64 image data URL
     if (!avatar.startsWith('data:image/')) {
       return res.status(400).json({ error: 'Invalid avatar format. Must be a base64 image data URL.' });
     }
-
-    // Calculate size in bytes
     const sizeInBytes = Buffer.byteLength(avatar, 'utf8');
     const sizeInKB = Math.round(sizeInBytes / 1024);
 
@@ -33,8 +24,6 @@ router.post('/avatar', verifyToken, async (req, res) => {
     }
 
     const userId = req.userId;
-
-    // Update both collections
     await db.collection(COLLECTIONS.USERS).doc(userId).set({
       avatar: avatar,
       avatarUpdated: new Date().toISOString()
@@ -45,24 +34,13 @@ router.post('/avatar', verifyToken, async (req, res) => {
       avatarUpdated: new Date().toISOString()
     }, { merge: true });
 
-    console.log(`✅ Avatar saved for user: ${userId} (${sizeInKB}KB)`);
-
-    res.json({
-      success: true,
-      avatarUrl: avatar,
-      size: sizeInKB,
-      message: 'Avatar saved successfully'
-    });
-
+    res.json({ success: true, avatarUrl: avatar, size: sizeInKB, message: 'Avatar saved successfully' });
   } catch (error) {
     console.error('Avatar save error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// ──────────────────────────────────────────────
-// GET AVATAR
-// ──────────────────────────────────────────────
 router.get('/avatar/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
@@ -72,19 +50,13 @@ router.get('/avatar/:userId', async (req, res) => {
     }
     const userData = userDoc.data();
     const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData?.name || 'User')}&background=6366F1&color=fff&bold=true&length=2&size=200`;
-    res.json({
-      avatarUrl: userData?.avatar || defaultAvatar,
-      hasCustom: !!userData?.avatar
-    });
+    res.json({ avatarUrl: userData?.avatar || defaultAvatar, hasCustom: !!userData?.avatar });
   } catch (error) {
     console.error('Get avatar error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// ──────────────────────────────────────────────
-// DELETE AVATAR (reset to default)
-// ──────────────────────────────────────────────
 router.delete('/avatar', verifyToken, async (req, res) => {
   try {
     const userId = req.userId;
@@ -92,19 +64,40 @@ router.delete('/avatar', verifyToken, async (req, res) => {
     const username = userDoc.data()?.username || 'User';
     const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=6366F1&color=fff&bold=true&length=2&size=200`;
 
-    await db.collection(COLLECTIONS.USERS).doc(userId).update({
-      avatar: defaultAvatar,
-      avatarUpdated: new Date().toISOString()
-    });
-    await db.collection(COLLECTIONS.USER_PROFILES).doc(userId).set({
-      avatar: defaultAvatar,
-      avatarUpdated: new Date().toISOString()
-    }, { merge: true });
+    await db.collection(COLLECTIONS.USERS).doc(userId).update({ avatar: defaultAvatar, avatarUpdated: new Date().toISOString() });
+    await db.collection(COLLECTIONS.USER_PROFILES).doc(userId).set({ avatar: defaultAvatar, avatarUpdated: new Date().toISOString() }, { merge: true });
 
     res.json({ success: true, avatarUrl: defaultAvatar });
   } catch (error) {
     console.error('Delete avatar error:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.post('/discussion-image', verifyToken, async (req, res) => {
+  try {
+    const { image } = req.body;
+    if (!image) return res.status(400).json({ error: 'No image provided' });
+    if (image.length > 5 * 1024 * 1024) return res.status(400).json({ error: 'Image too large (max 5MB)' });
+
+    const apiKey = process.env.IMGBB_API_KEY;
+    if (!apiKey) return res.status(500).json({ error: 'ImgBB API key not configured' });
+
+    const formData = new URLSearchParams();
+    formData.append('image', image.split(',')[1]);
+
+    const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    const data = await response.json();
+    if (!data.success) throw new Error('ImgBB upload failed');
+
+    res.json({ url: data.data.url, thumb: data.data.thumb.url });
+  } catch (error) {
+    console.error('Image upload error:', error);
+    res.status(500).json({ error: 'Failed to upload image' });
   }
 });
 

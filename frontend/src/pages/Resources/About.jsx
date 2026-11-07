@@ -160,7 +160,7 @@ export default function About() {
       <div className="resources-cta">
         <h2>Ready to start?</h2>
         <p>Create a free account and see your anime journey visualized.</p>
-        <Link to="/login?register=true" className="btn btn-primary">
+        <Link to="/login?register=true" className="btn btn-primary" style={{ color: "black" }}>
           <i className="fas fa-user-plus" /> Create free account
         </Link>
       </div>

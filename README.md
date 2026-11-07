@@ -1,595 +1,236 @@
-<p align="center">
-  <img src="frontend/public/icon/Anipulse.png" alt="AniPulse Logo" width="180" />
-</p>
+<div align="center">
+  <img src="frontend/public/icon/Anipulse.png" alt="AniPulse logo" width="160" />
 
-<p align="center">
-  <strong>Track. Analyze. Understand your anime journey.</strong>
-</p>
+  <p><strong>Track. Analyze. Understand your anime journey.</strong></p>
 
-<p align="center">
-  <a href="https://ani-pulse.netlify.app/">
-    <img src="https://img.shields.io/badge/live-demo-FCE706?style=for-the-badge&labelColor=050505" alt="Live Demo" />
-  </a>
-  <img src="https://img.shields.io/badge/version-3.2.2-FCE706?style=for-the-badge&labelColor=050505" alt="Version" />
-  <img src="https://img.shields.io/badge/license-MIT-F90415?style=for-the-badge&labelColor=050505" alt="License" />
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=white" alt="React" />
-  <img src="https://img.shields.io/badge/Vite-5-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite" />
-  <img src="https://img.shields.io/badge/React_Router-6-CA4245?style=flat-square&logo=reactrouter&logoColor=white" alt="React Router" />
-  <img src="https://img.shields.io/badge/Chart.js-4-FF6384?style=flat-square&logo=chartdotjs&logoColor=white" alt="Chart.js" />
-  <img src="https://img.shields.io/badge/Firebase-FFCA28?style=flat-square&logo=firebase&logoColor=white" alt="Firebase" />
-  <img src="https://img.shields.io/badge/PWA-5A0FC8?style=flat-square&logo=pwa&logoColor=white" alt="PWA" />
-  <img src="https://img.shields.io/badge/Node.js-18-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js" />
-</p>
+  <p>
+    <a href="https://ani-pulse.netlify.app/"><img src="https://img.shields.io/badge/Live_Demo-Visit_AniPulse-FCE706?style=for-the-badge&labelColor=050505" alt="Live demo" /></a>
+    <img src="https://img.shields.io/badge/Version-v3.2.3-FCE706?style=for-the-badge&labelColor=050505" alt="Version 3.2.3" />
+    <a href="https://opensource.org/license/mit"><img src="https://img.shields.io/badge/License-MIT-F90415?style=for-the-badge&labelColor=050505" alt="MIT License" /></a>
+  </p>
+  <p>
+    <img src="https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=white" alt="React 18" />
+    <img src="https://img.shields.io/badge/Node.js-18+-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js 18+" />
+    <img src="https://img.shields.io/badge/Express-4-000000?style=flat-square&logo=express&logoColor=white" alt="Express" />
+    <img src="https://img.shields.io/badge/Firebase-Admin_+_Auth-FFCA28?style=flat-square&logo=firebase&logoColor=white" alt="Firebase" />
+  </p>
+</div>
 
 ---
 
-> **The Ultimate Anime Tracking Experience** 🚀
-> 
-> AniPulse is a modern, feature-rich anime tracker that helps you manage your watchlist, track progress, analyze detailed statistics, and celebrate your anime journey. Built with vanilla JavaScript and a sleek UI, this application provides a complete anime management solution with advanced analytics and personalization.
+## About
 
-🌐 **[Live Demo](https://ani-pulse.netlify.app/)**
+AniPulse is an anime tracking and analytics platform for collecting your watch history, discovering what's trending, and seeing how your anime habits evolve. The app has been rebuilt from its legacy vanilla JavaScript foundation into a modern full-stack application powered by **React 18** and **Node.js/Express**, with Firebase Authentication and Cloud Firestore supporting accounts and cloud data.
 
----
+Use AniPulse to manage your list, explore personalized statistics, share with the community, and keep your library synchronized with AniList.
 
-## ✨ Complete Feature Set
+## Features
 
-### 📊 Dashboard - Your Anime Universe at a Glance
-- **Activity Heatmap** - Visualize your anime-watching patterns in an interactive matrix
-- **Real-time Statistics** - Total episodes watched, hours streamed, current watching streak
-- **Dynamic Greeting Banner** - Time-aware greetings (Morning/Afternoon/Evening/Night) with daily inspirational quotes
-- **Top Rated Anime Section** - Quick view of your 5 highest-rated titles with ratings displayed
-- **Recent Activity Feed** - Chronological tracking of all your recent updates and changes
-- **Member Join Date** - Display of when you started your anime journey
-- **Quick Action Buttons** - Easy access to key features (Add Anime, Export, Stats, etc.)
-- **Profile Widget** - Mini profile card showing your username, avatar, and total anime count
+### 📚 Tracking & Discovery
 
-### 📝 My Anime - Complete Collection Management
-- **Add New Anime** - Full form with title search from Jikan API database
-- **Comprehensive Tracking** - Store and manage:
-  - Title and Type (TV, Movie, OVA, ONA, Special)
-  - Episode count and personal progress
-  - Personal rating (0-10 scale)
-  - Watching status (Watching, Completed, Plan to Watch, Dropped)
-  - Multiple genres per anime
-  - Cover image/poster
-  - Start and finish dates
-  - Personal notes and observations
-- **Status-based Organization** - Instantly sort by watching status
-- **Edit & Delete** - Modify or remove anime with one click
-- **Detailed Info Storage** - Store ratings, progress, genres, cover images, and notes
-- **Genre Management** - Add multiple genres to categorize your collection
-- **Table View** - Clean, organized interface for your entire collection
+- Organize anime by status, track episode progress, and add ratings, notes, genres, and dates.
+- Search anime metadata and discover trending titles through **AniList GraphQL**.
+- Browse the **Global Spotlight**, a cinematic auto-playing showcase of trending anime.
+- Connect an AniList account and sync your library in both directions. A background worker processes AniList sync updates.
+- View posters enhanced with artwork from **TMDB**.
 
-### 📺 Watchlist Manager - Smart Pagination & Filtering
-- **Paginated Display** - 30 anime per page for smooth browsing and performance
-- **Status Filters** - View by:
-  - All anime
-  - Currently Watching
-  - Completed
-  - Plan to Watch
-  - Dropped
-- **Episode Progress Tracking** - Monitor episodes watched vs. total episodes
-- **Completion Percentage** - Visual indicator of how close you are to finishing
-- **Quick Edit & Delete** - Actions directly from the list view
-- **Search Integration** - Find specific anime within your watchlist
-- **Responsive Table Layout** - Works seamlessly on all device sizes
+### 📊 Analytics & Gamification
 
-### 📈 Advanced Statistics & Analytics
-- **Monthly Progress Charts** - Line charts tracking completed anime by month
-- **Genre Distribution** - Pie chart showing your favorite genres
-- **Completion Rate Analytics** - Yearly and monthly completion percentages
-- **Score Distribution Chart** - Histogram of your anime ratings
-- **Watch Time Analytics** - Hours watched by month and genre
-- **Type Distribution** - Series vs. Movies pie chart
-- **Status Distribution** - Breakdown of anime by current status
-- **Episodes Over Time** - Track episode completion trends
-- **Genre Preference Trends** - See how your favorite genres change over years
-- **Comprehensive Statistics Tables** - Detailed breakdowns with all viewing data
-- **Detailed Insights** - Analyze patterns in your watching habits
-- **Performance Comparisons** - Compare months and years side-by-side
+- Explore watch-time, episode, rating, genre, status, and completion analytics with interactive charts.
+- Revisit your anime journey with swipeable, story-style monthly and yearly recaps.
+- Earn experience, levels, streaks, and achievements as you track your progress.
+- Review recent activity and see how your viewing habits change over time.
 
-### 🏆 Achievement System - Milestone Tracking & Badges
-- **Dynamic Badge System** - Visual achievement badges that unlock as you progress
-- **Multiple Achievement Categories**:
-  - **Marathon Watcher** - Unlock badges for completing 10, 50, 100, 250, 500+ anime
-  - **Binge Master** - Earn badges for watching 500, 2000, 5000, 10000+ episodes
-  - **Genre Explorer** - Badges for exploring 5, 10, 15, 20+ different genres
-  - **Streak Keeper** - Earn consistency badges for tracking anime on 7, 30, 90, 365+ consecutive days
-  - **Score Collector** - Achieve rating-based badges for giving ratings across the scale
-  - **Time Traveler** - Badges for watching anime from different decades
-- **Progress Display** - See your current progress toward each achievement
-- **Achievement Counter** - Track total badges earned
-- **Detailed Achievement Info** - Learn requirements for each badge
-- **Visual Indicators** - Locked and unlocked status clearly shown
+### 💬 Community & Social
 
-### 🆕 Upcoming Anime & Notifications
-- **Trending Shows Section** - Stay updated with currently trending anime
-- **Seasonal Releases** - Discover anime by season (Spring, Summer, Fall, Winter)
-- **Update Notifications** - Get alerts when:
-  - New episodes air for anime you're watching
-  - Trending anime are updated
-  - Seasonal releases appear
-- **Notification Panel** - Popup notifications with clear details
-- **One-Click Tracking** - Add upcoming anime to your watchlist instantly
-- **Notification Counter** - Badge showing number of unread notifications
-- **Clear Notifications** - Manage your notification history
-- **Auto-Sync** - Automatically checks for new episodes of your watched anime
+- Join real-time, discussion-board conversations with other anime fans.
+- Share images in discussions and optionally attach your level and viewing statistics to a post.
+- Connect with friends, explore community profiles, and compare leaderboard rankings.
+- Browse trending titles together in Spotlight.
 
-### ⚙️ Settings & User Management - Personalization Hub
-- **User Profile Customization**:
-  - Custom username (saves instantly)
-  - Custom avatar upload from device
-  - Avatar generator with default options
-  - Reset to default avatar
-  - Profile preview with live updates
-- **Dark/Light Theme Toggle**:
-  - Light theme for day browsing
-  - Dark theme for comfortable night viewing
-  - System theme detection and sync
-  - Persistent theme preference
-- **Auto-Backup System**:
-  - Automatic backup every minute (runs in background)
-  - Backup reminders if not exported recently
-  - Backup stored in localStorage
-- **Data Management**:
-  - **Export Data** - Download entire collection as JSON file
-  - **Import Data** - Restore from previously exported JSON backup
-  - File upload with validation
-  - Instant data restoration
-- **Account Information**:
-  - Member since date tracking
-  - Total anime count display
-  - Quick stats preview
+### 🔐 Security & Privacy
 
-### 🔍 Search & Database Integration
-- **Real-time Anime Search** - Search using Jikan API (Anilist database)
-- **Search Suggestions** - Auto-complete with anime titles as you type
-- **Debounced Search** - Optimized search with 400ms debounce
-- **Search Results Display** - Shows matching anime with:
-  - Cover images
-  - Episodes count
-  - Anime type
-  - Direct selection for adding to collection
-- **Dashboard-wide Search** - Quick search feature in top navigation bar
-- **Database Filter** - Search by title, genre, or status
+- Keep your anime data local-first, with account-based cloud sync available when signed in.
+- Protect supported Firebase requests with **Firebase App Check** using reCAPTCHA Enterprise.
+- Require authenticated requests for account and community actions.
+- Route application writes through the Express API; Firestore Security Rules deny direct client writes to protected data.
+- Apply API rate limits and server-side validation to sensitive operations.
 
-### 🎨 User Interface & Experience
-- **Responsive Design** - Perfect on desktop (1920px), tablet (768px), and mobile (320px)
-- **Smooth Animations** - Polished transitions and hover effects throughout
-- **Dark Theme** - Easy on the eyes for late-night watching sessions
-- **Light Theme** - Clean, bright interface for day use
-- **System Theme Detection** - Automatic theme based on OS settings
-- **Accessibility Features** - 
-  - Clear visual hierarchy
-  - High contrast text
-  - Keyboard navigation support
-  - Logical tab order
-- **Toast Notifications** - Real-time feedback for all user actions
-  - Success messages (green)
-  - Error messages (red)
-  - Info messages (blue)
-  - Auto-dismiss timers
-- **Modal System** - Clean dialogs for:
-  - Adding/editing anime
-  - Importing data
-  - Confirmation actions
-- **Loading States** - Visual feedback during data operations
-- **Loading Screen** - Animated splash screen with progress bar
-- **Intuitive Navigation** - Sidebar menu with clear sections
-- **Top Navigation Bar** - Quick access to key features
-- **Profile Menu** - Easy profile and settings access
+## Tech Stack
 
----
+| Area | Technologies |
+| --- | --- |
+| **Frontend** | React 18, React Router v6, Context API, Chart.js, Progressive Web App (PWA) |
+| **Backend** | Node.js, Express.js, Firebase Admin SDK |
+| **Database & identity** | Google Cloud Firestore, Firebase Authentication, Firebase App Check |
+| **External APIs and services** | AniList GraphQL for anime metadata and library sync; TMDB for posters; ImgBB for discussion images |
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
-- Modern web browser with JavaScript enabled (Chrome, Firefox, Safari, Edge)
-- No installation required - runs entirely in the browser
-- No backend server needed - all data stored locally
-- No account creation needed - start tracking immediately
 
-### Installation & Setup
+- **Node.js 18 or later** and npm.
+- A Firebase project with **Authentication** and **Cloud Firestore** enabled.
+- A Firebase Admin service account for the backend.
+- Optional service credentials for AniList OAuth, TMDB posters, ImgBB image uploads, and reCAPTCHA Enterprise App Check.
 
-1. **Clone or Download**
-   ```bash
-   git clone https://github.com/yamanjrexe/AniPulse.git
-   cd AniPulse
-   ```
+### 1. Clone the repository
 
-2. **Open in Browser**
-   - Simply open `index.html` in your web browser
-   - Or visit the live demo: https://ani-pulse.netlify.app/
-   - No build process or npm install required
-
-3. **Initial Setup**
-   - Choose your theme preference (Light/Dark/System)
-   - Customize your username and avatar in Settings
-   - Start adding anime to your collection
-
----
-
-## 📖 Complete Usage Guide
-
-### Dashboard Overview
-Your landing page featuring:
-1. **Activity Heatmap** - Click on tiles to see your watching patterns
-2. **Key Statistics** - Displays top metrics and streaks
-3. **Recent Activity** - Scroll to see your latest updates
-4. **Top Rated Anime** - Your favorite titles at a glance
-5. **Navigation Sidebar** - Access all major features
-
-### Adding & Managing Anime
-
-#### Adding New Anime
-1. Click **"+ Add Anime"** button (green button on dashboard)
-2. **Search Phase**:
-   - Type anime title in the search box
-   - Results appear automatically (debounced 400ms)
-   - Results show cover, title, type, and episodes
-3. **Select and Configure**:
-   - Click on your desired anime from results
-   - Fill in the form:
-     - **Title** - Auto-filled from search (editable)
-     - **Type** - TV, Movie, OVA, ONA, Special
-     - **Episodes** - Total episodes in series
-     - **Duration** - Minutes per episode/movie
-     - **Status** - Watching, Completed, Plan to Watch, Dropped
-     - **Progress** - Episodes watched
-     - **Rating** - Your personal score (0-10)
-     - **Score** - Anime's MAL score (0-10)
-     - **Genres** - Multiple genres as comma-separated list
-     - **Cover** - Image URL or upload
-     - **Start/End Dates** - When you watched it
-     - **Notes** - Personal observations
-4. Click **Submit** to add to collection
-5. Confirmation toast notification appears
-
-#### Editing Existing Anime
-1. Go to **My Anime** page
-2. Locate your anime in the list
-3. Click the **Edit** button (pencil icon)
-4. Modal opens with current data pre-filled
-5. Modify any fields as needed
-6. Click **Update** to save changes
-7. Success notification confirms update
-
-#### Deleting Anime
-1. Open anime for editing (see above)
-2. Click **Delete Anime** button (red)
-3. Confirm deletion in popup
-4. Anime removed from collection
-
-### Tracking Your Progress
-
-#### My Anime Collection
-1. **View All** - See your entire collection in table format
-2. **Filter by Status**:
-   - Use the Status Filter dropdown
-   - Choose: Watching, Completed, Plan to Watch, Dropped, or All
-3. **Sort Options**:
-   - By Title (A-Z)
-   - By Date Added
-   - By Episodes
-   - By Rating
-4. **Search Within Collection**:
-   - Type in the search box at top
-   - Filters results instantly
-5. **Update Progress**:
-   - Click Edit on any anime
-   - Adjust episodes watched
-   - Change status if needed
-   - Save changes
-
-#### Watchlist Manager
-1. Go to **Watch List** section
-2. **Browse Anime**:
-   - View 30 anime per page
-   - Page numbers at bottom allow navigation
-3. **Filter Display**:
-   - Click status buttons (Watching, Completed, etc.)
-   - View only specific statuses
-4. **See Progress**:
-   - Progress bar shows episodes watched/total
-   - Completion percentage displayed
-5. **Quick Actions**:
-   - Edit or Delete directly from list
-   - Instant updates reflected
-
-### Analyzing Statistics
-
-#### Available Charts & Data
-1. **Go to My Stats** section
-2. **Available Visualizations**:
-   - **Monthly Progress** - Line chart of completed anime by month
-   - **Genre Breakdown** - Pie chart of your favorite genres
-   - **Type Distribution** - Series vs. Movies pie chart
-   - **Score Distribution** - Histogram of your ratings
-   - **Status Distribution** - Breakdown by current status
-   - **Watch Time by Month** - Hours watched trends
-   - **Episodes Over Time** - Episode completion trends
-   - **Genre Trends** - How genres preference changed over time
-3. **Statistics Tables**:
-   - Detailed tables with all raw data
-   - Monthly summaries
-   - Genre comparisons
-   - Yearly breakdowns
-
-#### Interpreting Your Data
-- **High completion rate** indicates active watching
-- **Genre distribution** shows your preferences
-- **Score distribution** reveals rating patterns
-- **Time trends** show seasonal watching habits
-- **Watch time** calculates based on episodes × duration
-
-### Achievements System
-
-#### Unlocking Badges
-1. Go to **Achievements** section
-2. **View All Badge Categories**:
-   - **Marathon Watcher** - Complete anime milestones
-   - **Binge Master** - Episodes watched thresholds
-   - **Genre Explorer** - Explore diverse genres
-   - **Streak Keeper** - Consecutive watching days
-   - **Score Collector** - Varied rating achievements
-   - **Time Traveler** - Watch from different decades
-3. **Check Progress**:
-   - Each badge shows current/required count
-   - Visual indicator (locked/unlocked)
-4. **Achievement Counter** - See total unlocked badges
-5. **Next Badges** - Identify what to work toward
-
-#### Tracking Progress
-- Add more anime to unlock Marathon Watcher badges
-- Watch more episodes for Binge Master badges
-- Add anime from different genres for Explorer badges
-- Use the app consistently for Streak Keeper badges
-
-### Upcoming Anime & Notifications
-
-#### Discovering Upcoming Anime
-1. Go to **Upcoming** section
-2. **Browse Categories**:
-   - **Trending Now** - Current popular anime
-   - **Seasonal Releases** - New shows by season
-   - **Upcoming Releases** - Coming soon titles
-3. **Add to Watchlist**:
-   - Click "Add to Watchlist" button
-   - Anime added to your collection
-   - Status set to "Plan to Watch"
-
-#### Managing Notifications
-1. **Notification Icon** - Bell in top navigation
-2. **View Notifications**:
-   - Badge shows unread count
-   - Click bell to see notification panel
-3. **Types of Notifications**:
-   - New episodes for watched anime
-   - Trending anime updates
-   - Seasonal release announcements
-4. **Clear Notifications**:
-   - Click "Clear" button in notification panel
-   - Removes all notifications
-
-### Customizing Your Profile
-
-#### Personal Information
-1. Go to **Settings** page
-2. **Username**:
-   - Edit text field with current name
-   - Click outside to auto-save
-   - Updates everywhere instantly
-3. **Avatar**:
-   - **Upload Custom** - Click "Choose Avatar" button
-   - **Use Generated** - Pre-filled with UI Avatar service
-   - **Reset Default** - Click "Reset Avatar" button
-   - Changes apply immediately
-
-#### Theme Preferences
-1. In top navigation, click **Theme Toggle** (sun icon)
-2. **Cycle Through**:
-   - Light theme (bright)
-   - Dark theme (dark background)
-   - System theme (follows OS)
-3. **Persistence** - Choice saves automatically
-4. **Affects All Pages** - Theme applies site-wide
-
-#### Data Management
-1. **Export Data (Backup)**:
-   - Click **"Export Data"** button
-   - JSON file downloads automatically
-   - Contains entire collection + metadata
-   - Save to secure location
-   - Great for permanent backup
-2. **Import Data (Restore)**:
-   - Click **"Import Data"** button
-   - Select previously exported JSON file
-   - Entire collection restores instantly
-   - Overwrites current data (use with caution)
-   - Perfect for switching devices
-
-#### Auto-Backup
-- System automatically backs up every minute
-- Stored in browser's localStorage
-- Protects against accidental loss
-- Reminder notification if not exported recently
-
----
-
-## 🛠️ Technologies Used
-
-- **Frontend**: HTML5, CSS3, Vanilla JavaScript
-- **Charts**: Chart.js with matrix chart support
-- **APIs**: Anilist API (database for anime data)
-- **Icons**: Font Awesome 6.4.0
-- **Fonts**: Inter, Poppins (Google Fonts)
-- **Storage**: LocalStorage (browser-based)
-- **Responsive**: CSS Media Queries
-
----
-
-## 📊 Data Structure
-
-### Anime Object
-```javascript
-{
-  id: "unique_id",
-  title: "Anime Title",
-  type: "TV/Movie",
-  episodes: 12,
-  progress: 6,
-  rating: 8.5,
-  score: 9,
-  status: "Watching",
-  genres: ["Action", "Adventure"],
-  cover: "image_url",
-  startDate: "2024-01-01",
-  finishDate: "2024-03-15",
-  notes: "Great series!"
-}
+```bash
+git clone https://github.com/yamanjrexe/AniPulse.git
+cd AniPulse
 ```
 
-### Local Storage Keys
-- `animeData` - Your complete anime collection
-- `activityLog` - Activity history
-- `userProfile` - Username and avatar
-- `theme` - Current theme preference
-- `animeBackup` - Automatic backup
-- `streak` - Current watching streak
+### 2. Configure and run the backend
 
----
+```bash
+cd backend
+npm install
+```
 
-## 💾 Backup & Data Management
+Create `backend/.env` and set the Firebase project and Admin SDK credentials. The example below also shows optional integrations; keep secrets in the backend environment and never commit this file.
 
-### Auto-Backup
-- Automatic backup runs every minute
-- Data stored securely in localStorage
-- No cloud required - complete privacy
+```dotenv
+# Server
+NODE_ENV=development
+PORT=5000
+FRONTEND_URL=http://localhost:3000
 
-### Manual Backup
-1. Go to **Settings**
-2. Click **"Export Data"**
-3. JSON file downloads automatically
+# Firebase client configuration returned to the frontend
+FIREBASE_API_KEY=your_firebase_web_api_key
+FIREBASE_AUTH_DOMAIN=your-project-id.firebaseapp.com
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com
+FIREBASE_SENDER_ID=your_firebase_messaging_sender_id
+FIREBASE_APP_ID=your_firebase_web_app_id
 
-### Restore Data
-1. Go to **Settings**
-2. Click **"Import Data"**
-3. Select your backup JSON file
-4. Your data is restored instantly
+# Firebase Admin service account (backend only)
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project-id.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nreplace_with_your_private_key\n-----END PRIVATE KEY-----\n"
+# Optional service-account metadata
+FIREBASE_PRIVATE_KEY_ID=your_private_key_id
+FIREBASE_CLIENT_ID=your_client_id
+FIREBASE_CLIENT_CERT_URL=https://www.googleapis.com/robot/v1/metadata/x509/your-service-account
 
----
+# Optional integrations
+TMDB_API_KEY=your_tmdb_api_key
+IMGBB_API_KEY=your_imgbb_api_key
+ANILIST_CLIENT_ID_DEV=your_anilist_client_id
+ANILIST_CLIENT_SECRET_DEV=your_anilist_client_secret
+ANILIST_REDIRECT_URI_DEV=http://localhost:3000
+```
 
-## 🎨 Customization
+The Firebase Admin service account must have access to the project’s Firestore database. Store its private key securely. Add production AniList OAuth credentials (`ANILIST_CLIENT_ID_PROD`, `ANILIST_CLIENT_SECRET_PROD`, and, if needed, `ANILIST_REDIRECT_URI_PROD`) in the deployment environment when configuring production OAuth.
 
-### Themes
-- **Dark Theme** - Default, easy on eyes for night watching
-- **Light Theme** - Clean, bright interface
-- **System Theme** - Follows your system preference
+Start the API:
 
-### Profile Personalization
-- Set custom username
-- Upload custom avatar
-- Track join date
-- View personal statistics
+```bash
+npm run dev
+```
 
----
+The backend listens at `http://localhost:5000` with the configuration above. Its health endpoint is `http://localhost:5000/api/health`.
 
-## 📱 Browser Compatibility
+### 3. Configure and run the frontend
 
-| Browser | Support | Version |
-|---------|---------|---------|
-| Chrome | ✅ Full | Latest |
-| Firefox | ✅ Full | Latest |
-| Safari | ✅ Full | Latest 3+ |
-| Edge | ✅ Full | Latest |
-| Mobile Browsers | ✅ Full | Latest |
+In another terminal, from the repository root:
 
----
+```bash
+cd frontend
+npm install
+```
 
-## 🎯 Roadmap
+Create `frontend/.env` with your Firebase web app settings and App Check site key:
 
-- [ ] Multiple device sync
-- [ ] Social sharing features
-- [ ] Advanced recommendation engine
-- [ ] Custom genre creation
-- [ ] Watching time predictions
-- [ ] Community features
-- [ ] Watchlist sharing
-- [ ] Advanced filtering options
+```dotenv
+REACT_APP_API_BASE_URL=http://localhost:5000
+REACT_APP_FIREBASE_API_KEY=your_firebase_web_api_key
+REACT_APP_FIREBASE_AUTH_DOMAIN=your-project-id.firebaseapp.com
+REACT_APP_FIREBASE_PROJECT_ID=your-project-id
+REACT_APP_FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com
+REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
+REACT_APP_FIREBASE_APP_ID=your_firebase_web_app_id
+REACT_APP_RECAPTCHA_ENTERPRISE_KEY=your_recaptcha_enterprise_site_key
+```
 
----
+Frontend environment values are embedded in the browser build; use only Firebase web configuration and public site keys here. **Never put Firebase Admin credentials or third-party secret API keys in the frontend environment.**
 
-## 🐛 Known Issues
+Start the React development server:
 
-None currently reported. Please report any bugs on GitHub
+```bash
+npm start
+```
 
+Open [http://localhost:3000](http://localhost:3000). Configure Firebase Authentication providers, authorized domains, and App Check in the Firebase console for your own project. For local development, configure App Check to accept your local site, or omit the frontend App Check key while testing features that do not require App Check enforcement.
 
-## 🤝 Contributing
+### Useful scripts
 
-We welcome contributions! Here's how:
+| Directory | Command | Description |
+| --- | --- | --- |
+| `backend/` | `npm run dev` | Start the API with Nodemon |
+| `backend/` | `npm start` | Start the API with Node.js |
+| `frontend/` | `npm start` | Run the React development server |
+| `frontend/` | `npm test` | Run frontend tests |
+| `frontend/` | `npm run build` | Create a production frontend build |
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+## Project Structure
 
+```text
+AniPulse/
+├── backend/
+│   ├── config/          # Firebase client configuration
+│   ├── middleware/      # Authentication, admin, and error middleware
+│   ├── routes/          # Express API routes (anime, sync, users, discussions, etc.)
+│   ├── scripts/         # Database migration, seeding, and admin utilities
+│   ├── services/        # Firebase Admin and AniList services
+│   ├── utils/           # Shared validators, helpers, and level logic
+│   ├── package.json
+│   └── server.js        # Express application entry point
+├── frontend/
+│   ├── public/
+│   │   └── icon/        # App icons and install assets
+│   ├── src/
+│   │   ├── components/  # Shared UI, charts, recaps, and layout
+│   │   ├── context/     # Authentication, anime, sync, theme, and app state
+│   │   ├── hooks/       # Reusable React hooks
+│   │   ├── layouts/     # Public, authenticated, and app layouts
+│   │   ├── pages/       # Dashboard, community, statistics, settings, and more
+│   │   ├── routes/      # Route configuration and protected routes
+│   │   ├── services/    # API, Firebase, AniList, sync, and PWA clients
+│   │   ├── styles/      # Global and component styles
+│   │   ├── App.jsx
+│   │   └── index.jsx
+│   └── package.json
+└── README.md
+```
 
-## 👨‍💻 Author
+## Security Architecture
 
-**Yaman Jr**
-- GitHub: [@yamanjrexe](https://github.com/yamanjrexe)
-- Live Demo: [AniPulse](https://ani-pulse.netlify.app/)
+The frontend authenticates users with Firebase Authentication and communicates with the **Express backend** for protected operations. The backend verifies requests, validates changes, and uses the Firebase Admin SDK to access Firestore. This server-side boundary helps protect secrets and centralize authorization, rate limiting, and validation.
 
----
+Firestore Security Rules provide a second boundary: protected user, anime, activity, and discussion documents are readable only under their defined authentication conditions, and direct client writes are denied. Sensitive AniList tokens and sync data are also inaccessible to client SDKs. **Do not expose Firebase Admin credentials in the frontend or grant broad Firestore client write permissions.**
 
-## 🙏 Acknowledgments
+Firebase App Check with reCAPTCHA Enterprise helps reject unauthenticated or untrusted app traffic where enforcement is enabled. Configure the correct Firebase rules, Authentication providers, and App Check enforcement for your own deployment before making it public.
 
-- **Chart.js** - For beautiful data visualizations
-- **Font Awesome** - For amazing icons
-- **Anilist** - For anime information
+## Contributing
 
----
+Contributions, bug reports, and feature suggestions are welcome.
 
-## 💬 Support
+1. Fork the repository.
+2. Create a focused branch: `git checkout -b feature/your-change`.
+3. Make and test your changes.
+4. Commit with a clear message: `git commit -m "Describe your change"`.
+5. Push your branch and open a pull request describing the change.
 
-Have questions or suggestions? Feel free to:
-- Open an issue on GitHub
-- Review the documentation
+Please avoid including credentials, private keys, or personal data in commits, issues, and pull requests.
 
----
+## License
 
-## � Show Your Support
-
-If you find AniPulse helpful, please consider:
-- ⭐ Starring the repository
-- 📢 Sharing with other anime enthusiasts
-- 🐛 Reporting bugs and suggesting features
-- 💻 Contributing to the project
-
----
-
-## 🎊 Quick Stats
-
-- **Total Anime Supported**: Thousands+ (via Anilist API)
-- **Storage**: All local and Cloud - 100% private
-- **File Size**: ~500KB (optimized)
-- **Load Time**: <1 second
-- **Mobile Support**: Fully responsive
-
----
-
-**Happy Tracking! 🎬✨**
-
-*Made with ❤️ for anime enthusiasts everywhere*
+AniPulse is distributed under the **MIT License**.
 
 ---
 
 <div align="center">
-
-**[🌐 Visit Live Demo](https://ani-pulse.netlify.app/)**
-
+  <strong>Made for anime fans. Happy tracking! 🎬</strong>
+  <br />
+  <a href="https://ani-pulse.netlify.app/">Visit the AniPulse live demo</a>
 </div>

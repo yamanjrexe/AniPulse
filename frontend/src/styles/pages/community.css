@@ -1146,3 +1146,441 @@
         gap: 12px;
     }
 }
+
+/* ============================================================ */
+/* DISCUSSIONS                                                   */
+/* ============================================================ */
+
+.discussions-tab {
+    padding: 24px;
+    background: var(--bg-card);
+    border-radius: var(--r-lg);
+}
+
+.discussions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.discussions-header h3 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.create-post-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-md);
+    padding: 16px;
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.create-post-card input,
+.create-post-card textarea {
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-sm);
+    padding: 12px;
+    color: var(--text-primary);
+    resize: vertical;
+    font-family: inherit;
+}
+
+/* Action Bar */
+.post-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.post-actions-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.add-img-btn {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    margin: 0;
+}
+
+/* Stats Toggle Pill */
+.stats-toggle-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-pill);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    /* Prevents squishing */
+    user-select: none;
+}
+
+.stats-toggle-pill input {
+    accent-color: var(--brand-yellow);
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+}
+
+.stats-toggle-pill i {
+    font-size: 0.9rem;
+}
+
+.stats-toggle-pill:hover {
+    border-color: var(--border-strong);
+    color: var(--text-primary);
+}
+
+.stats-toggle-pill:has(input:checked) {
+    background: var(--brand-yellow-soft);
+    border-color: var(--brand-yellow-border);
+    color: var(--brand-yellow);
+}
+
+/* Image Previews */
+.preview-attachment {
+    position: relative;
+    width: max-content;
+    margin-top: 8px;
+}
+
+.preview-attachment img {
+    max-height: 120px;
+    max-width: 200px;
+    object-fit: cover;
+    border-radius: var(--r-sm);
+    border: 1px solid var(--border-default);
+}
+
+.preview-attachment button {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: var(--brand-red);
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Thread List */
+.thread-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.thread-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-md);
+    padding: 16px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    position: relative;
+}
+
+.thread-card:hover {
+    border-color: var(--brand-yellow-border);
+}
+
+.thread-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+.thread-card-header img {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+}
+
+.feed-delete-btn {
+    margin-left: auto;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.thread-card:hover .feed-delete-btn {
+    opacity: 1;
+}
+
+.thread-card h4 {
+    margin: 0 0 8px 0;
+    font-size: 1.1rem;
+    padding-right: 30px;
+}
+
+.thread-card p {
+    margin: 0 0 12px 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.thread-card-footer {
+    display: flex;
+    gap: 16px;
+    font-size: 0.75rem;
+    color: var(--brand-yellow);
+}
+
+/* Thread View */
+.discussion-thread {
+    padding: 24px;
+    background: var(--bg-card);
+    border-radius: var(--r-lg);
+}
+
+.thread-original-post {
+    background: var(--bg-surface);
+    padding: 20px;
+    border-radius: var(--r-md);
+    margin-bottom: 24px;
+    position: relative;
+}
+
+.thread-header {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+    align-items: center;
+}
+
+.thread-header img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.thread-time {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.thread-img {
+    max-width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+    border-radius: var(--r-sm);
+    margin-top: 12px;
+}
+
+/* Stats Card Display */
+.thread-stats-card {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+    padding: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-md);
+    border-left: 3px solid var(--brand-yellow);
+}
+
+.stat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.stat-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+/* Replies */
+.thread-replies {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-height: 500px;
+    overflow-y: auto;
+    padding-bottom: 20px;
+}
+
+.reply-item {
+    display: flex;
+    gap: 12px;
+}
+
+.reply-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.reply-body {
+    background: var(--bg-surface);
+    padding: 12px;
+    border-radius: var(--r-md);
+    flex: 1;
+}
+
+.reply-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    font-size: 0.8rem;
+}
+
+.reply-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-muted);
+}
+
+.reply-img {
+    max-width: 100%;
+    max-height: 250px;
+    object-fit: contain;
+    border-radius: 4px;
+    margin-top: 8px;
+}
+
+/* Reply Input Area */
+.thread-input-area {
+    margin-top: 16px;
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 16px;
+}
+
+.input-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.input-row input {
+    flex: 1;
+    padding: 12px;
+    border-radius: var(--r-sm);
+    border: 1px solid var(--border-default);
+    background: var(--bg-surface);
+    color: var(--text-primary);
+}
+
+.attach-btn {
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    transition: color 0.2s;
+}
+
+.attach-btn:hover {
+    color: var(--text-primary);
+}
+
+/* Delete Buttons */
+.delete-action-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 4px;
+    border-radius: 4px;
+    transition: color 0.2s, background 0.2s;
+}
+
+.delete-action-btn:hover {
+    color: var(--brand-red);
+    background: rgba(249, 4, 21, 0.1);
+}
+
+.thread-original-post .delete-action-btn {
+    margin-left: auto;
+}
+
+/* Unread Indicator */
+.community-tab {
+    position: relative;
+}
+
+.unread-indicator {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    width: 8px;
+    height: 8px;
+    background-color: var(--brand-red);
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--bg-card);
+    animation: pulseUnread 2s infinite;
+}
+
+@keyframes pulseUnread {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(249, 4, 21, 0.7);
+    }
+
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 4px rgba(249, 4, 21, 0);
+    }
+
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(249, 4, 21, 0);
+    }
+}
+
+@media (max-width: 600px) {
+    .thread-stats-card {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+}

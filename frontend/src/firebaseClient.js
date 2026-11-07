@@ -1,6 +1,7 @@
 import firebase from "firebase/compat/app";
 import "firebase/compat/auth";
-import "firebase/compat/app-check"; 
+import "firebase/compat/firestore";
+import "firebase/compat/app-check";
 
 export const API_BASE_URL =
     process.env.REACT_APP_API_BASE_URL ||
@@ -84,16 +85,15 @@ export async function initFirebase() {
         if (enterpriseKey) {
             firebase.appCheck().activate(
                 new firebase.appCheck.ReCaptchaEnterpriseProvider(enterpriseKey),
-                true 
+                true
             );
             console.log("[Firebase] App Check (Enterprise) initialized");
         } else {
-            console.warn("[Firebase] App Check key missing. Database is unprotected from direct SDK abuse.");
+            console.warn("[Firebase] App Check key missing.");
         }
-        // -----------------------------------------
 
         initialized = true;
-        console.log("[Firebase] Initialized (Auth session saved locally, database is Cloud)");
+        console.log("[Firebase] Initialized");
         return firebase;
     } catch (err) {
         console.error("[Firebase] init failed:", err);

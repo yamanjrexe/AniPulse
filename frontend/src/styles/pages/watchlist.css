@@ -76,10 +76,11 @@
     border-color: var(--brand-yellow);
 }
 
-#watchlist-container {
+/* NEW: Matches Spotlight Grid perfectly */
+.watchlist-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(clamp(160px, 15vw, 260px), 1fr));
-    gap: var(--sp-4);
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 16px;
     margin-bottom: var(--sp-6);
     min-height: 300px;
 }
@@ -155,77 +156,13 @@
     border-radius: var(--r-md);
 }
 
-@media (max-width: 640px) {
-    .watchlist-search {
-        width: 100%;
-        margin: 0 0 var(--sp-3) 0;
-        display: block;
-    }
-
-    .watchlist-search input {
-        width: 100%;
-        min-width: 0;
-        font-size: var(--fs-13);
-    }
-
-    .watchlist-filters {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
-        padding: 8px;
-        border-radius: var(--r-md);
-        overflow: visible;
-    }
-
-    .filter-btn {
-        width: 100%;
-        padding: 9px 12px;
-        min-height: 38px;
-        font-size: var(--fs-13);
-        text-align: center;
-        text-transform: capitalize;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        border-radius: var(--r-pill);
+/* Mobile Adjustments for Grid */
+@media (max-width: 768px) {
+    .watchlist-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
     }
 }
-
-@media (max-width: 480px) {
-    #watchlist-container {
-        gap: var(--sp-2);
-    }
-
-    .page-btn {
-        min-width: 30px;
-        height: 30px;
-        font-size: var(--fs-12);
-    }
-}
-
-@media (max-width: 380px) {
-    .watchlist-filters {
-        gap: 6px;
-        padding: 6px;
-    }
-
-    .filter-btn {
-        padding: 8px 8px;
-        font-size: var(--fs-12);
-        min-height: 36px;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-
-    .filter-btn,
-    .page-btn,
-    .watchlist-search input {
-        transition: none !important;
-    }
-}
-
-
 
 @media (max-width: 640px) {
     .watchlist-search {
@@ -258,5 +195,61 @@
         box-sizing: border-box;
         padding: 10px 16px 10px 38px;
         font-size: var(--fs-13);
+    }
+
+    .watchlist-filters {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        padding: 8px;
+        border-radius: var(--r-md);
+        overflow: visible;
+    }
+
+    .filter-btn {
+        width: 100%;
+        padding: 9px 12px;
+        min-height: 38px;
+        font-size: var(--fs-13);
+        text-align: center;
+        text-transform: capitalize;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        border-radius: var(--r-pill);
+    }
+}
+
+@media (max-width: 480px) {
+    .watchlist-grid {
+        gap: var(--sp-2);
+    }
+
+    .page-btn {
+        min-width: 30px;
+        height: 30px;
+        font-size: var(--fs-12);
+    }
+}
+
+@media (max-width: 380px) {
+    .watchlist-filters {
+        gap: 6px;
+        padding: 6px;
+    }
+
+    .filter-btn {
+        padding: 8px 8px;
+        font-size: var(--fs-12);
+        min-height: 36px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .filter-btn,
+    .page-btn,
+    .watchlist-search input {
+        transition: none !important;
     }
 }

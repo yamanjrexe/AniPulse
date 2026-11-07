@@ -180,7 +180,7 @@ export default function Help() {
             flexWrap: "wrap",
           }}
         >
-          <Link to="/community?tab=discussions" className="btn btn-primary">
+          <Link to="/community?tab=discussions" className="btn btn-primary" style={{ color : "black" }}>
             <i className="fas fa-comments" /> Ask in Community
           </Link>
           <a

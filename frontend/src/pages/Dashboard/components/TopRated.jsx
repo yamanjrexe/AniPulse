@@ -7,7 +7,7 @@ export default function TopRated() {
   const top = animeData
     .filter((a) => a.score >= 8)
     .sort((a, b) => b.score - a.score)
-    .slice(0, 5);
+    .slice(0, 8);
 
   if (!top.length) {
     return (

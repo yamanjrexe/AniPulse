@@ -13,6 +13,18 @@ export const RELEASES = [
   //   ],
   // },
   {
+  version: "3.2.3",
+  date: "November 7th 2026",
+  tag: "",
+  items: [
+    "Community: Rebuilt Discussions into a real-time chat board with image uploads, stat sharing, post/reply moderation, and unread notifications.",
+    "Currently Watching: Redesigned cards with cinematic 16:9 layouts, episode badges, progress counters, image progress bars, and quick anime removal with confirmation.",
+    "Watchlist & Top Rated: Standardized card sizes and grid layouts for a cleaner, consistent appearance.",
+    "Dashboard: Added a dynamic counter badge to Recent Activity that updates with the active filter.",
+    "UI/UX: Fixed horizontal scrolling in the Add Anime search modal and improved text truncation."
+  ],
+},
+  {
     version: "3.2.2",
     date: "November 5th 2026",
     tag: "",

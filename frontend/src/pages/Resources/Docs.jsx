@@ -174,7 +174,7 @@ export default function Docs() {
             flexWrap: "wrap",
           }}
         >
-          <Link to="/resources/help" className="btn btn-primary">
+          <Link to="/resources/help" className="btn btn-primary" style={{ color : "black" }}>
             <i className="fas fa-question-circle" /> Help Center
           </Link>
           <Link to="/community" className="btn btn-secondary">
