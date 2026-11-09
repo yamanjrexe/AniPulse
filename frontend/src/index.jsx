@@ -40,6 +40,7 @@ import "./styles/pages/settings.css";
 import "./styles/pages/recap.css";
 import "./styles/pages/auth.css";
 import "./styles/pages/index.css";
+import "./styles/pages/admin.css";
 import "./styles/responsive.css";
 
 import { installFetchInterceptors } from "./utils/rateLimiter.js";

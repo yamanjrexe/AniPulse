@@ -1,5 +1,5 @@
-const CACHE_NAME = 'anipulse-v12';
-const VERSION = '3.0.0';
+const CACHE_NAME = 'anipulse-v3.2.4';
+const VERSION = '3.2.4';
 
 const APP_SHELL = [
     '/',

@@ -16,6 +16,7 @@ const anilistRoutes = require('./routes/anilist');
 const animeRoutes = require('./routes/anime');
 const tmdbRoutes = require("./routes/tmdb");
 const discussionsRoutes = require("./routes/discussions");
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 
@@ -100,6 +101,7 @@ app.use('/api/anilist', anilistRoutes);
 app.use('/api/anime', animeRoutes);
 app.use('/api/tmdb', tmdbRoutes);
 app.use('/api/discussions', discussionsRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get('/api/health', (req, res) => {
     res.json({

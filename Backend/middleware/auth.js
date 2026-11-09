@@ -7,7 +7,7 @@ async function verifyToken(req, res, next) {
   }
   const token = authHeader.split(' ')[1];
   try {
-    const decoded = await auth.verifyIdToken(token);
+    const decoded = await auth.verifyIdToken(token, true);
 
     const isGoogle = decoded.firebase?.sign_in_provider === 'google.com';
     if (!decoded.email_verified && !isGoogle) {
@@ -18,7 +18,7 @@ async function verifyToken(req, res, next) {
     req.userId = decoded.uid;
     next();
   } catch (error) {
-    console.error('Token verification failed:', error);
+    console.error('Token verification failed:', error.message);
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
 }

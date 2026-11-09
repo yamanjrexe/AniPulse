@@ -163,21 +163,23 @@
 
 .profile-dropdown {
     position: absolute;
-    top: calc(100% + 8px);
+    top: calc(100% + 12px);
     right: 0;
-    width: 300px;
+    width: 320px;
     background: var(--bg-surface);
     border: 1px solid var(--border-default);
     border-radius: var(--r-md);
-    padding: var(--sp-3);
+    padding: 0;
     opacity: 0;
     visibility: hidden;
-    transform: translateY(-4px);
-    transition: opacity var(--dur-fast) var(--ease-standard),
-        transform var(--dur-fast) var(--ease-standard),
-        visibility var(--dur-fast) var(--ease-standard);
-    z-index: var(--z-dropdown);
-    box-shadow: var(--shadow-lg);
+    transform: translateY(-8px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+    z-index: 99999;
+    box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 100px);
+    overflow: hidden;
 }
 
 .profile-dropdown.open {
@@ -187,12 +189,111 @@
 }
 
 .profile-dropdown .sidebar-user {
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     gap: var(--sp-3);
-    padding: var(--sp-3);
-    margin-bottom: var(--sp-3);
+    padding: var(--sp-4);
     border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-surface);
+    border-radius: var(--r-md) var(--r-md) 0 0;
+}
+
+.profile-dropdown .sidebar-menu {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: var(--sp-2);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+}
+
+.profile-dropdown .sidebar-menu::-webkit-scrollbar {
+    width: 4px;
+}
+
+.profile-dropdown .sidebar-menu::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.profile-dropdown .sidebar-menu::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: var(--r-pill);
+}
+
+.profile-dropdown .menu-item {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: 10px 14px;
+    border-radius: var(--r-sm);
+    color: var(--text-secondary);
+    font-size: var(--fs-14);
+    font-weight: var(--fw-medium);
+    text-decoration: none;
+    cursor: pointer;
+    background: transparent;
+    position: relative;
+    transition: background-color var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard);
+}
+
+.profile-dropdown .menu-item:hover {
+    background: var(--bg-card);
+    color: var(--text-primary);
+}
+
+.profile-dropdown .menu-item i {
+    width: 20px;
+    text-align: center;
+    font-size: var(--fs-14);
+    color: var(--text-muted);
+    transition: color var(--dur-fast) var(--ease-standard);
+}
+
+.profile-dropdown .menu-item:hover i {
+    color: var(--text-secondary);
+}
+
+.profile-dropdown .menu-item.active {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-weight: var(--fw-semibold);
+}
+
+.profile-dropdown .menu-item.active i {
+    color: var(--brand-yellow);
+}
+
+.profile-dropdown .menu-item.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 60%;
+    background: var(--brand-yellow);
+    border-radius: 0 3px 3px 0;
+}
+
+.profile-dropdown .menu-item#logoutBtn {
+    margin-top: 4px;
+    border-top: 1px solid var(--border-subtle);
+    border-radius: 0 0 var(--r-sm) var(--r-sm);
+    padding-top: 12px;
+    color: var(--text-muted);
+}
+
+.profile-dropdown .menu-item#logoutBtn:hover {
+    background: var(--brand-red-soft);
+    color: var(--brand-red);
+}
+
+.profile-dropdown .menu-item#logoutBtn:hover i {
+    color: var(--brand-red);
 }
 
 .profile-dropdown .user-avatar-container {
@@ -201,8 +302,8 @@
 }
 
 .profile-dropdown .sidebar-avatar {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     border-radius: var(--r-sm);
     object-fit: cover;
     border: 1px solid var(--border-default);
@@ -226,12 +327,13 @@
 }
 
 .profile-dropdown .sidebar-username {
-    font-size: var(--fs-14);
+    font-size: var(--fs-15);
     font-weight: var(--fw-semibold);
     color: var(--text-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin-bottom: 2px;
 }
 
 .profile-dropdown .sidebar-user-stats {
@@ -250,10 +352,11 @@
     font-size: var(--fs-14);
     font-weight: var(--fw-bold);
     color: var(--text-primary);
+    line-height: 1.2;
 }
 
 .profile-dropdown .stat-label {
-    font-size: 0.6875rem;
+    font-size: 0.65rem;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -337,6 +440,7 @@
         left: var(--shell-gutter);
         right: var(--shell-gutter);
         width: auto;
+        max-height: calc(100vh - 100px);
     }
 }
 

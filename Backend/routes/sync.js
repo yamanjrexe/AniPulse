@@ -334,10 +334,19 @@ router.post('/sync-all', verifyToken, async (req, res) => {
     const totalCompleted = sanitizedAnime.filter(a => a.userStatus === 'Completed').length;
     const totalHours = calculateTotalHours(sanitizedAnime);
 
+    const userRef = db.collection(COLLECTIONS.USERS).doc(userId);
+    const existingUser = await userRef.get();
+    const existingData = existingUser.exists ? existingUser.data() : {};
+    const overrides = existingData.adminOverrides || {};
+
+    const finalXP = typeof overrides.totalXP === 'number' ? overrides.totalXP : recalculatedXP;
+    const finalLevel = typeof overrides.level === 'number' ? overrides.level : recalculatedLevel;
+    const finalTitle = overrides.title || recalculatedTitle;
+
     const userUpdate = {
-      totalXP: recalculatedXP,
-      level: recalculatedLevel,
-      title: recalculatedTitle,
+      totalXP: finalXP,
+      level: finalLevel,
+      title: finalTitle,
       totalAnime: totalCompleted,
       totalHours: totalHours,
       username: cleanProfile?.username || 'User',
@@ -350,9 +359,6 @@ router.post('/sync-all', verifyToken, async (req, res) => {
     if (lastResetDate) userUpdate.lastResetDate = lastResetDate;
 
     if (cleanStreak) {
-      const userRef = db.collection(COLLECTIONS.USERS).doc(userId);
-      const existing = await userRef.get();
-      const existingData = existing.exists ? existing.data() : {};
       const existingStreak = existingData.streak || 0;
       const existingLast = existingData.lastActive || null;
 
@@ -379,9 +385,10 @@ router.post('/sync-all', verifyToken, async (req, res) => {
     }
 
     console.log(`📊 Server-side recalculated XP: ${recalculatedXP} (level ${recalculatedLevel}, title "${recalculatedTitle}")`);
+    console.log(`📊 Final XP after admin overrides: ${finalXP} (level ${finalLevel})`);
 
     promises.push(
-      db.collection(COLLECTIONS.USERS).doc(userId).set(userUpdate, { merge: true })
+      userRef.set(userUpdate, { merge: true })
         .then(() => console.log(`✅ USERS updated for user ${userId}`))
         .catch(err => console.error(`❌ Failed to update USERS:`, err))
     );

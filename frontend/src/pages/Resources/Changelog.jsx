@@ -13,6 +13,19 @@ export const RELEASES = [
   //   ],
   // },
   {
+    version: "3.2.4",
+    date: "November 9th 2026",
+    tag: "",
+    items: [
+      "Admin Panel: Introduced a professional Admin Control Panel with URL-based routing, real-time overview stats, leaderboards, role distribution, and signup activity.",
+      "User Management: Added live search, sorting, role filters, user details, anime lists, and account progression controls with automatic XP, level, and title calculations.",
+      "User Management: Added instant role updates, secure ban and delete actions with custom confirmations.",
+      "Audit Logs: Added searchable, filterable activity logs with detailed change tracking, user avatars, and individual log deletion.",
+      "Moderation: Added discussion management tools and global announcement broadcasting.",
+      "UI/UX: Standardized admin empty states and added a Restricted Area page to block unauthorized access to /admin.",
+    ],
+  },
+  {
     version: "3.2.3",
     date: "November 7th 2026",
     tag: "",

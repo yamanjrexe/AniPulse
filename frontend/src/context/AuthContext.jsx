@@ -31,6 +31,8 @@ function hasCachedAuth() {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(readCachedUser);
   const [initialized, setInitialized] = useState(hasCachedAuth);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdminChecked, setIsAdminChecked] = useState(false);
   const [loading, setLoading] = useState(false);
   const refreshTimer = useRef(null);
   const unsubRef = useRef(null);
@@ -46,6 +48,15 @@ export function AuthProvider({ children }) {
         if (cancelled) return;
 
         if (fbUser) {
+          try {
+            const tokenResult = await fbUser.getIdTokenResult();
+            setIsAdmin(tokenResult.claims.admin === true);
+          } catch (_) {
+            setIsAdmin(false);
+          } finally {
+            setIsAdminChecked(true);
+          }
+
           const cached = readCachedUser();
           if (cached?.uid === fbUser.uid && cached?.name) {
             setUser(cached);
@@ -71,12 +82,16 @@ export function AuthProvider({ children }) {
               try {
                 const t = await fbUser.getIdToken(true);
                 localStorage.setItem("authToken", t);
+                const tr = await fbUser.getIdTokenResult();
+                setIsAdmin(tr.claims.admin === true);
               } catch (_) {}
             },
             10 * 60 * 1000,
           );
         } else {
           setUser(null);
+          setIsAdmin(false);
+          setIsAdminChecked(true);
           setInitialized(true);
           if (refreshTimer.current) {
             clearInterval(refreshTimer.current);
@@ -88,6 +103,7 @@ export function AuthProvider({ children }) {
 
     const fallback = setTimeout(() => {
       setInitialized((v) => v || hasCachedAuth() || true);
+      setIsAdminChecked(true);
     }, 5000);
 
     return () => {
@@ -103,16 +119,18 @@ export function AuthProvider({ children }) {
       try {
         const fresh = readCachedUser();
         if (fresh) setUser(fresh);
-      } catch (err) {
-        console.warn("[AuthContext] Refresh failed:", err);
-      }
+      } catch (err) {}
     };
     window.addEventListener("uiRefresh", handler);
     return () => window.removeEventListener("uiRefresh", handler);
   }, []);
 
   useEffect(() => {
-    const onLogout = () => setUser(null);
+    const onLogout = () => {
+      setUser(null);
+      setIsAdmin(false);
+      setIsAdminChecked(true);
+    };
     window.addEventListener("userLogout", onLogout);
     return () => window.removeEventListener("userLogout", onLogout);
   }, []);
@@ -157,6 +175,7 @@ export function AuthProvider({ children }) {
   const logout = useCallback(async () => {
     await authService.logout();
     setUser(null);
+    setIsAdmin(false);
   }, []);
 
   const updateUser = useCallback((patch) => {
@@ -188,6 +207,8 @@ export function AuthProvider({ children }) {
       value={{
         user,
         setUser: updateUser,
+        isAdmin,
+        isAdminChecked,
         initialized,
         loading,
         login,

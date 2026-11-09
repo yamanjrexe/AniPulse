@@ -5,7 +5,7 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import { useToast } from "../../context/ToastContext.jsx";
 
 export default function SidebarNav({ onNavigate }) {
-  const { logout } = useAuth();
+  const { logout, isAdmin } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
 
@@ -15,9 +15,13 @@ export default function SidebarNav({ onNavigate }) {
     navigate("/login");
   };
 
+  const visibleItems = navigationItems.filter(
+    (item) => !item.adminOnly || isAdmin,
+  );
+
   return (
     <nav className="sidebar-menu" aria-label="Main navigation">
-      {navigationItems.map((item) => (
+      {visibleItems.map((item) => (
         <NavLink
           key={item.id}
           to={item.path}

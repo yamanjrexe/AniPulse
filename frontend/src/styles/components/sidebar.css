@@ -3,6 +3,19 @@
     flex-direction: column;
     gap: 2px;
     padding: var(--sp-2) 0;
+    max-height: calc(100vh - 220px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+}
+
+.sidebar-menu::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-menu::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 99px;
 }
 
 .menu-item {
@@ -22,6 +35,7 @@
     text-align: left;
     font-family: var(--font-sans);
     position: relative;
+    flex-shrink: 0;
     transition: background-color var(--dur-fast) var(--ease-standard),
         color var(--dur-fast) var(--ease-standard);
 }

@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
 import ProtectedRoute from "./ProtectedRoute.jsx";
+import AdminRoute from "./AdminRoute.jsx";
 import AppLayout from "../layouts/AppLayout.jsx";
 import AuthLayout from "../layouts/AuthLayout.jsx";
 import PublicLayout from "../layouts/PublicLayout.jsx";
@@ -18,6 +19,7 @@ const Changelog = lazy(() => import("../pages/Resources/Changelog.jsx"));
 const About = lazy(() => import("../pages/Resources/About.jsx"));
 
 const Leaderboard = lazy(() => import("../pages/Leaderboard/Leaderboard.jsx"));
+const Admin = lazy(() => import("../pages/Admin/Admin.jsx"));
 
 function GlobalFallback() {
   return (
@@ -66,10 +68,15 @@ export default function AppRoutes() {
           <Route element={<AppLayout />}>
             <Route path="/app" element={<Navigate to="/dashboard" replace />} />
             {navigationItems.map((item) => {
+              if (item.adminOnly) return null;
               const C = item.component;
               return <Route key={item.id} path={item.path} element={<C />} />;
             })}
             <Route path="/leaderboard" element={<Leaderboard />} />
+
+            <Route element={<AdminRoute />}>
+              <Route path="/admin" element={<Admin />} />
+            </Route>
           </Route>
         </Route>
 
