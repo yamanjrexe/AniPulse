@@ -1,7 +1,3 @@
-/* =========================================
-   GLOBAL ADMIN LAYOUT
-   ========================================= */
-
 .admin-page {
     width: 100%;
 }
@@ -43,10 +39,6 @@
     color: var(--text-inverse);
     border-color: var(--brand-yellow);
 }
-
-/* =========================================
-   OVERVIEW TAB
-   ========================================= */
 
 .admin-stats-grid {
     display: grid;
@@ -157,7 +149,6 @@
     background: var(--bg-surface);
 }
 
-/* Role Distribution Bars */
 .role-distribution {
     display: flex;
     flex-direction: column;
@@ -209,10 +200,6 @@
 .role-fill.member {
     background: var(--text-muted);
 }
-
-/* =========================================
-   FORMS & INPUTS
-   ========================================= */
 
 .admin-search-bar {
     display: flex;
@@ -284,10 +271,6 @@
 .admin-announcements textarea:focus {
     border-color: var(--brand-yellow);
 }
-
-/* =========================================
-   BUTTONS
-   ========================================= */
 
 .admin-btn-primary,
 .admin-btn-secondary,
@@ -363,10 +346,6 @@
     background: var(--success);
     color: white;
 }
-
-/* =========================================
-   USER LIST & DISCUSSIONS
-   ========================================= */
 
 .admin-user-list {
     display: flex;
@@ -458,10 +437,6 @@
     font-weight: 500;
 }
 
-/* =========================================
-   EMPTY STATES
-   ========================================= */
-
 .admin-empty-state {
     display: flex;
     flex-direction: column;
@@ -489,10 +464,6 @@
     max-width: 250px;
     line-height: 1.5;
 }
-
-/* =========================================
-   USER DETAIL DRAWER
-   ========================================= */
 
 .admin-drawer-overlay {
     position: fixed;
@@ -743,9 +714,87 @@
     margin-top: 6px;
 }
 
-/* =========================================
-   DETAILED AUDIT LOGS
-   ========================================= */
+.admin-anime-filters {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    background: var(--bg-card);
+    padding: 16px;
+    border-radius: var(--r-md);
+    border: 1px solid var(--border-default);
+    margin-bottom: 16px;
+}
+
+.admin-anime-filters .filter-row {
+    display: flex;
+    gap: 10px;
+    flex: 1;
+    flex-wrap: wrap;
+    min-width: 280px;
+}
+
+.admin-anime-filters .filter-row.actions {
+    flex: 0 0 auto;
+    min-width: auto;
+}
+
+.admin-anime-filters select {
+    flex: 1;
+    min-width: 120px;
+    padding: 10px 36px 10px 14px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border-radius: var(--r-sm);
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    color: var(--text-primary);
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23FCE706' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    transition: border-color 0.2s;
+}
+
+.admin-anime-filters select:hover {
+    border-color: var(--border-strong);
+}
+
+.admin-anime-filters select:focus {
+    outline: none;
+    border-color: var(--brand-yellow);
+}
+
+.admin-anime-filters select option {
+    background-color: var(--bg-surface);
+    color: var(--text-primary);
+    padding: 10px;
+}
+
+.admin-anime-filters select:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23797979' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+}
+
+.admin-anime-filters .admin-btn-secondary {
+    padding: 10px 16px;
+    font-size: 0.85rem;
+    height: 100%;
+    white-space: nowrap;
+}
+
+.admin-anime-results-text {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+}
 
 .admin-log-card {
     display: flex;
@@ -881,10 +930,6 @@
     border-radius: 4px;
 }
 
-/* =========================================
-   RESPONSIVE DESIGN
-   ========================================= */
-
 @media (max-width: 900px) {
     .admin-dashboard-grid {
         flex-direction: column;
@@ -922,6 +967,29 @@
     .log-footer {
         flex-direction: column;
         gap: 8px;
+    }
+
+    .admin-anime-filters {
+        flex-direction: column;
+    }
+
+    .admin-anime-filters .filter-row {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .admin-anime-filters .filter-row.actions {
+        width: 100%;
+    }
+
+    .admin-anime-filters select {
+        width: 100%;
+        flex: none;
+    }
+
+    .admin-anime-filters .admin-btn-secondary {
+        width: 100%;
+        justify-content: center;
     }
 }
 

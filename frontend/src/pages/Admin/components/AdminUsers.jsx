@@ -6,6 +6,7 @@ import PosterImage from "../../../components/ui/PosterImage.jsx";
 import { LEVELS, getLevelFromXP } from "../../../services/levelSystem.js";
 
 const ITEMS_PER_PAGE = 10;
+const ANIME_LIMIT = 50;
 
 const ROLE_BADGES = {
   admin: {
@@ -28,6 +29,36 @@ const ROLE_BADGES = {
   },
 };
 
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+const parseDate = (dateStr) => {
+  if (!dateStr) return null;
+  const d = new Date(dateStr.replace(/-/g, "/"));
+  const fallback = new Date(dateStr);
+  return isNaN(d.getTime()) ? (isNaN(fallback.getTime()) ? null : fallback) : d;
+};
+
+// Helper to get the most accurate date for filtering/sorting
+const getAnimeDate = (anime) => {
+  if (anime.actualFinishDate) return parseDate(anime.actualFinishDate);
+  if (anime.finishDate) return parseDate(anime.finishDate);
+  // Fallback for items not completed (Plan to Watch, Dropped, etc.)
+  return parseDate(anime.createdAt || anime.updatedAt);
+};
+
 function AdminUserDetail({ user, onClose, onRefresh, onUpdateLocal }) {
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
@@ -41,6 +72,13 @@ function AdminUserDetail({ user, onClose, onRefresh, onUpdateLocal }) {
     role: user.role || "member",
   });
   const [savingStats, setSavingStats] = useState(false);
+
+  // Anime Filters State
+  const [sortOrder, setSortOrder] = useState("newest");
+  const [filterYear, setFilterYear] = useState("all");
+  const [filterMonth, setFilterMonth] = useState("all");
+  const [filterDate, setFilterDate] = useState("all");
+  const [visibleCount, setVisibleCount] = useState(ANIME_LIMIT);
 
   useEffect(() => {
     document.body.classList.add("modal-open");
@@ -116,7 +154,6 @@ function AdminUserDetail({ user, onClose, onRefresh, onUpdateLocal }) {
       });
 
       onUpdateLocal({ ...user, ...updatedData });
-
       showToast("User data updated successfully", "success");
       onClose();
       onRefresh();
@@ -126,6 +163,78 @@ function AdminUserDetail({ user, onClose, onRefresh, onUpdateLocal }) {
     } finally {
       setSavingStats(false);
     }
+  };
+
+  // --- DYNAMIC FILTERING LOGIC ---
+  const availableYears = useMemo(() => {
+    const years = new Set();
+    animeList.forEach((a) => {
+      const d = getAnimeDate(a);
+      if (d) years.add(d.getFullYear().toString());
+    });
+    return Array.from(years).sort((a, b) => b - a);
+  }, [animeList]);
+
+  const availableDates = useMemo(() => {
+    if (filterYear === "all" || filterMonth === "all") return [];
+    const dates = new Set();
+    animeList.forEach((a) => {
+      const d = getAnimeDate(a);
+      if (
+        d &&
+        d.getFullYear().toString() === filterYear &&
+        (d.getMonth() + 1).toString() === filterMonth
+      ) {
+        dates.add(d.getDate());
+      }
+    });
+    return Array.from(dates).sort((a, b) => a - b);
+  }, [animeList, filterYear, filterMonth]);
+
+  const filteredAndSortedAnime = useMemo(() => {
+    let result = [...animeList];
+
+    if (filterYear !== "all") {
+      result = result.filter((a) => {
+        const d = getAnimeDate(a);
+        return d && d.getFullYear().toString() === filterYear;
+      });
+    }
+    if (filterMonth !== "all") {
+      result = result.filter((a) => {
+        const d = getAnimeDate(a);
+        return d && (d.getMonth() + 1).toString() === filterMonth;
+      });
+    }
+    if (filterDate !== "all") {
+      result = result.filter((a) => {
+        const d = getAnimeDate(a);
+        return d && d.getDate().toString() === filterDate;
+      });
+    }
+
+    result.sort((a, b) => {
+      if (sortOrder === "title-az")
+        return (a.title || "").localeCompare(b.title || "");
+
+      const dateA = getAnimeDate(a)?.getTime() || 0;
+      const dateB = getAnimeDate(b)?.getTime() || 0;
+
+      if (sortOrder === "newest") return dateB - dateA;
+      return dateA - dateB;
+    });
+
+    return result;
+  }, [animeList, filterYear, filterMonth, filterDate, sortOrder]);
+
+  const visibleAnime = filteredAndSortedAnime.slice(0, visibleCount);
+
+  const clearFilters = () => {
+    setFilterYear("all");
+    setFilterMonth("all");
+    setFilterDate("all");
+    setSortOrder("newest");
+    setVisibleCount(ANIME_LIMIT);
   };
 
   return (
@@ -196,7 +305,6 @@ function AdminUserDetail({ user, onClose, onRefresh, onUpdateLocal }) {
 
               <div className="admin-form-box">
                 <h4>Permissions & Progression</h4>
-
                 <div className="admin-form-group">
                   <label>Account Role</label>
                   <select
@@ -211,7 +319,6 @@ function AdminUserDetail({ user, onClose, onRefresh, onUpdateLocal }) {
                     <option value="admin">Admin</option>
                   </select>
                 </div>
-
                 <div className="admin-form-group">
                   <label>Level (1-50)</label>
                   <select
@@ -226,7 +333,6 @@ function AdminUserDetail({ user, onClose, onRefresh, onUpdateLocal }) {
                     ))}
                   </select>
                 </div>
-
                 <div className="admin-form-group">
                   <label>Total XP</label>
                   <div className="admin-xp-group">
@@ -252,7 +358,6 @@ function AdminUserDetail({ user, onClose, onRefresh, onUpdateLocal }) {
                     </button>
                   </div>
                 </div>
-
                 <div className="admin-form-group">
                   <label>Title</label>
                   <input
@@ -264,7 +369,6 @@ function AdminUserDetail({ user, onClose, onRefresh, onUpdateLocal }) {
                     }
                   />
                 </div>
-
                 <button
                   className="admin-btn-primary"
                   onClick={handleSaveStats}
@@ -297,37 +401,168 @@ function AdminUserDetail({ user, onClose, onRefresh, onUpdateLocal }) {
                   <p>This user has not added any anime to their list yet.</p>
                 </div>
               ) : (
-                <div className="admin-anime-grid">
-                  {animeList.map((anime) => (
-                    <div key={anime.id} className="admin-anime-card">
-                      <PosterImage anime={anime} alt={anime.title} />
-                      <div className="admin-anime-info">
-                        <div className="admin-anime-title" title={anime.title}>
-                          {anime.title}
-                        </div>
-                        <div
-                          className="admin-anime-meta"
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                          }}
-                        >
-                          <span>{anime.userStatus}</span>
-                          <span>
-                            {anime.score ? `${anime.score}/10` : "Unrated"}
-                          </span>
-                        </div>
-                        <div
-                          className="admin-anime-meta"
-                          style={{ color: "var(--brand-yellow)" }}
-                        >
-                          Progress: {anime.progress || 0} /{" "}
-                          {anime.episodes || "?"}
-                        </div>
-                      </div>
+                <>
+                  <div className="admin-anime-filters">
+                    <div className="filter-row">
+                      <select
+                        className="admin-input"
+                        value={filterYear}
+                        onChange={(e) => {
+                          setFilterYear(e.target.value);
+                          setFilterMonth("all");
+                          setFilterDate("all");
+                          setVisibleCount(ANIME_LIMIT);
+                        }}
+                      >
+                        <option value="all">All Years</option>
+                        {availableYears.map((y) => (
+                          <option key={y} value={y}>
+                            {y}
+                          </option>
+                        ))}
+                      </select>
+
+                      <select
+                        className="admin-input"
+                        value={filterMonth}
+                        onChange={(e) => {
+                          setFilterMonth(e.target.value);
+                          setFilterDate("all");
+                          setVisibleCount(ANIME_LIMIT);
+                        }}
+                        disabled={filterYear === "all"}
+                      >
+                        <option value="all">All Months</option>
+                        {MONTH_NAMES.map((m, i) => (
+                          <option key={i + 1} value={i + 1}>
+                            {m}
+                          </option>
+                        ))}
+                      </select>
+
+                      <select
+                        className="admin-input"
+                        value={filterDate}
+                        onChange={(e) => {
+                          setFilterDate(e.target.value);
+                          setVisibleCount(ANIME_LIMIT);
+                        }}
+                        disabled={filterMonth === "all"}
+                      >
+                        <option value="all">All Dates</option>
+                        {availableDates.map((d) => (
+                          <option key={d} value={d}>
+                            {d}
+                          </option>
+                        ))}
+                      </select>
                     </div>
-                  ))}
-                </div>
+
+                    <div className="filter-row actions">
+                      <select
+                        className="admin-input"
+                        value={sortOrder}
+                        onChange={(e) => setSortOrder(e.target.value)}
+                      >
+                        <option value="newest">Sort: Newest Completed</option>
+                        <option value="oldest">Sort: Oldest Completed</option>
+                        <option value="title-az">Sort: Title (A-Z)</option>
+                      </select>
+                      <button
+                        className="admin-btn-secondary"
+                        onClick={clearFilters}
+                        title="Clear Filters"
+                      >
+                        <i className="fas fa-times" /> Reset
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="admin-anime-results-text">
+                    Showing {visibleAnime.length} of{" "}
+                    {filteredAndSortedAnime.length} anime
+                  </div>
+
+                  {filteredAndSortedAnime.length === 0 ? (
+                    <div
+                      className="admin-empty-state"
+                      style={{ marginTop: 24 }}
+                    >
+                      <i className="fas fa-search" />
+                      <h3>No Matches</h3>
+                      <p>No anime matches your filter criteria.</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div
+                        className="admin-anime-grid"
+                        style={{ marginTop: 16 }}
+                      >
+                        {visibleAnime.map((anime) => (
+                          <div key={anime.id} className="admin-anime-card">
+                            <PosterImage anime={anime} alt={anime.title} />
+                            <div className="admin-anime-info">
+                              <div
+                                className="admin-anime-title"
+                                title={anime.title}
+                              >
+                                {anime.title}
+                              </div>
+                              <div
+                                className="admin-anime-meta"
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                }}
+                              >
+                                <span>{anime.userStatus}</span>
+                                <span>
+                                  {anime.score
+                                    ? `${anime.score}/10`
+                                    : "Unrated"}
+                                </span>
+                              </div>
+                              <div
+                                className="admin-anime-meta"
+                                style={{ color: "var(--brand-yellow)" }}
+                              >
+                                Progress: {anime.progress || 0} /{" "}
+                                {anime.episodes || "?"}
+                              </div>
+                              <div
+                                className="admin-anime-meta"
+                                style={{ fontSize: "0.65rem" }}
+                              >
+                                Completed:{" "}
+                                {anime.actualFinishDate
+                                  ? new Date(
+                                      anime.actualFinishDate,
+                                    ).toLocaleDateString()
+                                  : anime.finishDate
+                                    ? anime.finishDate
+                                    : "N/A"}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {visibleCount < filteredAndSortedAnime.length && (
+                        <div style={{ textAlign: "center", marginTop: 24 }}>
+                          <button
+                            className="admin-btn-secondary"
+                            onClick={() =>
+                              setVisibleCount((prev) => prev + ANIME_LIMIT)
+                            }
+                          >
+                            <i className="fas fa-chevron-down" /> Load More
+                            Anime
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </>
               )}
             </div>
           )}
@@ -410,15 +645,11 @@ export default function AdminUsers() {
     if (!banTarget) return;
     try {
       await adminService.banUser(banTarget);
-
-      // ⚡ INSTANT UI
       setUsers((prev) =>
         prev.map((u) => (u.uid === banTarget ? { ...u, banned: true } : u)),
       );
-
       showToast("User banned", "success");
       setBanTarget(null);
-      // load(); // Optional background refresh
     } catch (err) {
       showToast(err.message, "error");
     }
@@ -427,14 +658,10 @@ export default function AdminUsers() {
   const handleUnban = async (uid) => {
     try {
       await adminService.unbanUser(uid);
-
-      // ⚡ INSTANT UI
       setUsers((prev) =>
         prev.map((u) => (u.uid === uid ? { ...u, banned: false } : u)),
       );
-
       showToast("User unbanned", "success");
-      // load();
     } catch (err) {
       showToast(err.message, "error");
     }
@@ -444,13 +671,9 @@ export default function AdminUsers() {
     if (!deleteTarget) return;
     try {
       await adminService.deleteUser(deleteTarget);
-
-      // ⚡ INSTANT UI
       setUsers((prev) => prev.filter((u) => u.uid !== deleteTarget));
-
       showToast("User deleted", "success");
       setDeleteTarget(null);
-      // load();
     } catch (err) {
       showToast(err.message, "error");
     }

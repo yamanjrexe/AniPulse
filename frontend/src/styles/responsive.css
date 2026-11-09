@@ -82,41 +82,6 @@
         max-height: calc(100dvh - 60px);
     }
 
-    .settings-tabs,
-    .community-tabs,
-    .profile-tabs,
-    .leaderboard-mode-tabs {
-        overflow-x: auto;
-        flex-wrap: nowrap;
-        justify-content: flex-start;
-        scrollbar-width: none;
-    }
-
-    .settings-tabs::-webkit-scrollbar,
-    .community-tabs::-webkit-scrollbar,
-    .profile-tabs::-webkit-scrollbar {
-        display: none;
-    }
-
-    .settings-tab,
-    .community-tab,
-    .profile-tab,
-    .leaderboard-mode-tab {
-        flex: 0 0 auto;
-        white-space: nowrap;
-    }
-
-    .search-dropdown,
-    .profile-dropdown,
-    .notification-dropdown {
-        position: fixed;
-        top: calc(var(--shell-header-top) + var(--shell-header-h) + 8px);
-        left: var(--shell-gutter);
-        right: var(--shell-gutter);
-        width: auto;
-        max-width: none;
-    }
-
     #fab-container {
         bottom: max(16px, env(safe-area-inset-bottom));
         right: max(16px, env(safe-area-inset-right));

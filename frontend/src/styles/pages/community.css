@@ -1,42 +1,41 @@
-/* ============================================================ */
-/* COMMUNITY — AniPulse                                         */
-/* ============================================================ */
-
 #community-page {
     width: 100%;
 }
 
-/* ---------- TABS ---------- */
 .community-tabs {
     display: flex;
-    gap: 4px;
-    padding: 4px;
+    gap: 6px;
+    padding: 6px;
     margin-bottom: var(--sp-5);
     background: var(--bg-card);
     border: 1px solid var(--border-default);
     border-radius: var(--r-md);
     overflow-x: auto;
+    scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
 }
 
+.community-tabs::-webkit-scrollbar {
+    display: none;
+}
+
 .community-tab {
+    flex: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    padding: 8px 16px;
+    gap: 8px;
+    padding: 10px 16px;
     background: transparent;
-    border: none;
+    border: 1px solid transparent;
     border-radius: var(--r-sm);
     color: var(--text-muted);
     font-family: var(--font-sans);
-    font-size: var(--fs-13);
-    font-weight: var(--fw-medium);
+    font-size: 0.85rem;
+    font-weight: 600;
     cursor: pointer;
     white-space: nowrap;
-    flex: 1;
-    min-height: 40px;
-    transition: background-color var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard);
+    transition: all 0.2s ease;
 }
 
 .community-tab:hover {
@@ -47,7 +46,7 @@
 .community-tab.active {
     background: var(--brand-yellow);
     color: var(--text-inverse);
-    font-weight: var(--fw-semibold);
+    border-color: var(--brand-yellow);
 }
 
 .community-tab.active i {
@@ -62,7 +61,6 @@
     display: block;
 }
 
-/* ---------- SECTIONS ---------- */
 .friend-requests-section,
 .search-users-section,
 .friends-list-section,
@@ -94,7 +92,6 @@
     color: var(--brand-yellow);
 }
 
-/* Friend request item */
 .friend-request-item {
     display: flex;
     justify-content: space-between;
@@ -179,7 +176,6 @@
     color: var(--brand-red);
 }
 
-/* Search users */
 .search-users-input {
     display: flex;
     gap: var(--sp-2);
@@ -271,7 +267,6 @@
     border-color: var(--brand-yellow);
 }
 
-/* Friends grid */
 .friends-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -334,7 +329,6 @@
     color: var(--brand-red);
 }
 
-/* Leaderboard */
 .leaderboard-subtitle {
     font-size: var(--fs-13);
     color: var(--text-muted);
@@ -387,20 +381,6 @@
     font-weight: var(--fw-semibold);
 }
 
-.time-period-filter {
-    margin-bottom: var(--sp-3);
-}
-
-.time-period-filter label {
-    display: block;
-    font-size: 0.6875rem;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: var(--sp-2);
-}
-
-/* Your stats */
 .your-stats-card {
     padding: var(--sp-4);
     background: var(--bg-surface);
@@ -455,7 +435,6 @@
     text-transform: uppercase;
 }
 
-/* Leaderboard list */
 .friend-leaderboard-list,
 .leaderboard-list {
     display: flex;
@@ -582,7 +561,6 @@
     font-size: var(--fs-13);
 }
 
-/* Coming soon */
 .coming-soon-card {
     display: flex;
     flex-direction: column;
@@ -625,7 +603,6 @@
     letter-spacing: 0.04em;
 }
 
-/* Profile achievements grid (in user modal) */
 .profile-achievements-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -686,12 +663,17 @@
 
 @media (max-width: 768px) {
     .community-tab {
-        padding: 6px 12px;
-        font-size: var(--fs-12);
+        padding: 10px 0;
+        gap: 0;
     }
 
     .community-tab span {
         display: none;
+    }
+
+    .community-tab i {
+        font-size: 1.1rem;
+        margin: 0;
     }
 
     .friend-request-item {
@@ -761,10 +743,6 @@
         transition: none !important;
     }
 }
-
-/* ============================================================ */
-/* SPOTLIGHT TAB                                                */
-/* ============================================================ */
 
 .spotlight-tab {
     padding-bottom: 40px;
@@ -1147,10 +1125,6 @@
     }
 }
 
-/* ============================================================ */
-/* DISCUSSIONS                                                   */
-/* ============================================================ */
-
 .discussions-tab {
     padding: 24px;
     background: var(--bg-card);
@@ -1196,7 +1170,6 @@
     font-family: inherit;
 }
 
-/* Action Bar */
 .post-actions {
     display: flex;
     justify-content: space-between;
@@ -1224,7 +1197,6 @@
     margin: 0;
 }
 
-/* Stats Toggle Pill */
 .stats-toggle-pill {
     display: inline-flex;
     align-items: center;
@@ -1239,7 +1211,6 @@
     cursor: pointer;
     transition: all 0.2s ease;
     white-space: nowrap;
-    /* Prevents squishing */
     user-select: none;
 }
 
@@ -1266,7 +1237,6 @@
     color: var(--brand-yellow);
 }
 
-/* Image Previews */
 .preview-attachment {
     position: relative;
     width: max-content;
@@ -1298,7 +1268,6 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
-/* Thread List */
 .thread-list {
     display: flex;
     flex-direction: column;
@@ -1363,7 +1332,6 @@
     color: var(--brand-yellow);
 }
 
-/* Thread View */
 .discussion-thread {
     padding: 24px;
     background: var(--bg-card);
@@ -1405,7 +1373,6 @@
     margin-top: 12px;
 }
 
-/* Stats Card Display */
 .thread-stats-card {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -1440,7 +1407,6 @@
     color: var(--text-primary);
 }
 
-/* Replies */
 .thread-replies {
     display: flex;
     flex-direction: column;
@@ -1490,7 +1456,6 @@
     margin-top: 8px;
 }
 
-/* Reply Input Area */
 .thread-input-area {
     margin-top: 16px;
     border-top: 1px solid var(--border-subtle);
@@ -1523,7 +1488,6 @@
     color: var(--text-primary);
 }
 
-/* Delete Buttons */
 .delete-action-btn {
     background: transparent;
     border: none;
@@ -1544,7 +1508,6 @@
     margin-left: auto;
 }
 
-/* Unread Indicator */
 .community-tab {
     position: relative;
 }
