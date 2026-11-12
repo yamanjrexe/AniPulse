@@ -263,7 +263,10 @@ export default function DangerTab() {
         </div>
       </div>
 
-      <div className="settings-group">
+      <div
+        className="settings-group"
+        style={{ position: "relative", zIndex: exportOpen ? 100 : 1 }}
+      >
         <h3>
           <i className="fas fa-file-export" aria-hidden="true" /> Export Data
         </h3>
@@ -278,10 +281,7 @@ export default function DangerTab() {
           Download a permanent backup of your anime list in JSON format.
         </p>
 
-        <div
-          style={{ position: "relative", display: "inline-block" }}
-          ref={menuRef}
-        >
+        <div className="export-dropdown" ref={menuRef}>
           <button
             className="btn btn-success"
             onClick={() => setExportOpen((v) => !v)}
@@ -295,69 +295,19 @@ export default function DangerTab() {
           </button>
 
           {exportOpen && (
-            <div
-              className="export-menu"
-              role="menu"
-              style={{
-                position: "absolute",
-                top: "calc(100% + 8px)",
-                left: 0,
-                zIndex: 9999,
-                minWidth: "240px",
-                background: "var(--bg-surface)",
-                border: "1px solid var(--border-default)",
-                borderRadius: "8px",
-                boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
-                padding: "6px",
-                animation: "fadeIn 0.15s ease-out",
-              }}
-            >
+            <div className="export-menu" role="menu">
               <button
                 className="export-menu-item export-menu-item-all"
                 onClick={exportAll}
-                style={{
-                  width: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                  padding: "10px",
-                }}
               >
-                <i
-                  className="fas fa-database"
-                  style={{ color: "var(--brand-yellow)" }}
-                />
-                <span style={{ flex: 1, textAlign: "left", fontWeight: 500 }}>
-                  All Data
-                </span>
-                <span
-                  style={{
-                    fontFamily: "monospace",
-                    background: "var(--bg-card)",
-                    padding: "2px 8px",
-                    borderRadius: "99px",
-                    fontSize: "0.8em",
-                  }}
-                >
-                  {totalCount}
-                </span>
+                <i className="fas fa-database" />
+                <span className="export-menu-label">All Data</span>
+                <span className="export-menu-count">{totalCount}</span>
               </button>
 
               {completionYears.length > 0 && (
                 <>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      padding: "12px 10px 6px",
-                      fontSize: "0.7rem",
-                      textTransform: "uppercase",
-                      color: "var(--text-muted)",
-                      borderTop: "1px solid var(--border-subtle)",
-                      marginTop: "4px",
-                    }}
-                  >
+                  <div className="export-menu-section">
                     <i className="fas fa-check-circle" /> By Completion Year
                   </div>
                   {completionYears.map(([year, count]) => (
@@ -365,30 +315,10 @@ export default function DangerTab() {
                       key={`c-${year}`}
                       className="export-menu-item"
                       onClick={() => exportByCompletionYear(year, count)}
-                      style={{
-                        width: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "10px",
-                        padding: "10px",
-                      }}
                     >
-                      <i
-                        className="fas fa-calendar-check"
-                        style={{ color: "var(--text-muted)" }}
-                      />
-                      <span style={{ flex: 1, textAlign: "left" }}>{year}</span>
-                      <span
-                        style={{
-                          fontFamily: "monospace",
-                          background: "var(--bg-card)",
-                          padding: "2px 8px",
-                          borderRadius: "99px",
-                          fontSize: "0.8em",
-                        }}
-                      >
-                        {count}
-                      </span>
+                      <i className="fas fa-calendar-check" />
+                      <span className="export-menu-label">{year}</span>
+                      <span className="export-menu-count">{count}</span>
                     </button>
                   ))}
                 </>
@@ -398,7 +328,6 @@ export default function DangerTab() {
         </div>
       </div>
 
-      {/* 4. ACTUAL DANGER ZONE */}
       <div className="danger-zone" style={{ marginTop: "24px" }}>
         <h3>
           <i className="fas fa-exclamation-triangle" aria-hidden="true" />{" "}
