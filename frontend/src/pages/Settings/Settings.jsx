@@ -6,8 +6,16 @@ import AppearanceTab from "./components/AppearanceTab.jsx";
 import ExperienceTab from "./components/ExperienceTab.jsx";
 import SyncTab from "./components/SyncTab.jsx";
 import DangerTab from "./components/DangerTab.jsx";
+import PrivacyTab from "./components/PrivacyTab.jsx";
 
-const VALID_TABS = ["profile", "appearance", "experience", "sync", "danger"];
+const VALID_TABS = [
+  "profile",
+  "appearance",
+  "privacy",
+  "experience",
+  "sync",
+  "danger",
+];
 
 export default function Settings() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -35,6 +43,7 @@ export default function Settings() {
       <div className="settings-content">
         {activeTab === "profile" && <ProfileTab />}
         {activeTab === "appearance" && <AppearanceTab />}
+        {activeTab === "privacy" && <PrivacyTab />}
         {activeTab === "experience" && <ExperienceTab />}
         {activeTab === "sync" && <SyncTab />}
         {activeTab === "danger" && <DangerTab />}

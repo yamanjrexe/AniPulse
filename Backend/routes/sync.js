@@ -51,7 +51,7 @@ function sanitizeAnime(anime, existingIds) {
   let progress = typeof anime.progress === 'number' ? Math.max(0, anime.progress) : 0;
   if (episodes > 0 && progress > episodes) progress = episodes;
 
-  const validStatuses = ['Completed', 'Watching', 'Plan to Watch', 'Dropped'];
+  const validStatuses = ['Completed', 'Watching', 'Plan to Watch', 'Dropped', 'On-Hold'];
   let userStatus = (anime.userStatus && typeof anime.userStatus === 'string') ? anime.userStatus : 'Plan to Watch';
   if (!validStatuses.includes(userStatus)) userStatus = 'Plan to Watch';
 
@@ -95,57 +95,37 @@ function sanitizeAnime(anime, existingIds) {
 function sanitizeAnimeList(list) {
   if (!Array.isArray(list)) return [];
   if (list.length > MAX_ANIME_LIST) {
-    console.warn(`⚠️ Truncating anime list from ${list.length} to ${MAX_ANIME_LIST}`);
     list = list.slice(0, MAX_ANIME_LIST);
   }
   const existingIds = [];
-  const sanitized = list.map(anime => sanitizeAnime(anime, existingIds));
-  console.log(`🛠️ Sanitized ${sanitized.length} anime entries`);
-  return sanitized;
+  return list.map(anime => sanitizeAnime(anime, existingIds));
 }
 
 function validateActivityLog(log) {
   if (!Array.isArray(log)) return { valid: false, error: 'activityLog must be an array' };
-  if (log.length > MAX_ACTIVITY_LOG) {
-    return { valid: false, error: `activityLog exceeds maximum size of ${MAX_ACTIVITY_LOG}` };
-  }
+  if (log.length > MAX_ACTIVITY_LOG) return { valid: false, error: `activityLog exceeds maximum size of ${MAX_ACTIVITY_LOG}` };
   for (let i = 0; i < log.length; i++) {
     const item = log[i];
     if (!item || typeof item !== 'object') return { valid: false, error: `Invalid activity at index ${i}` };
-    if (item.id !== undefined && typeof item.id !== 'string' && typeof item.id !== 'number') {
-      return { valid: false, error: `id must be string or number at index ${i}` };
-    }
-    if (!item.action || typeof item.action !== 'string') {
-      return { valid: false, error: `Missing action in activity at index ${i}` };
-    }
-    if (!item.animeTitle || typeof item.animeTitle !== 'string') {
-      return { valid: false, error: `Missing animeTitle in activity at index ${i}` };
-    }
-    if (!item.timestamp || typeof item.timestamp !== 'string') {
-      return { valid: false, error: `Missing timestamp in activity at index ${i}` };
-    }
+    if (!item.action || typeof item.action !== 'string') return { valid: false, error: `Missing action in activity at index ${i}` };
+    if (!item.animeTitle || typeof item.animeTitle !== 'string') return { valid: false, error: `Missing animeTitle in activity at index ${i}` };
+    if (!item.timestamp || typeof item.timestamp !== 'string') return { valid: false, error: `Missing timestamp in activity at index ${i}` };
   }
   return { valid: true };
 }
 
 function validateAchievements(list) {
   if (!Array.isArray(list)) return { valid: false, error: 'unlockedAchievements must be an array' };
-  if (list.length > MAX_ACHIEVEMENTS) {
-    return { valid: false, error: `unlockedAchievements exceeds maximum size of ${MAX_ACHIEVEMENTS}` };
-  }
+  if (list.length > MAX_ACHIEVEMENTS) return { valid: false, error: `unlockedAchievements exceeds maximum size of ${MAX_ACHIEVEMENTS}` };
   for (let i = 0; i < list.length; i++) {
-    if (typeof list[i] !== 'string') {
-      return { valid: false, error: `Invalid achievement at index ${i}` };
-    }
+    if (typeof list[i] !== 'string') return { valid: false, error: `Invalid achievement at index ${i}` };
   }
   return { valid: true };
 }
 
 function validateXpHistory(list) {
   if (!Array.isArray(list)) return { valid: false, error: 'userXpHistory must be an array' };
-  if (list.length > MAX_XP_HISTORY) {
-    return { valid: false, error: `userXpHistory exceeds maximum size of ${MAX_XP_HISTORY}` };
-  }
+  if (list.length > MAX_XP_HISTORY) return { valid: false, error: `userXpHistory exceeds maximum size of ${MAX_XP_HISTORY}` };
   for (let i = 0; i < list.length; i++) {
     const item = list[i];
     if (!item || typeof item !== 'object') return { valid: false, error: `Invalid XP history at index ${i}` };
@@ -157,20 +137,11 @@ function validateXpHistory(list) {
 
 function validateAppSettings(settings) {
   if (!settings || typeof settings !== 'object') return { valid: false, error: 'appSettings must be an object' };
-  for (const key of Object.keys(settings)) {
-    if (settings[key] && typeof settings[key] === 'object' && !Array.isArray(settings[key])) {
-      return { valid: false, error: `appSettings cannot contain nested objects (key: ${key})` };
-    }
-  }
   return { valid: true };
 }
 
 function validateContributions(contrib) {
   if (!contrib || typeof contrib !== 'object') return { valid: false, error: 'animeContributions must be an object' };
-  const str = JSON.stringify(contrib);
-  if (str.length > 100000) {
-    return { valid: false, error: 'animeContributions too large' };
-  }
   return { valid: true };
 }
 
@@ -184,6 +155,12 @@ function sanitizeProfile(userProfile) {
     favoriteAnime: Array.isArray(userProfile.favoriteAnime) ? userProfile.favoriteAnime.slice(0, 20) : [],
     social: {}
   };
+
+  //  PRESERVE NEW FIELDS
+  if (userProfile.profileVisibility) clean.profileVisibility = userProfile.profileVisibility;
+  if (userProfile.publicUsername) clean.publicUsername = userProfile.publicUsername;
+  if (userProfile.usernameLower) clean.usernameLower = userProfile.usernameLower;
+
   if (userProfile.social && typeof userProfile.social === 'object') {
     const allowed = ['anilist', 'myanimelist', 'twitter', 'instagram'];
     for (const key of allowed) {
@@ -194,6 +171,7 @@ function sanitizeProfile(userProfile) {
   }
   if (userProfile.cover) clean.cover = userProfile.cover;
   if (userProfile.memberSince) clean.memberSince = userProfile.memberSince;
+  if (userProfile.createdAt) clean.createdAt = userProfile.createdAt;
   return clean;
 }
 
@@ -215,11 +193,7 @@ router.post('/sync-all', verifyToken, async (req, res) => {
 
   const userId = req.userId;
   try {
-    console.log(`🔄 Syncing all data for user: ${userId}`);
-    console.log(`📦 Received animeData length: ${animeData?.length || 0}`);
-
     const sanitizedAnime = sanitizeAnimeList(animeData || []);
-    console.log(`📦 Sanitized to ${sanitizedAnime.length} anime entries`);
 
     const validationResults = [
       validateActivityLog(activityLog),
@@ -231,7 +205,6 @@ router.post('/sync-all', verifyToken, async (req, res) => {
 
     for (const result of validationResults) {
       if (!result.valid) {
-        console.warn(`❌ Validation failed: ${result.error}`);
         return res.status(400).json({ error: result.error });
       }
     }
@@ -248,16 +221,12 @@ router.post('/sync-all', verifyToken, async (req, res) => {
           lastUpdated: new Date().toISOString(),
           count: sanitizedAnime.length
         })
-          .then(() => console.log(`✅ ANIME_LISTS saved for user ${userId}`))
-          .catch(err => console.error(`❌ Failed to save ANIME_LISTS:`, err))
       );
     }
 
     if (activityLog && Array.isArray(activityLog)) {
       const enrichedLog = activityLog.map(item => {
-        if (!item.id) {
-          item.id = Date.now().toString() + '_' + Math.random().toString(36).substr(2, 9);
-        }
+        if (!item.id) item.id = Date.now().toString() + '_' + Math.random().toString(36).substr(2, 9);
         return item;
       });
       promises.push(
@@ -266,8 +235,6 @@ router.post('/sync-all', verifyToken, async (req, res) => {
           lastUpdated: new Date().toISOString(),
           count: enrichedLog.length
         })
-          .then(() => console.log(`✅ ACTIVITY_LOGS saved for user ${userId}`))
-          .catch(err => console.error(`❌ Failed to save ACTIVITY_LOGS:`, err))
       );
     }
 
@@ -278,8 +245,6 @@ router.post('/sync-all', verifyToken, async (req, res) => {
           ...cleanProfile,
           lastSynced: new Date().toISOString()
         }, { merge: true })
-          .then(() => console.log(`✅ USER_PROFILES saved for user ${userId}`))
-          .catch(err => console.error(`❌ Failed to save USER_PROFILES:`, err))
       );
     }
 
@@ -290,8 +255,6 @@ router.post('/sync-all', verifyToken, async (req, res) => {
           lastUpdated: new Date().toISOString(),
           count: unlockedAchievements.length
         })
-          .then(() => console.log(`✅ ACHIEVEMENTS saved for user ${userId}`))
-          .catch(err => console.error(`❌ Failed to save ACHIEVEMENTS:`, err))
       );
     }
 
@@ -301,8 +264,6 @@ router.post('/sync-all', verifyToken, async (req, res) => {
           history: userXpHistory,
           lastUpdated: new Date().toISOString()
         })
-          .then(() => console.log(`✅ XP_HISTORY saved for user ${userId}`))
-          .catch(err => console.error(`❌ Failed to save XP_HISTORY:`, err))
       );
     }
 
@@ -312,8 +273,6 @@ router.post('/sync-all', verifyToken, async (req, res) => {
           contributions: animeContributions,
           lastUpdated: new Date().toISOString()
         })
-          .then(() => console.log(`✅ CONTRIBUTIONS saved for user ${userId}`))
-          .catch(err => console.error(`❌ Failed to save CONTRIBUTIONS:`, err))
       );
     }
 
@@ -323,8 +282,6 @@ router.post('/sync-all', verifyToken, async (req, res) => {
           settings: appSettings,
           lastUpdated: new Date().toISOString()
         })
-          .then(() => console.log(`✅ SETTINGS saved for user ${userId}`))
-          .catch(err => console.error(`❌ Failed to save SETTINGS:`, err))
       );
     }
 
@@ -354,6 +311,11 @@ router.post('/sync-all', verifyToken, async (req, res) => {
       lastUpdated: new Date().toISOString()
     };
 
+    //  SAVE NEW FIELDS TO MAIN USER DOC
+    if (cleanProfile?.profileVisibility) userUpdate.profileVisibility = cleanProfile.profileVisibility;
+    if (cleanProfile?.publicUsername) userUpdate.publicUsername = cleanProfile.publicUsername;
+    if (cleanProfile?.usernameLower) userUpdate.usernameLower = cleanProfile.usernameLower;
+
     if (dailyXP) userUpdate.dailyXP = dailyXP;
     if (xpPendingQueue) userUpdate.xpPendingQueue = xpPendingQueue;
     if (lastResetDate) userUpdate.lastResetDate = lastResetDate;
@@ -361,40 +323,21 @@ router.post('/sync-all', verifyToken, async (req, res) => {
     if (cleanStreak) {
       const existingStreak = existingData.streak || 0;
       const existingLast = existingData.lastActive || null;
-
       const incomingStreak = cleanStreak.streak;
       const incomingLast = cleanStreak.lastActive;
 
       let useIncoming = true;
-      if (
-        existingStreak > incomingStreak &&
-        existingLast &&
-        incomingLast &&
-        existingLast === incomingLast
-      ) {
+      if (existingStreak > incomingStreak && existingLast && incomingLast && existingLast === incomingLast) {
         useIncoming = false;
       }
 
-      if (useIncoming) {
-        userUpdate.streak = incomingStreak;
-        userUpdate.lastActive = incomingLast;
-      } else {
-        userUpdate.streak = existingStreak;
-        userUpdate.lastActive = existingLast;
-      }
+      userUpdate.streak = useIncoming ? incomingStreak : existingStreak;
+      userUpdate.lastActive = useIncoming ? incomingLast : existingLast;
     }
 
-    console.log(`📊 Server-side recalculated XP: ${recalculatedXP} (level ${recalculatedLevel}, title "${recalculatedTitle}")`);
-    console.log(`📊 Final XP after admin overrides: ${finalXP} (level ${finalLevel})`);
-
-    promises.push(
-      userRef.set(userUpdate, { merge: true })
-        .then(() => console.log(`✅ USERS updated for user ${userId}`))
-        .catch(err => console.error(`❌ Failed to update USERS:`, err))
-    );
+    promises.push(userRef.set(userUpdate, { merge: true }));
 
     await Promise.all(promises);
-    console.log(`✅ All data synced for user: ${userId}`);
     res.json({ success: true, message: 'All data synced to cloud successfully', timestamp: new Date().toISOString() });
   } catch (error) {
     console.error('❌ Sync error:', error);
@@ -405,7 +348,6 @@ router.post('/sync-all', verifyToken, async (req, res) => {
 router.get('/load-all', verifyToken, async (req, res) => {
   const userId = req.userId;
   try {
-    console.log(`📥 Loading all data for user: ${userId}`);
     const data = {};
     let lastModified = null;
 
@@ -413,7 +355,6 @@ router.get('/load-all', verifyToken, async (req, res) => {
     if (animeDoc.exists) {
       data.animeData = animeDoc.data().animeList || [];
       lastModified = animeDoc.data().lastUpdated || null;
-      console.log(`📦 Loaded ${data.animeData.length} anime from cloud`);
     } else {
       data.animeData = [];
     }
@@ -449,6 +390,9 @@ router.get('/load-all', verifyToken, async (req, res) => {
       if (userData.dailyXP) data.dailyXP = userData.dailyXP;
       if (userData.xpPendingQueue) data.xpPendingQueue = userData.xpPendingQueue;
       if (userData.lastResetDate) data.lastResetDate = userData.lastResetDate;
+      if (userData.profileVisibility) data.profileVisibility = userData.profileVisibility;
+      if (userData.publicUsername) data.publicUsername = userData.publicUsername;
+      if (userData.usernameLower) data.usernameLower = userData.usernameLower;
 
       data.streakData = {
         streak: userData.streak || 0,
@@ -459,7 +403,6 @@ router.get('/load-all', verifyToken, async (req, res) => {
       data.streakData = { streak: 0, lastActive: null };
     }
 
-    console.log(`✅ Load complete for user ${userId}`);
     res.json({ success: true, data, lastModified });
   } catch (error) {
     console.error('❌ Load error:', error);

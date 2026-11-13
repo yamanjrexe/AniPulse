@@ -13,6 +13,7 @@ export default function SyncTab() {
   const [backup, setBackup] = useState(() => autoBackupService.getStatus());
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [localError, setLocalError] = useState(null);
 
   const [anilistStatus, setAnilistStatus] = useState({ connected: false });
   const [anilistBusy, setAnilistBusy] = useState(false);
@@ -26,7 +27,14 @@ export default function SyncTab() {
 
   useEffect(() => {
     autoBackupService.init();
-    const unsub = autoBackupService.subscribe(setBackup);
+    const unsub = autoBackupService.subscribe((status) => {
+      setBackup(status);
+      if (status.error) {
+        setLocalError(status.error);
+      } else {
+        setLocalError(null);
+      }
+    });
     return () => unsub();
   }, []);
 
@@ -249,11 +257,13 @@ export default function SyncTab() {
   const onEnableBackup = useCallback(async () => {
     if (busy) return;
     setBusy(true);
+    setLocalError(null);
     try {
       await autoBackupService.enable();
+      setLocalError(null);
       showToast("Auto backup enabled", "success");
     } catch (err) {
-      if (err.name === "AbortError") return;
+      setLocalError(err.message);
       showToast(err.message || "Could not enable backup", "error");
     } finally {
       setBusy(false);
@@ -528,6 +538,28 @@ export default function SyncTab() {
               Write a JSON backup of your anime list to a file of your choice.
               The backup updates automatically whenever your data changes.
             </p>
+            {localError && (
+              <div className="settings-item" style={{ marginBottom: 16 }}>
+                <small
+                  className="sync-error"
+                  style={{
+                    display: "block",
+                    padding: "10px 14px",
+                    background: "rgba(249, 4, 21, 0.1)",
+                    color: "var(--brand-red)",
+                    border: "1px solid rgba(249, 4, 21, 0.3)",
+                    borderRadius: "var(--r-sm)",
+                    fontSize: "0.8rem",
+                  }}
+                >
+                  <i
+                    className="fas fa-exclamation-triangle"
+                    style={{ marginRight: 6 }}
+                  />
+                  {localError}
+                </small>
+              </div>
+            )}
             <button
               className="btn btn-primary"
               onClick={onEnableBackup}

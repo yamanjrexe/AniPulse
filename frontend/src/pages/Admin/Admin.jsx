@@ -5,11 +5,13 @@ import AdminUsers from "./components/AdminUsers.jsx";
 import AdminDiscussions from "./components/AdminDiscussions.jsx";
 import AdminAnnouncements from "./components/AdminAnnouncements.jsx";
 import AdminLogs from "./components/AdminLogs.jsx";
+import AdminReports from "./components/AdminReports.jsx";
 
 const TABS = [
   { k: "overview", l: "Overview", icon: "fa-chart-pie" },
   { k: "users", l: "Users", icon: "fa-users" },
   { k: "discussions", l: "Discussions", icon: "fa-comments" },
+  { k: "reports", l: "Reports", icon: "fa-flag" },
   { k: "announce", l: "Announcements", icon: "fa-bullhorn" },
   { k: "logs", l: "Audit Logs", icon: "fa-clipboard-list" },
 ];
@@ -50,6 +52,7 @@ export default function Admin() {
       {activeTab === "overview" && <AdminOverview onNavigate={changeTab} />}
       {activeTab === "users" && <AdminUsers />}
       {activeTab === "discussions" && <AdminDiscussions />}
+      {activeTab === "reports" && <AdminReports />}
       {activeTab === "announce" && <AdminAnnouncements />}
       {activeTab === "logs" && <AdminLogs />}
     </div>

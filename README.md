@@ -5,7 +5,7 @@
 
   <p>
     <a href="https://ani-pulse.netlify.app/"><img src="https://img.shields.io/badge/Live_Demo-Visit_AniPulse-FCE706?style=for-the-badge&labelColor=050505" alt="Live demo" /></a>
-    <img src="https://img.shields.io/badge/Version-v3.2.4-FCE706?style=for-the-badge&labelColor=050505" alt="Version 3.2.3" />
+    <img src="https://img.shields.io/badge/Version-v3.2.5-FCE706?style=for-the-badge&labelColor=050505" alt="Version 3.2.3" />
     <a href="https://opensource.org/license/mit"><img src="https://img.shields.io/badge/License-MIT-F90415?style=for-the-badge&labelColor=050505" alt="MIT License" /></a>
   </p>
   <p>

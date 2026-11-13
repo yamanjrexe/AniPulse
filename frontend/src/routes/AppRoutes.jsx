@@ -12,6 +12,7 @@ const Landing = lazy(() => import("../pages/Landing.jsx"));
 const Login = lazy(() => import("../pages/Auth/Login.jsx"));
 const Offline = lazy(() => import("../pages/Offline.jsx"));
 const NotFound = lazy(() => import("../pages/NotFound.jsx"));
+const Admin = lazy(() => import("../pages/Admin/Admin.jsx"));
 
 const Docs = lazy(() => import("../pages/Resources/Docs.jsx"));
 const Help = lazy(() => import("../pages/Resources/Help.jsx"));
@@ -19,7 +20,6 @@ const Changelog = lazy(() => import("../pages/Resources/Changelog.jsx"));
 const About = lazy(() => import("../pages/Resources/About.jsx"));
 
 const Leaderboard = lazy(() => import("../pages/Leaderboard/Leaderboard.jsx"));
-const Admin = lazy(() => import("../pages/Admin/Admin.jsx"));
 
 function GlobalFallback() {
   return (
@@ -67,6 +67,7 @@ export default function AppRoutes() {
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path="/app" element={<Navigate to="/dashboard" replace />} />
+
             {navigationItems.map((item) => {
               if (item.adminOnly) return null;
               const C = item.component;

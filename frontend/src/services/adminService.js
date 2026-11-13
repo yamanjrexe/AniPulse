@@ -15,5 +15,7 @@ export const adminService = {
     sendAnnouncement: (title, message) => api.post('/admin/announce', { title, message }),
     getLogs: () => api.get(`/admin/logs?_t=${Date.now()}`),
     deleteLog: (id) => api.del(`/admin/logs/${id}`),
-    getUserAnime: (uid) => api.get(`/admin/users/${uid}/anime?_t=${Date.now()}`)
+    getUserAnime: (uid) => api.get(`/admin/users/${uid}/anime?_t=${Date.now()}`),
+    getReports: () => api.get(`/admin/reports?_t=${Date.now()}`),
+    dismissReport: (id) => api.del(`/admin/reports/${id}`)
 };

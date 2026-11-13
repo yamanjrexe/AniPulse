@@ -1,0 +1,915 @@
+/* =========================================
+   PUBLIC PROFILE WRAPPER
+   ========================================= */
+.publicProfileWrapper {
+    background-color: var(--bg-page);
+    min-height: 100vh;
+    padding: var(--sp-6) var(--sp-4);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+}
+
+.publicProfileError {
+    text-align: center;
+    padding: 80px 20px;
+}
+
+.publicProfileGrid {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--sp-6);
+}
+
+@media (min-width: 900px) {
+    .publicProfileGrid {
+        grid-template-columns: 2.2fr 1fr;
+        align-items: start;
+    }
+}
+
+.publicProfileMain,
+.publicProfileSidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-6);
+    min-width: 0;
+}
+
+/* =========================================
+   REUSABLE SECTION STYLING
+   ========================================= */
+.sectionHeading {
+    font-size: var(--fs-18);
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+    margin-bottom: var(--sp-4);
+    padding-bottom: var(--sp-2);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.emptyStateCard {
+    background: var(--bg-card);
+    border: 1px dashed var(--border-default);
+    border-radius: var(--r-md);
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.emptyStateCard h3 {
+    margin: 0 0 8px;
+    font-size: var(--fs-16);
+    color: var(--text-primary);
+}
+
+.emptyStateCard p {
+    margin: 0 0 16px;
+    font-size: var(--fs-13);
+    color: var(--text-muted);
+}
+
+.emptyStateCard.small {
+    padding: 30px 20px;
+}
+
+.viewAllLink {
+    font-size: var(--fs-12);
+    color: var(--brand-yellow);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+/* =========================================
+   PROFILE HEADER
+   ========================================= */
+.profileHeader {
+    background: var(--bg-card);
+    border-radius: var(--r-lg);
+    padding: var(--sp-6);
+    border: 1px solid var(--border-default);
+}
+
+.profileHeaderTop {
+    display: flex;
+    gap: var(--sp-5);
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.profileHeaderAvatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--bg-surface);
+    border: 2px solid var(--border-subtle);
+}
+
+.profileHeaderInfo {
+    flex: 1;
+    min-width: 240px;
+}
+
+.profileHeaderNameRow {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+}
+
+.profileHeaderNameRow h1 {
+    margin: 0;
+    font-size: var(--fs-28);
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+}
+
+.verifiedBadge {
+    color: var(--brand-yellow);
+    font-size: var(--fs-18);
+}
+
+.profileHeaderTitle {
+    margin-top: 4px;
+}
+
+.titleBadge {
+    background: var(--bg-surface);
+    color: var(--brand-yellow);
+    padding: 4px 10px;
+    border-radius: var(--r-sm);
+    font-size: var(--fs-12);
+    font-weight: var(--fw-semibold);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--border-default);
+}
+
+.profileHeaderMeta {
+    font-size: var(--fs-13);
+    color: var(--text-muted);
+    margin-top: var(--sp-3);
+}
+
+.profileHeaderActions {
+    display: flex;
+    gap: var(--sp-2);
+    margin-top: var(--sp-4);
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.profileHeaderSocials {
+    display: flex;
+    gap: 8px;
+    margin-left: 8px;
+    padding-left: 12px;
+    border-left: 1px solid var(--border-default);
+}
+
+.socialIconBtn {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-sm);
+    color: var(--text-primary);
+    transition: all 0.2s;
+}
+
+.socialIconBtn:hover {
+    border-color: var(--brand-yellow);
+    color: var(--brand-yellow);
+}
+
+.profileHeaderXpArea {
+    width: 100%;
+    max-width: 280px;
+    margin-top: var(--sp-4);
+}
+
+@media (min-width: 600px) {
+    .profileHeaderXpArea {
+        margin-top: 0;
+    }
+}
+
+.xpHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.xpLabel {
+    font-weight: var(--fw-semibold);
+    font-size: var(--fs-13);
+    color: var(--text-primary);
+}
+
+.xpValue {
+    font-family: var(--font-mono);
+    font-weight: var(--fw-bold);
+    color: var(--brand-yellow);
+}
+
+.xpProgressWrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.xpProgressBar {
+    flex: 1;
+    height: 6px;
+    background: var(--bg-surface);
+    border-radius: var(--r-pill);
+    overflow: hidden;
+    border: 1px solid var(--border-subtle);
+}
+
+.xpProgressFill {
+    height: 100%;
+    background: var(--brand-yellow);
+}
+
+.xpProgressText {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+}
+
+.xpNextLevel {
+    font-size: var(--fs-12);
+    color: var(--text-muted);
+    margin-top: 6px;
+}
+
+/* Level Track */
+.profileLevelTrackWrapper {
+    margin-top: var(--sp-6);
+    padding-top: var(--sp-4);
+    border-top: 1px solid var(--border-subtle);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.profileLevelTrackWrapper::-webkit-scrollbar {
+    display: none;
+}
+
+.profileLevelTrack {
+    display: flex;
+    align-items: center;
+    min-width: 500px;
+}
+
+.levelNode {
+    text-align: center;
+    position: relative;
+    z-index: 2;
+    width: 90px;
+    flex-shrink: 0;
+}
+
+.levelIcon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--bg-surface);
+    border: 2px solid var(--border-default);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    margin: 0 auto 8px;
+}
+
+.levelNode.active .levelIcon {
+    border-color: var(--brand-yellow);
+    color: var(--text-inverse);
+    background: var(--brand-yellow);
+}
+
+.levelName {
+    font-size: 0.7rem;
+    font-weight: var(--fw-semibold);
+    color: var(--text-primary);
+}
+
+.levelReq {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+}
+
+.levelLine {
+    flex: 1;
+    height: 2px;
+    background: var(--border-default);
+    position: relative;
+    margin: 0 -10px;
+    top: -16px;
+}
+
+.levelLineFill {
+    height: 100%;
+    background: var(--brand-yellow);
+}
+
+.profileBioRow {
+    display: flex;
+    justify-content: space-between;
+    margin-top: var(--sp-5);
+    flex-wrap: wrap;
+    gap: var(--sp-3);
+}
+
+.bioLabel {
+    font-size: 0.7rem;
+    font-weight: var(--fw-bold);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.bioText {
+    font-size: var(--fs-13);
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+/* =========================================
+   OVERVIEW STATS
+   ========================================= */
+.siteStatsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--sp-4);
+    background: var(--bg-card);
+    padding: var(--sp-5);
+    border-radius: var(--r-lg);
+    border: 1px solid var(--border-default);
+}
+
+@media (min-width: 600px) {
+    .siteStatsGrid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.siteStatBox {
+    text-align: left;
+}
+
+.statLabel {
+    font-size: 0.65rem;
+    font-weight: var(--fw-bold);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.statValue {
+    font-size: var(--fs-24);
+    font-weight: var(--fw-bold);
+    color: var(--brand-yellow);
+    font-family: var(--font-mono);
+    margin: 4px 0;
+}
+
+.statSub {
+    font-size: var(--fs-12);
+    color: var(--text-muted);
+}
+
+/* =========================================
+   ANIME STATS
+   ========================================= */
+.animeStatsCard {
+    background: var(--bg-card);
+    padding: var(--sp-5);
+    border-radius: var(--r-lg);
+    border: 1px solid var(--border-default);
+}
+
+.animeStatsTop {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-5);
+    margin-bottom: var(--sp-5);
+}
+
+.animeStatValue {
+    font-size: var(--fs-24);
+    font-weight: var(--fw-bold);
+    color: var(--brand-yellow);
+    font-family: var(--font-mono);
+    line-height: 1;
+}
+
+.animeStatLabel {
+    font-size: var(--fs-12);
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.animeStatsMainBar {
+    height: 12px;
+    background: var(--bg-surface);
+    border-radius: var(--r-pill);
+    overflow: hidden;
+    margin-bottom: var(--sp-4);
+    border: 1px solid var(--border-subtle);
+}
+
+.mainBarFill {
+    width: 100%;
+    height: 100%;
+    background: var(--brand-yellow);
+    border-radius: var(--r-pill);
+}
+
+.animeStatsBreakdown {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+}
+
+.breakdownItem {
+    display: flex;
+    align-items: center;
+    font-size: var(--fs-13);
+    color: var(--text-secondary);
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.dot.watching {
+    background: #3b82f6;
+}
+
+.dot.completed {
+    background: #10b981;
+}
+
+.dot.onhold {
+    background: #f59e0b;
+}
+
+.dot.dropped {
+    background: #ef4444;
+}
+
+.dot.plan {
+    background: var(--text-muted);
+}
+
+.count {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+    margin-right: 16px;
+}
+
+.breakdownBar {
+    width: 100%;
+    max-width: 250px;
+    height: 8px;
+    background: var(--bg-surface);
+    border-radius: var(--r-pill);
+    overflow: hidden;
+    border: 1px solid var(--border-subtle);
+}
+
+@media (max-width: 600px) {
+    .breakdownBar {
+        max-width: 100%;
+        width: 100%;
+        margin-top: 4px;
+    }
+}
+
+.breakdownBar>div {
+    height: 100%;
+    border-radius: var(--r-pill);
+}
+
+.breakdownBar>div.watching-bar {
+    background: #3b82f6;
+}
+
+.breakdownBar>div.completed-bar {
+    background: #10b981;
+}
+
+.breakdownBar>div.onhold-bar {
+    background: #f59e0b;
+}
+
+.breakdownBar>div.dropped-bar {
+    background: #ef4444;
+}
+
+.breakdownBar>div.plan-bar {
+    background: var(--text-muted);
+}
+
+/* =========================================
+   FAVOURITES SHELF
+   ========================================= */
+.slotsFilled {
+    font-size: var(--fs-12);
+    color: var(--text-muted);
+    margin-top: -12px;
+    margin-bottom: var(--sp-3);
+}
+
+.favoritesGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--sp-3);
+}
+
+@media (min-width: 600px) {
+    .favoritesGrid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+.favoriteSlot {
+    aspect-ratio: 2/3;
+    border-radius: var(--r-md);
+    overflow: hidden;
+    position: relative;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+}
+
+.slotEmpty {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-card);
+    border: 2px dashed var(--border-default);
+    border-radius: var(--r-md);
+    color: var(--text-muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.slotEmpty:hover {
+    border-color: var(--brand-yellow);
+    color: var(--brand-yellow);
+}
+
+/* =========================================
+   ACHIEVEMENTS SHELF
+   ========================================= */
+.achievementsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--sp-3);
+}
+
+@media (min-width: 600px) {
+    .achievementsGrid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.achievementBadge {
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-md);
+    padding: var(--sp-3);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    opacity: 0.6;
+}
+
+.achievementBadge.completed {
+    opacity: 1;
+    border-color: var(--brand-yellow-border);
+}
+
+.achievementBadge.progress {
+    opacity: 1;
+    border-color: var(--border-strong);
+}
+
+.achIcon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--fs-16);
+    color: var(--text-muted);
+}
+
+.achievementBadge.completed .achIcon {
+    color: var(--brand-yellow);
+    border-color: var(--brand-yellow-border);
+}
+
+.achievementBadge.progress .achIcon {
+    color: #60A5FA;
+}
+
+.achTitle {
+    font-size: var(--fs-12);
+    font-weight: var(--fw-semibold);
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.achDesc {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    line-height: 1.2;
+}
+
+.achStatus {
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 4px;
+}
+
+.achStatus.completed {
+    color: var(--success);
+}
+
+.achStatus.progress {
+    color: #60A5FA;
+}
+
+.achStatus.locked {
+    color: var(--text-muted);
+}
+
+/* =========================================
+   SIDEBAR COMPONENTS
+   ========================================= */
+.watchingList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+}
+
+.watchingItem {
+    display: flex;
+    gap: var(--sp-3);
+    background: var(--bg-card);
+    padding: var(--sp-3);
+    border-radius: var(--r-md);
+    border: 1px solid var(--border-default);
+    align-items: center;
+}
+
+.watchingPoster {
+    width: 45px;
+    height: 65px;
+    border-radius: var(--r-sm);
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--bg-surface);
+}
+
+.watchingInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.watchingTitle {
+    font-size: var(--fs-13);
+    font-weight: var(--fw-semibold);
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+}
+
+.watchingMeta {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.watchingMeta .eps {
+    color: var(--brand-yellow);
+    font-family: var(--font-mono);
+    font-weight: var(--fw-bold);
+}
+
+.watchingCheck {
+    color: var(--text-muted);
+    font-size: var(--fs-12);
+}
+
+.discussionList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+}
+
+.discussionItem {
+    display: block;
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-md);
+    padding: var(--sp-4);
+    text-decoration: none;
+    transition: border-color 0.2s;
+}
+
+.discussionItem:hover {
+    border-color: var(--brand-yellow);
+}
+
+.discTitle {
+    font-size: var(--fs-13);
+    font-weight: var(--fw-semibold);
+    color: var(--text-primary);
+    margin-bottom: 6px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.discMeta {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* =========================================
+   LATEST ACTIVITIES
+   ========================================= */
+.activityList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+}
+
+.activityItem {
+    display: flex;
+    gap: var(--sp-3);
+    background: var(--bg-card);
+    padding: var(--sp-4);
+    border-radius: var(--r-md);
+    border: 1px solid var(--border-default);
+}
+
+.activityIcon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--bg-surface);
+    color: var(--brand-yellow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid var(--border-default);
+}
+
+.activityTime {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.activityText {
+    font-size: var(--fs-13);
+    color: var(--text-secondary);
+}
+
+.activityText strong {
+    color: var(--text-primary);
+    font-weight: var(--fw-semibold);
+}
+
+.activityText .highlight {
+    color: var(--brand-yellow);
+    font-weight: var(--fw-semibold);
+}
+
+/* =========================================
+   SKELETON LOADER
+   ========================================= */
+.skeleton-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-lg);
+    position: relative;
+    overflow: hidden;
+}
+
+.skeleton-box::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+    animation: skeletonLoading 1.5s infinite;
+}
+
+@keyframes skeletonLoading {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* =========================================
+   MOBILE RESPONSIVENESS
+   ========================================= */
+@media (max-width: 600px) {
+    .profileHeader {
+        padding: var(--sp-4);
+    }
+
+    .profileHeaderTop {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .profileHeaderAvatar {
+        width: 90px;
+        height: 90px;
+        margin-bottom: var(--sp-3);
+    }
+
+    .profileHeaderInfo {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .profileHeaderNameRow {
+        justify-content: center;
+    }
+
+    .profileHeaderMeta {
+        justify-content: center;
+    }
+
+    .profileHeaderActions {
+        justify-content: center;
+        flex-direction: column;
+    }
+
+    .profileHeaderSocials {
+        border-left: none;
+        padding-left: 0;
+        margin-left: 0;
+        justify-content: center;
+        margin-top: 8px;
+    }
+
+    .profileHeaderXpArea {
+        max-width: 100%;
+        margin-top: var(--sp-5);
+    }
+
+    .profileBioRow {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .bioText {
+        text-align: center;
+    }
+}

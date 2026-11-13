@@ -74,7 +74,6 @@ function timestampOf(a) {
   );
 }
 
-// FIX: Added ID tie-breaker so identical timestamps don't scramble the order
 function sortRecentFirst(list) {
   return [...list].sort((a, b) => {
     const da = timestampOf(a);
@@ -868,7 +867,10 @@ export default function UserProfileModal({ userId, onClose }) {
                               }}
                             >
                               <span>{a.type || "TV"}</span>
-                              <span>{a.episodes || 0} Eps</span>
+                              <span>
+                                {a.episodes || 0}{" "}
+                                {a.episodes === 1 ? "Ep" : "Eps"}
+                              </span>
                             </div>
                           </div>
                         </div>

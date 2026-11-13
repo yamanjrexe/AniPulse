@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { useAnime } from "../../../context/AnimeContext.jsx";
 import { getLevelFromXP } from "../../../services/levelSystem.js";
+import { firebase } from "../../../firebaseClient.js";
 
 function getSocialUrl(platform, username) {
   if (!username) return "#";
@@ -60,7 +61,7 @@ function SocialIcon({ platform }) {
 function formatJoinDate(dateStr) {
   if (!dateStr) return "Recently";
   const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return dateStr;
+  if (isNaN(d.getTime())) return "Recently";
   return d.toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",
@@ -68,10 +69,10 @@ function formatJoinDate(dateStr) {
   });
 }
 
-export default function ProfilePreviewBanner({ profile }) {
+export default function ProfilePreviewBanner({ profile, user }) {
   const { animeData } = useAnime();
 
-  const name = profile.name || profile.username || "User";
+  const name = profile.name || profile.username || user?.name || "User";
   const avatar =
     profile.avatar ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=FCE706&color=050505&bold=true&size=200`;
@@ -88,7 +89,6 @@ export default function ProfilePreviewBanner({ profile }) {
     return map;
   }, [animeData]);
 
-  // Calculate Level
   let totalXP = parseInt(localStorage.getItem("userXP") || "0", 10);
   if (!totalXP) {
     try {
@@ -97,6 +97,10 @@ export default function ProfilePreviewBanner({ profile }) {
     } catch {}
   }
   const computed = getLevelFromXP(totalXP);
+
+  const fbUser = firebase?.auth?.().currentUser;
+  const realJoinDate =
+    user?.createdAt || fbUser?.metadata?.creationTime || profile.memberSince;
 
   return (
     <div
@@ -110,7 +114,6 @@ export default function ProfilePreviewBanner({ profile }) {
         flexDirection: "column",
       }}
     >
-      {/* BANNER (Inset & Curved) */}
       <div style={{ padding: "24px 24px 0" }}>
         <div
           style={{
@@ -150,7 +153,6 @@ export default function ProfilePreviewBanner({ profile }) {
         </div>
       </div>
 
-      {/* PROFILE HEADER ROW (Overlapping Banner) */}
       <div
         style={{
           display: "flex",
@@ -198,7 +200,6 @@ export default function ProfilePreviewBanner({ profile }) {
           >
             {name}
           </h2>
-          {/* LEVEL CARD BELOW NAME */}
           <div
             style={{
               display: "flex",
@@ -232,7 +233,6 @@ export default function ProfilePreviewBanner({ profile }) {
         </div>
       </div>
 
-      {/* INFO BELOW */}
       <div
         style={{
           padding: "16px 24px 24px",
@@ -251,7 +251,7 @@ export default function ProfilePreviewBanner({ profile }) {
           }}
         >
           <i className="fas fa-calendar-plus" />
-          <span>Member since {formatJoinDate(profile.memberSince)}</span>
+          <span>Member since {formatJoinDate(realJoinDate)}</span>
         </div>
 
         {profile.bio && (

@@ -3,7 +3,9 @@ import PosterImage from "../ui/PosterImage.jsx";
 
 export default function AnimeCard({ anime, onClick }) {
   const score = anime.score ? parseFloat(anime.score).toFixed(1) : null;
-  const episodesText = anime.episodes ? `${anime.episodes} Eps` : "";
+
+  const epLabel = anime.episodes === 1 ? "Ep" : "Eps";
+  const episodesText = anime.episodes ? `${anime.episodes} ${epLabel}` : "";
 
   const totalEpisodes = anime.episodes || 0;
   const progress = anime.progress || 0;
@@ -20,7 +22,7 @@ export default function AnimeCard({ anime, onClick }) {
     >
       <div className="anime-img-wrapper">
         <PosterImage anime={anime} alt={anime.title} className="anime-cover" />
-        {score && <div className="rating-badge">⭐ {score}</div>}
+       
       </div>
       <div className="anime-info" style={{ minWidth: 0 }}>
         <div

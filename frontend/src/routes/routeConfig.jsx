@@ -8,6 +8,7 @@ const Achievements = lazy(() => import("../pages/Achievements.jsx"));
 const Community = lazy(() => import("../pages/Community/Community.jsx"));
 const Settings = lazy(() => import("../pages/Settings/Settings.jsx"));
 const Admin = lazy(() => import("../pages/Admin/Admin.jsx"));
+const PublicProfile = lazy(() => import("../pages/Profile/PublicProfile.jsx"));
 
 export const navigationItems = [
   {
@@ -18,6 +19,16 @@ export const navigationItems = [
     title: "Home - AniPulse",
     component: Dashboard,
     protected: true,
+  },
+  {
+    id: "public-profile",
+    label: "Public Profile",
+    path: "/u/:username/profile",
+    icon: "fa-globe",
+    title: "Public Profile - AniPulse",
+    component: PublicProfile,
+    protected: true,
+    isDynamic: true,
   },
   {
     id: "anime-list",

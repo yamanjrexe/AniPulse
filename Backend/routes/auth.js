@@ -3,9 +3,6 @@ const { auth, db, COLLECTIONS } = require('../services/firebase');
 const { verifyToken } = require('../middleware/auth');
 const router = express.Router();
 
-// ============================================
-// REGISTER — accepts Firebase ID token
-// ============================================
 router.post('/register', async (req, res) => {
   const { token, email, username } = req.body;
   if (!token) return res.status(400).json({ error: 'No token provided' });
@@ -16,8 +13,7 @@ router.post('/register', async (req, res) => {
     const finalEmail = email || decoded.email;
     const finalUsername = username || decoded.name || finalEmail.split('@')[0];
 
-    const takenSnap = await db.collection(COLLECTIONS.USERS)
-      .where('username', '==', finalUsername).limit(1).get();
+    const takenSnap = await db.collection(COLLECTIONS.USERS).where('username', '==', finalUsername).limit(1).get();
     if (!takenSnap.empty && takenSnap.docs[0].id !== uid) {
       return res.status(400).json({ error: 'Username already taken' });
     }
@@ -33,21 +29,19 @@ router.post('/register', async (req, res) => {
       title: 'Newbie',
       totalAnime: 0,
       totalHours: 0,
-      avatar: decoded.picture ||
-        `https://ui-avatars.com/api/?name=${encodeURIComponent(finalUsername)}&background=6a5acd&color=fff`
+      avatar: decoded.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(finalUsername)}&background=6a5acd&color=fff`
     };
 
     await db.collection(COLLECTIONS.USERS).doc(uid).set(userProfile, { merge: true });
-    await db.collection(COLLECTIONS.ANIME_LISTS).doc(uid)
-      .set({ animeList: [], lastUpdated: new Date().toISOString() }, { merge: true });
-    await db.collection(COLLECTIONS.FRIENDS).doc(uid)
-      .set({ friends: [], lastUpdated: new Date().toISOString() }, { merge: true });
+    await db.collection(COLLECTIONS.ANIME_LISTS).doc(uid).set({ animeList: [], lastUpdated: new Date().toISOString() }, { merge: true });
+    await db.collection(COLLECTIONS.FRIENDS).doc(uid).set({ friends: [], lastUpdated: new Date().toISOString() }, { merge: true });
 
     res.status(201).json({
       success: true,
       user: {
         uid, username: finalUsername, name: finalUsername, email: finalEmail,
-        level: 1, title: 'Newbie', avatar: userProfile.avatar
+        level: 1, title: 'Newbie', avatar: userProfile.avatar,
+        createdAt: userProfile.createdAt
       }
     });
   } catch (error) {
@@ -56,9 +50,6 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// ============================================
-// LOGIN — accepts Firebase ID token
-// ============================================
 router.post('/login', async (req, res) => {
   const { token } = req.body;
   if (!token) return res.status(400).json({ error: 'No token provided' });
@@ -74,30 +65,27 @@ router.post('/login', async (req, res) => {
         username: decoded.name || decoded.email.split('@')[0],
         name: decoded.name || decoded.email.split('@')[0],
         email: decoded.email,
-        avatar: decoded.picture ||
-          `https://ui-avatars.com/api/?name=${encodeURIComponent(decoded.name || 'User')}&background=6a5acd&color=fff`,
+        avatar: decoded.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(decoded.name || 'User')}&background=6a5acd&color=fff`,
         createdAt: new Date().toISOString(),
         totalXP: 0, level: 1, title: 'Newbie', totalAnime: 0, totalHours: 0
       };
       await db.collection(COLLECTIONS.USERS).doc(uid).set(newUser);
-      await db.collection(COLLECTIONS.ANIME_LISTS).doc(uid)
-        .set({ animeList: [], lastUpdated: new Date().toISOString() });
-      await db.collection(COLLECTIONS.FRIENDS).doc(uid)
-        .set({ friends: [], lastUpdated: new Date().toISOString() });
+      await db.collection(COLLECTIONS.ANIME_LISTS).doc(uid).set({ animeList: [], lastUpdated: new Date().toISOString() });
+      await db.collection(COLLECTIONS.FRIENDS).doc(uid).set({ friends: [], lastUpdated: new Date().toISOString() });
 
       return res.json({
         success: true,
         user: {
           uid: newUser.uid, username: newUser.name, name: newUser.name,
           email: newUser.email, level: 1, title: 'Newbie',
-          avatar: newUser.avatar, totalXP: 0, totalAnime: 0, totalHours: 0
+          avatar: newUser.avatar, totalXP: 0, totalAnime: 0, totalHours: 0,
+          createdAt: newUser.createdAt
         }
       });
     }
 
     const userData = userDoc.data();
-    await db.collection(COLLECTIONS.USERS).doc(uid)
-      .update({ lastLogin: new Date().toISOString() });
+    await db.collection(COLLECTIONS.USERS).doc(uid).update({ lastLogin: new Date().toISOString() });
 
     res.json({
       success: true,
@@ -111,7 +99,8 @@ router.post('/login', async (req, res) => {
         avatar: userData.avatar,
         totalXP: userData.totalXP || 0,
         totalAnime: userData.totalAnime || 0,
-        totalHours: userData.totalHours || 0
+        totalHours: userData.totalHours || 0,
+        createdAt: userData.createdAt
       }
     });
   } catch (error) {
@@ -120,9 +109,6 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// ============================================
-// GOOGLE SIGN-IN
-// ============================================
 router.post('/google', async (req, res) => {
   const { token } = req.body;
   if (!token) return res.status(400).json({ error: 'No token provided' });
@@ -138,22 +124,18 @@ router.post('/google', async (req, res) => {
         username: decoded.name || decoded.email.split('@')[0],
         name: decoded.name || decoded.email.split('@')[0],
         email: decoded.email,
-        avatar: decoded.picture ||
-          `https://ui-avatars.com/api/?name=${encodeURIComponent(decoded.name || 'User')}&background=6a5acd&color=fff`,
+        avatar: decoded.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(decoded.name || 'User')}&background=6a5acd&color=fff`,
         createdAt: new Date().toISOString(),
         totalXP: 0, level: 1, title: 'Newbie', totalAnime: 0, totalHours: 0
       };
       await db.collection(COLLECTIONS.USERS).doc(uid).set(newUser);
-      await db.collection(COLLECTIONS.ANIME_LISTS).doc(uid)
-        .set({ animeList: [], lastUpdated: new Date().toISOString() });
-      await db.collection(COLLECTIONS.FRIENDS).doc(uid)
-        .set({ friends: [], lastUpdated: new Date().toISOString() });
+      await db.collection(COLLECTIONS.ANIME_LISTS).doc(uid).set({ animeList: [], lastUpdated: new Date().toISOString() });
+      await db.collection(COLLECTIONS.FRIENDS).doc(uid).set({ friends: [], lastUpdated: new Date().toISOString() });
       userDoc = await db.collection(COLLECTIONS.USERS).doc(uid).get();
     }
 
     const userData = userDoc.data();
-    await db.collection(COLLECTIONS.USERS).doc(uid)
-      .update({ lastLogin: new Date().toISOString() });
+    await db.collection(COLLECTIONS.USERS).doc(uid).update({ lastLogin: new Date().toISOString() });
 
     res.json({
       success: true,
@@ -167,7 +149,8 @@ router.post('/google', async (req, res) => {
         avatar: userData.avatar,
         totalXP: userData.totalXP || 0,
         totalAnime: userData.totalAnime || 0,
-        totalHours: userData.totalHours || 0
+        totalHours: userData.totalHours || 0,
+        createdAt: userData.createdAt
       }
     });
   } catch (error) {
@@ -176,9 +159,6 @@ router.post('/google', async (req, res) => {
   }
 });
 
-// ============================================
-// GET PROFILE
-// ============================================
 router.get('/profile', verifyToken, async (req, res) => {
   try {
     let userDoc = await db.collection(COLLECTIONS.USER_PROFILES).doc(req.userId).get();
@@ -197,7 +177,8 @@ router.get('/profile', verifyToken, async (req, res) => {
         title: u.title || 'Newbie',
         totalXP: u.totalXP || 0,
         totalAnime: u.totalAnime || 0,
-        totalHours: u.totalHours || 0
+        totalHours: u.totalHours || 0,
+        createdAt: u.createdAt
       }
     });
   } catch (error) {
@@ -205,9 +186,6 @@ router.get('/profile', verifyToken, async (req, res) => {
   }
 });
 
-// ============================================
-// UPDATE PROFILE
-// ============================================
 router.put('/profile', verifyToken, async (req, res) => {
   try {
     const { name, username, bio, status, avatar, cover, favoriteAnime, social } = req.body;
@@ -231,9 +209,6 @@ router.put('/profile', verifyToken, async (req, res) => {
   }
 });
 
-// ============================================
-// VERIFY TOKEN
-// ============================================
 router.get('/verify', verifyToken, async (req, res) => {
   try {
     const userDoc = await db.collection(COLLECTIONS.USERS).doc(req.userId).get();
@@ -248,7 +223,8 @@ router.get('/verify', verifyToken, async (req, res) => {
         level: u.level || 1,
         title: u.title || 'Newbie',
         avatar: u.avatar,
-        totalXP: u.totalXP || 0
+        totalXP: u.totalXP || 0,
+        createdAt: u.createdAt
       }
     });
   } catch (error) {

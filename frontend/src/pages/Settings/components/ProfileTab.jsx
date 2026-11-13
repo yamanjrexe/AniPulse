@@ -5,8 +5,8 @@ import { uploadAvatar, uploadCover } from "../../../services/avatarService.js";
 import ProfilePreviewBanner from "./ProfilePreviewBanner.jsx";
 import FavoriteAnimeTagInput from "./FavoriteAnimeTagInput.jsx";
 import AvatarCropperModal from "../../../components/profile/AvatarCropperModal.jsx";
+import { firebase } from "../../../firebaseClient.js";
 
-// Helper to convert base64 to File for the upload service
 function base64ToFile(base64, filename) {
   const arr = base64.split(",");
   const mime = arr[0].match(/:(.*?);/)[1];
@@ -20,16 +20,24 @@ function base64ToFile(base64, filename) {
 }
 
 export default function ProfileTab() {
-  const { updateDisplayName } = useAuth();
+  const { updateDisplayName, user } = useAuth();
   const { showToast } = useToast();
 
   const [profile, setProfile] = useState(() => {
     try {
       const existing = JSON.parse(localStorage.getItem("userProfile") || "{}");
-      if (!existing.memberSince) {
+
+      const fbUser = firebase?.auth?.().currentUser;
+      const realCreatedAt = user?.createdAt || fbUser?.metadata?.creationTime;
+
+      if (realCreatedAt && existing.memberSince !== realCreatedAt) {
+        existing.memberSince = realCreatedAt;
+        localStorage.setItem("userProfile", JSON.stringify(existing));
+      } else if (!existing.memberSince) {
         existing.memberSince = new Date().toISOString();
         localStorage.setItem("userProfile", JSON.stringify(existing));
       }
+
       return existing;
     } catch {
       return {};
@@ -40,14 +48,21 @@ export default function ProfileTab() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
 
-  // Cropper State
   const [cropOpen, setCropOpen] = useState(false);
   const [cropImage, setCropImage] = useState(null);
   const [cropType, setCropType] = useState("avatar");
 
-  // ─── Persist + notify ─────────────────────────────────
+  const clearAllProfileCache = () => {
+    Object.keys(sessionStorage).forEach((key) => {
+      if (key.startsWith("anipulse_profile_cache_")) {
+        sessionStorage.removeItem(key);
+      }
+    });
+  };
+
   const persist = (next) => {
     localStorage.setItem("userProfile", JSON.stringify(next));
+    clearAllProfileCache();
     window.dispatchEvent(new CustomEvent("syncSchedule"));
   };
 
@@ -57,7 +72,6 @@ export default function ProfileTab() {
     persist(next);
   };
 
-  // ─── Name ─────────────────────────────────────────────
   const handleName = async (newName) => {
     const clean = (newName || "").trim();
     if (!clean) return;
@@ -70,12 +84,10 @@ export default function ProfileTab() {
     }
   };
 
-  // ─── Handle File Select (Opens Cropper) ───────────────
   const handleAvatarSelect = (file) => {
     if (!file) return;
     if (file.size > 5 * 1024 * 1024)
       return showToast("Image too large (max 5MB)", "error");
-
     const reader = new FileReader();
     reader.onload = () => {
       setCropImage(reader.result);
@@ -89,7 +101,6 @@ export default function ProfileTab() {
     if (!file) return;
     if (file.size > 5 * 1024 * 1024)
       return showToast("Image too large (max 5MB)", "error");
-
     const reader = new FileReader();
     reader.onload = () => {
       setCropImage(reader.result);
@@ -99,7 +110,6 @@ export default function ProfileTab() {
     reader.readAsDataURL(file);
   };
 
-  // ─── Handle Cropped Image (Uploads to Backend) ────────
   const handleCropConfirm = async (base64Image) => {
     setCropOpen(false);
     const file = base64ToFile(
@@ -116,7 +126,6 @@ export default function ProfileTab() {
         showToast("Avatar updated!", "success");
         if (typeof window.updateSidebarUserInfo === "function")
           window.updateSidebarUserInfo();
-        window.dispatchEvent(new CustomEvent("syncSchedule"));
       } catch (err) {
         showToast(err.message || "Avatar upload failed", "error");
       } finally {
@@ -129,7 +138,6 @@ export default function ProfileTab() {
         const dataUrl = await uploadCover(file);
         update({ cover: dataUrl });
         showToast("Cover updated!", "success");
-        window.dispatchEvent(new CustomEvent("syncSchedule"));
       } catch (err) {
         showToast(err.message || "Cover upload failed", "error");
       } finally {
@@ -138,7 +146,6 @@ export default function ProfileTab() {
     }
   };
 
-  // ─── Reset avatar ─────────────────────────────────────
   const resetAvatar = () => {
     const name = profile.name || profile.username || "User";
     const def = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=6a5acd&color=fff&bold=true&size=200`;
@@ -169,11 +176,8 @@ export default function ProfileTab() {
 
   return (
     <div className="settings-tab-content active" id="tab-profile">
-      <ProfilePreviewBanner profile={profile} />
+      <ProfilePreviewBanner profile={profile} user={user} />
 
-      {/* ═══════════════════════════════════════════════
-                BASIC INFO
-            ═══════════════════════════════════════════════ */}
       <div className="settings-group">
         <h3>
           <i className="fas fa-user" aria-hidden="true" /> Basic Info
@@ -226,9 +230,6 @@ export default function ProfileTab() {
         </div>
       </div>
 
-      {/* ═══════════════════════════════════════════════
-                PROFILE DETAILS
-            ═══════════════════════════════════════════════ */}
       <div className="settings-group">
         <h3>
           <i className="fas fa-id-card" aria-hidden="true" /> Profile Details
@@ -302,9 +303,6 @@ export default function ProfileTab() {
         </div>
       </div>
 
-      {/* ═══════════════════════════════════════════════
-                SOCIAL LINKS
-            ═══════════════════════════════════════════════ */}
       <div className="settings-group">
         <h3>
           <i className="fas fa-share-alt" aria-hidden="true" /> Social Links
@@ -337,9 +335,6 @@ export default function ProfileTab() {
         ))}
       </div>
 
-      {/* ═══════════════════════════════════════════════
-                RECAP
-            ═══════════════════════════════════════════════ */}
       <div className="settings-group">
         <h3>
           <i className="fas fa-chart-line" aria-hidden="true" /> Recaps
@@ -365,9 +360,6 @@ export default function ProfileTab() {
         </div>
       </div>
 
-      {/* ═══════════════════════════════════════════════
-                ACTIONS
-            ═══════════════════════════════════════════════ */}
       <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
         <button className="btn btn-primary" onClick={save} disabled={saving}>
           <i className="fas fa-save" /> {saving ? "Saving..." : "Save Profile"}
@@ -377,7 +369,6 @@ export default function ProfileTab() {
         </button>
       </div>
 
-      {/* --- CROPPER MODAL --- */}
       <AvatarCropperModal
         open={cropOpen}
         imageUrl={cropImage}

@@ -6,14 +6,14 @@ const SAVE_DELAY = 800;
 
 const LS_LAST_SAVED = "autoBackupLastSavedAt";
 const LS_HANDLE_NAME = "autoBackupHandleName";
+const LS_LAST_ERROR = "autoBackupLastError";
 
 let backupHandle = null;
 let saveTimer = null;
 let lastSavedAt = readStoredNumber(LS_LAST_SAVED);
-let lastError = null;
+let lastError = localStorage.getItem(LS_LAST_ERROR) || null;
 let initialized = false;
 let listenersBound = false;
-let writeInFlight = false;
 
 const listeners = new Set();
 
@@ -41,6 +41,14 @@ function writeStoredHandleName(name) {
         localStorage.setItem(LS_HANDLE_NAME, name);
     } else {
         localStorage.removeItem(LS_HANDLE_NAME);
+    }
+}
+
+function writeStoredError(msg) {
+    if (msg) {
+        localStorage.setItem(LS_LAST_ERROR, msg);
+    } else {
+        localStorage.removeItem(LS_LAST_ERROR);
     }
 }
 
@@ -137,36 +145,10 @@ async function deleteHandleFromDB() {
     } catch (_) { }
 }
 
-async function ensurePermission(handle, { silent = false } = {}) {
-    const opts = { mode: "readwrite" };
-    try {
-        const current = await handle.queryPermission(opts);
-        if (current === "granted") return true;
-        if (current === "denied") return false;
-        if (silent) return false;
-        const requested = await handle.requestPermission(opts);
-        return requested === "granted";
-    } catch (_) {
-        return false;
-    }
-}
-
 async function writeBackup({ silent = false } = {}) {
     if (!backupHandle) return false;
-    if (writeInFlight) return false;
 
-    writeInFlight = true;
     try {
-        const ok = await ensurePermission(backupHandle, { silent });
-        if (!ok) {
-            if (!silent) {
-                lastError =
-                    "Backup permission not granted. Click Save now to re-authorize.";
-            }
-            emit();
-            return false;
-        }
-
         const data = buildPrettyJSON();
         const writable = await backupHandle.createWritable();
         await writable.write(data);
@@ -175,22 +157,25 @@ async function writeBackup({ silent = false } = {}) {
         lastSavedAt = Date.now();
         writeStoredTimestamp(lastSavedAt);
         lastError = null;
+        writeStoredError(null);
         emit();
         return true;
     } catch (err) {
-        if (err.name === "NotFoundError" || err.name === "NotAllowedError") {
-            backupHandle = null;
-            writeStoredHandleName(null);
-            lastError =
-                "Backup file is no longer accessible. Re-enable auto backup.";
-            await deleteHandleFromDB();
+        console.warn("[AutoBackup] Write failed:", err);
+        backupHandle = null;
+        await deleteHandleFromDB();
+
+        if (err.name === "NotFoundError" || err.name === "NotAllowedError" || err.name === "SecurityError") {
+            lastError = "Your browser blocked access to this folder. Please select your 'Documents' or 'Downloads' folder.";
+        } else if (err.name === "NoModificationAllowedError") {
+            lastError = "File is locked by another program. Please close it and try again.";
         } else {
-            lastError = err.message || "Backup failed";
+            lastError = err.message || "Backup failed.";
         }
+
+        writeStoredError(lastError);
         emit();
         return false;
-    } finally {
-        writeInFlight = false;
     }
 }
 
@@ -204,28 +189,52 @@ export function triggerSave() {
 
 export async function enable() {
     if (!isSupported()) {
-        throw new Error(
-            "Auto backup is not supported in this browser. Use Chrome or Edge.",
-        );
+        throw new Error("Auto backup is not supported in this browser. Use Chrome or Edge.");
     }
 
-    const handle = await window.showSaveFilePicker({
-        suggestedName: "AniPulse_Backup.json",
-        types: [
-            {
-                description: "AniPulse JSON Backup",
-                accept: { "application/json": [".json"] },
-            },
-        ],
-    });
+    let handle;
+    try {
+        handle = await window.showSaveFilePicker({
+            suggestedName: "AniPulse_Backup.json",
+            types: [
+                {
+                    description: "AniPulse JSON Backup",
+                    accept: { "application/json": [".json"] },
+                },
+            ],
+        });
+    } catch (err) {
+        if (err.name === "AbortError") {
+            throw new Error("You canceled the file selection. Please try again.");
+        }
+        if (err.name === "SecurityError" || err.name === "NotAllowedError") {
+            throw new Error("Your browser blocked writing to this folder. Please select a folder like 'Documents' or 'Downloads'.");
+        }
+        throw new Error(err.message || "Could not open file picker.");
+    }
 
     backupHandle = handle;
     lastError = null;
+    writeStoredError(null);
     writeStoredHandleName(handle.name);
-    await saveHandleToDB(handle);
+
+    try {
+        await saveHandleToDB(handle);
+    } catch (dbErr) {
+        console.warn("[AutoBackup] Could not save handle to DB:", dbErr);
+    }
+
     emit();
 
-    await writeBackup();
+    const ok = await writeBackup();
+    if (!ok) {
+        backupHandle = null;
+        await deleteHandleFromDB();
+        writeStoredHandleName(null);
+        emit();
+        throw new Error(lastError || "Failed to write initial backup. Please try a different folder.");
+    }
+
     return getStatus();
 }
 
@@ -233,6 +242,7 @@ export async function disable() {
     clearTimeout(saveTimer);
     backupHandle = null;
     lastError = null;
+    writeStoredError(null);
     lastSavedAt = null;
     writeStoredTimestamp(null);
     writeStoredHandleName(null);
@@ -277,11 +287,13 @@ export async function init() {
                 await deleteHandleFromDB();
                 backupHandle = null;
                 writeStoredHandleName(null);
-                lastError =
-                    "Backup permission was revoked. Re-enable auto backup.";
+                lastError = "Backup permission was revoked by the browser. Please re-enable auto backup.";
+                writeStoredError(lastError);
             } else {
                 backupHandle = handle;
                 writeStoredHandleName(handle.name);
+                lastError = null;
+                writeStoredError(null);
             }
         }
     } catch (err) {
@@ -290,15 +302,11 @@ export async function init() {
 
     if (!listenersBound) {
         listenersBound = true;
-
         window.addEventListener("animeUpdate", triggerSave);
-
         window.addEventListener("storage", (e) => {
             if (e.key === "animeData") triggerSave();
         });
-
         window.addEventListener("beforeunload", handleBeforeUnload);
-
         document.addEventListener("visibilitychange", handleVisibilityChange);
     }
 

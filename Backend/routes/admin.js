@@ -23,27 +23,28 @@ const logAdminAction = async (adminId, action, targetId, details) => {
 
 router.get('/stats', async (req, res) => {
     try {
-        const [usersSnap, discussionsSnap] = await Promise.all([
-            db.collection(COLLECTIONS.USERS).get(),
+        const [usersCount, bannedCount, discussionsSnap, reportsSnap, usersDataSnap] = await Promise.all([
+            db.collection(COLLECTIONS.USERS).count().get(),
+            db.collection(COLLECTIONS.USERS).where('banned', '==', true).count().get(),
             db.collection('discussions').count().get(),
+            db.collection('reports').where('status', '==', 'open').count().get().catch(() => ({ data: () => ({ count: 0 }) })),
+            db.collection(COLLECTIONS.USERS).select('totalAnime', 'totalHours').limit(2000).get()
         ]);
 
-        let totalUsers = usersSnap.size;
-        let bannedUsers = 0;
         let totalAnime = 0;
         let totalHours = 0;
 
-        usersSnap.forEach(doc => {
+        usersDataSnap.forEach(doc => {
             const data = doc.data();
-            if (data.banned) bannedUsers++;
             totalAnime += (data.totalAnime || 0);
             totalHours += (data.totalHours || 0);
         });
 
         res.json({
-            totalUsers,
-            bannedUsers,
+            totalUsers: usersCount.data().count,
+            bannedUsers: bannedCount.data().count,
             totalDiscussions: discussionsSnap.data().count,
+            totalReports: reportsSnap.data().count,
             totalAnime,
             totalHours,
         });
@@ -58,25 +59,9 @@ router.get('/users', async (req, res) => {
         let query = db.collection(COLLECTIONS.USERS);
         const snap = await query.limit(parseInt(limit, 10)).get();
 
-        const uids = snap.docs.map(d => d.id);
-        const authRecords = {};
-
-        for (let i = 0; i < uids.length; i += 100) {
-            const chunk = uids.slice(i, i + 100);
-            try {
-                const getUsersResult = await auth.getUsers(chunk.map(uid => ({ uid })));
-                getUsersResult.users.forEach(u => { authRecords[u.uid] = u; });
-            } catch (err) {
-                console.warn('Batch auth fetch failed:', err.message);
-            }
-        }
-
         const users = snap.docs.map(doc => {
             const data = doc.data();
-            const authRecord = authRecords[doc.id];
-            const claims = authRecord?.customClaims || {};
-
-            const finalRole = data.role || claims.role || (claims.admin ? 'admin' : 'member');
+            const finalRole = data.role || (data.admin ? 'admin' : 'member');
 
             return {
                 uid: doc.id,
@@ -89,7 +74,7 @@ router.get('/users', async (req, res) => {
                 totalAnime: data.totalAnime || 0,
                 totalHours: data.totalHours || 0,
                 banned: !!data.banned,
-                disabled: authRecord?.disabled || false,
+                disabled: !!data.disabled,
                 role: finalRole,
                 isAdmin: finalRole === 'admin',
                 createdAt: data.createdAt || null,
@@ -143,7 +128,6 @@ router.put('/users/:userId', async (req, res) => {
             update.adminOverrides = adminOverrides;
         }
 
-        let roleChanged = false;
         if (role) {
             const authRecord = await auth.getUser(userId).catch(() => null);
             const currentClaims = authRecord?.customClaims || {};
@@ -152,7 +136,6 @@ router.put('/users/:userId', async (req, res) => {
             if (role !== currentRole) {
                 await auth.setCustomUserClaims(userId, { role, admin: role === 'admin' });
                 await auth.revokeRefreshTokens(userId);
-                roleChanged = true;
                 update.role = role;
                 logDetails.role = role;
             }
@@ -190,7 +173,7 @@ router.get('/users/:userId', async (req, res) => {
             uid: userId,
             ...data,
             animeList,
-            role: data.role || claims.role || (claims.admin ? 'admin' : 'member'),
+            role: claims.role || (claims.admin ? 'admin' : 'member'),
             isAdmin: claims.admin === true || claims.role === 'admin',
             disabled: authRecord?.disabled || false,
         });
@@ -209,6 +192,7 @@ router.post('/users/:userId/ban', async (req, res) => {
 
         await db.collection(COLLECTIONS.USERS).doc(userId).set({
             banned: true,
+            disabled: true,
             bannedAt: new Date().toISOString(),
             bannedBy: req.userId,
         }, { merge: true });
@@ -227,6 +211,7 @@ router.post('/users/:userId/unban', async (req, res) => {
 
         await db.collection(COLLECTIONS.USERS).doc(userId).set({
             banned: false,
+            disabled: false,
             unbannedAt: new Date().toISOString(),
             unbannedBy: req.userId,
         }, { merge: true });
@@ -344,6 +329,51 @@ router.delete('/discussions/:id', async (req, res) => {
         batch.delete(threadRef);
         await batch.commit();
         await logAdminAction(req.userId, 'DELETE_DISCUSSION', req.params.id, {});
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.get('/reports', async (req, res) => {
+    try {
+        const snap = await db.collection('reports').where('status', '==', 'open').orderBy('createdAt', 'desc').get();
+
+        const reports = await Promise.all(snap.docs.map(async (doc) => {
+            const data = doc.data();
+            let reporter = {};
+            let target = {};
+
+            if (data.reporterId) {
+                const reporterDoc = await db.collection(COLLECTIONS.USERS).doc(data.reporterId).get();
+                if (reporterDoc.exists) reporter = reporterDoc.data();
+            }
+
+            if (data.targetUid) {
+                const targetDoc = await db.collection(COLLECTIONS.USERS).doc(data.targetUid).get();
+                if (targetDoc.exists) target = targetDoc.data();
+            }
+
+            return {
+                id: doc.id,
+                ...data,
+                reporterName: reporter.name || 'Unknown',
+                targetName: target.name || 'Unknown',
+                targetUsername: target.publicUsername || target.username || 'Unknown'
+            };
+        }));
+
+        res.json({ reports });
+    } catch (err) {
+        console.error('Get reports error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.delete('/reports/:id', async (req, res) => {
+    try {
+        await db.collection('reports').doc(req.params.id).delete();
+        await logAdminAction(req.userId, 'DISMISS_REPORT', req.params.id, {});
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });

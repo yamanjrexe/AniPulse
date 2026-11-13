@@ -1,13 +1,9 @@
-// ============================================================
-// SYNC SERVICE — cloud source of truth
-// ============================================================
 import { api } from './api.js';
 
 export const syncService = {
     _timer: null,
-    _isSyncing: false,
-    _pending: false,
     _inflightLoad: null,
+    _currentSync: null,
 
     buildPayload() {
         return {
@@ -37,28 +33,28 @@ export const syncService = {
         };
     },
 
-    async syncToCloud() {
-        if (!localStorage.getItem('authToken')) return false;
-        if (!navigator.onLine) return false;
-        if (this._isSyncing) {
-            this._pending = true;
+    async syncToCloud(payload) {
+        if (!localStorage.getItem('authToken') || !navigator.onLine) {
             return false;
         }
 
-        this._isSyncing = true;
-        try {
-            await api.post('/sync/sync-all', this.buildPayload());
-            return true;
-        } catch (e) {
-            console.error('[Sync] Failed:', e);
-            return false;
-        } finally {
-            this._isSyncing = false;
-            if (this._pending) {
-                this._pending = false;
-                this.scheduleSync();
-            }
+        if (this._currentSync) {
+            return this._currentSync;
         }
+
+        const dataToSend = payload || this.buildPayload();
+
+        this._currentSync = api.post('/sync/sync-all', dataToSend)
+            .then(() => true)
+            .catch((e) => {
+                console.error('[Sync] Failed:', e);
+                return false;
+            })
+            .finally(() => {
+                this._currentSync = null;
+            });
+
+        return this._currentSync;
     },
 
     scheduleSync() {
@@ -75,7 +71,6 @@ export const syncService = {
 
             const { data } = res;
 
-            // ─── Anime list ───
             if (data.animeData != null) {
                 localStorage.setItem('animeData', JSON.stringify(data.animeData));
             }
@@ -98,19 +93,18 @@ export const syncService = {
                 localStorage.setItem('xpPendingQueue', JSON.stringify(data.xpPendingQueue));
             }
 
-            // ─── Merge userProfile + levelData (totalExp lives in levelData) ───
             if (data.userProfile != null || data.levelData != null) {
                 let existingProfile = {};
                 try {
                     existingProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
-                } catch { /* ignore */ }
+                } catch (e) {
+                    existingProfile = {};
+                }
 
                 const cloudProfile = data.userProfile || {};
                 const levelData = data.levelData || {};
-
                 const mergedProfile = { ...existingProfile, ...cloudProfile };
 
-                // ⚡ totalExp lives in levelData, not in userProfile
                 if (typeof levelData.totalXP === 'number') {
                     mergedProfile.totalExp = levelData.totalXP;
                 } else if (typeof mergedProfile.totalExp !== 'number') {
@@ -118,7 +112,6 @@ export const syncService = {
                     mergedProfile.totalExp = Number.isFinite(mirror) ? mirror : 0;
                 }
 
-                // Carry over level/title
                 if (typeof levelData.level === 'number') {
                     mergedProfile.level = levelData.level;
                 }
@@ -129,7 +122,6 @@ export const syncService = {
                 localStorage.setItem('userProfile', JSON.stringify(mergedProfile));
             }
 
-            // ─── Mirror keys ───
             if (data.levelData) {
                 if (typeof data.levelData.totalXP === 'number') {
                     localStorage.setItem('userXP', String(data.levelData.totalXP));
@@ -142,7 +134,6 @@ export const syncService = {
                 }
             }
 
-            // ─── Streak ───
             if (data.streakData) {
                 localStorage.setItem('streak', String(data.streakData.streak || 0));
                 if (data.streakData.lastActive) {
@@ -153,12 +144,11 @@ export const syncService = {
                 localStorage.setItem('lastResetDate', data.lastResetDate);
             }
 
-            // ─── Patch the `user` object (name/avatar) ───
             if (data.userProfile) {
                 const user = (() => {
                     try {
                         return JSON.parse(localStorage.getItem('user') || '{}');
-                    } catch {
+                    } catch (e) {
                         return {};
                     }
                 })();
@@ -168,7 +158,6 @@ export const syncService = {
                 localStorage.setItem('user', JSON.stringify(user));
             }
 
-            // ─── Notify listeners ───
             window.dispatchEvent(new CustomEvent('cloudDataLoaded'));
 
             const animeCount = Array.isArray(data.animeData) ? data.animeData.length : 0;
