@@ -23,7 +23,8 @@ export default function ClaimUsernameModal({ open, onClose, onSuccess }) {
       onSuccess(username);
       onClose();
     } catch (err) {
-      showToast(err.message, "error");
+      // This will now accurately display "Sorry, this username is already taken."
+      showToast(err.message || "Failed to claim username.", "error");
     } finally {
       setSubmitting(false);
     }

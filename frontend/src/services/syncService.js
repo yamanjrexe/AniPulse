@@ -159,6 +159,7 @@ export const syncService = {
             }
 
             window.dispatchEvent(new CustomEvent('cloudDataLoaded'));
+            window.dispatchEvent(new CustomEvent('uiRefresh'));
 
             const animeCount = Array.isArray(data.animeData) ? data.animeData.length : 0;
             return { animeCount, userProfile: data.userProfile, data };

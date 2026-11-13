@@ -186,7 +186,7 @@ export default function PrivacyTab() {
       <ClaimUsernameModal
         open={claimOpen}
         onClose={() => setClaimOpen(false)}
-        onSuccess={(uname) => {
+        onSuccess={async (uname) => {
           const nextProfile = {
             ...profile,
             publicUsername: uname,
@@ -194,6 +194,9 @@ export default function PrivacyTab() {
           };
           setProfile(nextProfile);
           localStorage.setItem("userProfile", JSON.stringify(nextProfile));
+
+          await syncToCloud();
+          showToast("Username claimed and synced to all devices!", "success");
         }}
       />
     </div>

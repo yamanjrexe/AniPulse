@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { navigationItems } from "../../routes/routeConfig.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
@@ -9,19 +9,27 @@ export default function SidebarNav({ onNavigate }) {
   const { showToast } = useToast();
   const navigate = useNavigate();
 
+  const [profile, setProfile] = useState({});
+
+  useEffect(() => {
+    const loadProfile = () => {
+      try {
+        setProfile(JSON.parse(localStorage.getItem("userProfile") || "{}"));
+      } catch {
+        setProfile({});
+      }
+    };
+
+    loadProfile();
+    window.addEventListener("uiRefresh", loadProfile);
+    return () => window.removeEventListener("uiRefresh", loadProfile);
+  }, []);
+
   const handleLogout = async () => {
     showToast("Logging out...", "info");
     await logout();
     navigate("/login");
   };
-
-  const profile = (() => {
-    try {
-      return JSON.parse(localStorage.getItem("userProfile") || "{}");
-    } catch {
-      return {};
-    }
-  })();
 
   const publicSlug = profile.publicUsername || profile.usernameLower;
   const hasAdminAccess =
@@ -50,11 +58,6 @@ export default function SidebarNav({ onNavigate }) {
               key={item.id}
               to={itemPath}
               data-page={item.id}
-              onMouseEnter={() => {
-                if (item.id === "admin") {
-                  import("../../pages/Admin/Admin.jsx");
-                }
-              }}
               onClick={(e) => {
                 if (onNavigate) onNavigate(e);
               }}

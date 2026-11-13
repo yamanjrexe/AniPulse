@@ -243,17 +243,30 @@ router.post('/claim-username', verifyToken, async (req, res, next) => {
 
         const usernameRef = db.collection('usernames').doc(username);
         const userRef = db.collection(COLLECTIONS.USERS).doc(req.userId);
+        const profileRef = db.collection(COLLECTIONS.USER_PROFILES).doc(req.userId);
 
-        await db.runTransaction(async (t) => {
-            const unDoc = await t.get(usernameRef);
-            if (unDoc.exists) throw new AppError('Username already taken.', 400);
+        // Check if the username is already taken BEFORE running the transaction
+        const existingUsername = await usernameRef.get();
+        if (existingUsername.exists && existingUsername.data().uid !== req.userId) {
+            return res.status(400).json({ error: 'Sorry, this username is already taken.' });
+        }
 
-            t.set(usernameRef, { uid: req.userId, createdAt: new Date().toISOString() });
-            t.update(userRef, {
-                publicUsername: username,
-                usernameLower: username,
+        try {
+            await db.runTransaction(async (t) => {
+                t.set(usernameRef, { uid: req.userId, createdAt: new Date().toISOString() });
+                t.set(userRef, {
+                    publicUsername: username,
+                    usernameLower: username,
+                }, { merge: true });
+                t.set(profileRef, {
+                    publicUsername: username,
+                    usernameLower: username,
+                }, { merge: true });
             });
-        });
+        } catch (e) {
+            console.error("Transaction failed:", e);
+            return res.status(500).json({ error: "Failed to claim username due to a server error. Please try again." });
+        }
 
         res.json({ success: true, username });
     } catch (err) {
