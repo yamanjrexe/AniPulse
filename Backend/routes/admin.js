@@ -69,7 +69,7 @@ router.get('/users', async (req, res) => {
                 email: data.email || '',
                 avatar: data.avatar || null,
                 level: data.level || 1,
-                title: data.title || 'Newbie',
+                title: data.title || 'Rookie',
                 totalXP: data.totalXP || 0,
                 totalAnime: data.totalAnime || 0,
                 totalHours: data.totalHours || 0,

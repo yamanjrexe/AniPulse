@@ -382,8 +382,7 @@ export default function AnimeModal() {
           ? "TV_SHORT"
           : r.type || "TV";
     const dur = r.duration || DEFAULT_DURATION[type] || 20;
-
-    let cover = r.images?.jpg?.image_url || ""; // AniList fallback
+    let cover = r.images?.jpg?.image_url || "";
 
     try {
       const tmdbCover = await tmdbService.getPoster({
@@ -518,6 +517,7 @@ export default function AnimeModal() {
         updatedList = animeData.map((a) =>
           a.id === updatedAnime.id ? updatedAnime : a,
         );
+        updatedList = animeService.reindexIds(updatedList);
 
         try {
           awardXP(updatedAnime, { oldAnime });
@@ -539,7 +539,7 @@ export default function AnimeModal() {
         const newId = animeService.getNextAvailableId(animeDataSnapshot);
         const newAnime = { id: newId, ...payload, createdAt: nowTimestamp };
 
-        updatedList = [...animeData, newAnime];
+        updatedList = animeService.reindexIds([...animeData, newAnime]);
 
         try {
           awardXP(newAnime, { oldAnime: null });
@@ -594,7 +594,9 @@ export default function AnimeModal() {
     setSubmitting(true);
 
     try {
-      const newList = animeData.filter((a) => a.id !== targetId);
+      const filtered = animeData.filter((a) => a.id !== targetId);
+      const newList = animeService.reindexIds(filtered);
+
       setAnimeData(newList);
       localStorage.setItem("animeData", JSON.stringify(newList, null, 2));
       logActivity("deleted", deletedTitle);
@@ -626,7 +628,6 @@ export default function AnimeModal() {
     { length: 40 },
     (_, i) => new Date().getFullYear() - 20 + i,
   );
-
   const showPreview = Boolean(form.cover);
 
   return (

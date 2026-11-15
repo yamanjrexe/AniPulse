@@ -1,54 +1,63 @@
 export const LEVELS = [
-    { level: 1, title: 'Newbie', xpRequired: 0 },
+    // Tier 1: Casual & Community (1–10)
+    { level: 1, title: 'Rookie', xpRequired: 0 },
     { level: 2, title: 'Scout', xpRequired: 100 },
-    { level: 3, title: 'Viewer', xpRequired: 250 },
+    { level: 3, title: 'Watcher', xpRequired: 250 },
     { level: 4, title: 'Otaku', xpRequired: 500 },
-    { level: 5, title: 'Fanatic', xpRequired: 800 },
-    { level: 6, title: 'Binge', xpRequired: 1200 },
+    { level: 5, title: 'Binger', xpRequired: 800 },
+    { level: 6, title: 'Enthusiast', xpRequired: 1200 },
     { level: 7, title: 'Senpai', xpRequired: 1700 },
     { level: 8, title: 'Shonen', xpRequired: 2300 },
-    { level: 9, title: 'Elite', xpRequired: 3000 },
-    { level: 10, title: 'Legend', xpRequired: 4000 },
-    { level: 11, title: 'Sage', xpRequired: 5200 },
-    { level: 12, title: 'Keeper', xpRequired: 6500 },
-    { level: 13, title: 'Traveler', xpRequired: 8000 },
-    { level: 14, title: 'Master', xpRequired: 10000 },
-    { level: 15, title: 'Grand', xpRequired: 12500 },
-    { level: 16, title: 'Hokage', xpRequired: 15000 },
-    { level: 17, title: 'Transc', xpRequired: 18000 },
-    { level: 18, title: 'Veteran', xpRequired: 22000 },
-    { level: 19, title: 'Watcher', xpRequired: 27000 },
-    { level: 20, title: 'Myth', xpRequired: 35000 },
-    { level: 21, title: 'Deity', xpRequired: 45000 },
-    { level: 22, title: 'Mythic', xpRequired: 53000 },
-    { level: 23, title: 'Ascend', xpRequired: 62000 },
-    { level: 24, title: 'Divine', xpRequired: 72000 },
-    { level: 25, title: 'Cosmic', xpRequired: 83000 },
-    { level: 26, title: 'Eternal', xpRequired: 95000 },
-    { level: 27, title: 'Godly', xpRequired: 108000 },
-    { level: 28, title: 'Celest', xpRequired: 122000 },
-    { level: 29, title: 'Potent', xpRequired: 137000 },
-    { level: 30, title: 'Absol', xpRequired: 153000 },
-    { level: 31, title: 'Supreme', xpRequired: 170000 },
-    { level: 32, title: 'VLord', xpRequired: 188000 },
-    { level: 33, title: 'StarE', xpRequired: 207000 },
-    { level: 34, title: 'Galaxy', xpRequired: 227000 },
-    { level: 35, title: 'Walker', xpRequired: 248000 },
-    { level: 36, title: 'DimLord', xpRequired: 270000 },
-    { level: 37, title: 'Weaver', xpRequired: 293000 },
-    { level: 38, title: 'TimeM', xpRequired: 317000 },
-    { level: 39, title: 'SpaceG', xpRequired: 342000 },
-    { level: 40, title: 'Etern', xpRequired: 368000 },
-    { level: 41, title: 'Infini', xpRequired: 395000 },
-    { level: 42, title: 'Omni', xpRequired: 423000 },
-    { level: 43, title: 'Creator', xpRequired: 452000 },
-    { level: 44, title: 'Prime', xpRequired: 482000 },
-    { level: 45, title: 'Alpha', xpRequired: 513000 },
-    { level: 46, title: 'Omega', xpRequired: 545000 },
-    { level: 47, title: 'Genesis', xpRequired: 578000 },
-    { level: 48, title: 'Apoc', xpRequired: 612000 },
-    { level: 49, title: 'Nirvana', xpRequired: 647000 },
-    { level: 50, title: 'Max', xpRequired: 683000 },
+    { level: 9, title: 'Protagonist', xpRequired: 3000 },
+    { level: 10, title: 'Veteran', xpRequired: 4000 },
+
+    // Tier 2: Combat & Rank (11–20)
+    { level: 11, title: 'Ronin', xpRequired: 5200 },
+    { level: 12, title: 'Shinobi', xpRequired: 6500 },
+    { level: 13, title: 'Vanguard', xpRequired: 8000 },
+    { level: 14, title: 'Captain', xpRequired: 10000 },
+    { level: 15, title: 'Hashira', xpRequired: 12500 },
+    { level: 16, title: 'Sensei', xpRequired: 15000 },
+    { level: 17, title: 'Sage', xpRequired: 18000 },
+    { level: 18, title: 'Kage', xpRequired: 22000 },
+    { level: 19, title: 'Warlord', xpRequired: 27000 },
+    { level: 20, title: 'Champion', xpRequired: 35000 },
+
+    // Tier 3: Mastery & Legend (21–30)
+    { level: 21, title: 'Hero', xpRequired: 45000 },
+    { level: 22, title: 'Legend', xpRequired: 53000 },
+    { level: 23, title: 'Mythic', xpRequired: 62000 },
+    { level: 24, title: 'Paragon', xpRequired: 72000 },
+    { level: 25, title: 'Phantom', xpRequired: 83000 },
+    { level: 26, title: 'Sovereign', xpRequired: 95000 },
+    { level: 27, title: 'Overlord', xpRequired: 108000 },
+    { level: 28, title: 'Emperor', xpRequired: 122000 },
+    { level: 29, title: 'Awakened', xpRequired: 137000 },
+    { level: 30, title: 'Ascendant', xpRequired: 153000 },
+
+    // Tier 4: Divine & Mythological (31–40)
+    { level: 31, title: 'Demigod', xpRequired: 170000 },
+    { level: 32, title: 'Valkyrie', xpRequired: 188000 },
+    { level: 33, title: 'Titan', xpRequired: 207000 },
+    { level: 34, title: 'Archon', xpRequired: 227000 },
+    { level: 35, title: 'Deity', xpRequired: 248000 },
+    { level: 36, title: 'Seraph', xpRequired: 270000 },
+    { level: 37, title: 'Celestial', xpRequired: 293000 },
+    { level: 38, title: 'Immortal', xpRequired: 317000 },
+    { level: 39, title: 'Transcendent', xpRequired: 342000 },
+    { level: 40, title: 'Divine', xpRequired: 368000 },
+
+    // Tier 5: Cosmic & Endgame (41–50)
+    { level: 41, title: 'Astral', xpRequired: 395000 },
+    { level: 42, title: 'Nebula', xpRequired: 423000 },
+    { level: 43, title: 'Supernova', xpRequired: 452000 },
+    { level: 44, title: 'Chronos', xpRequired: 482000 },
+    { level: 45, title: 'Voidwalker', xpRequired: 513000 },
+    { level: 46, title: 'Genesis', xpRequired: 545000 },
+    { level: 47, title: 'Apex', xpRequired: 578000 },
+    { level: 48, title: 'Omega', xpRequired: 612000 },
+    { level: 49, title: 'Infinite', xpRequired: 647000 },
+    { level: 50, title: 'Omnipotent', xpRequired: 683000 }
 ];
 
 export const MAX_DAILY_XP = 1500;
@@ -114,15 +123,15 @@ export function getUserProfile() {
         changed = true;
     }
 
-    if (typeof profile.level !== 'number' || !profile.title) {
-        for (let i = LEVELS.length - 1; i >= 0; i--) {
-            if (profile.totalExp >= LEVELS[i].xpRequired) {
+    for (let i = LEVELS.length - 1; i >= 0; i--) {
+        if (profile.totalExp >= LEVELS[i].xpRequired) {
+            if (profile.level !== LEVELS[i].level || profile.title !== LEVELS[i].title) {
                 profile.level = LEVELS[i].level;
                 profile.title = LEVELS[i].title;
-                break;
+                changed = true;
             }
+            break;
         }
-        changed = true;
     }
 
     if (changed) {
@@ -193,7 +202,6 @@ export function calculateExpFromParts(
     { episodes = 0, progress = 0, duration = 20, type = 'TV', score = 0, hasScore = false } = {},
     { useProgress = false } = {}
 ) {
-    // PLAUSIBILITY CAPS to prevent leaderboard cheating
     const safeEpisodes = Math.min(episodes, 2000);
     const safeProgress = Math.min(progress, safeEpisodes);
     const safeDuration = Math.min(duration, 180);
@@ -207,7 +215,7 @@ export function calculateExpFromParts(
     else if (safeScore >= 8) scoreBonus = 5;
     else if (safeScore >= 7) scoreBonus = 3;
 
-    const movieBonus = type?.toLowerCase() === 'movie' ? 15 : 0;
+    const movieBonus = type && type.toLowerCase() === 'movie' ? 15 : 0;
     const progressBonus = Math.floor(safeProgress / 5);
     const ratingBonus = hasScore ? 2 : 0;
     const totalMinutes = safeProgress * safeDuration;
@@ -219,15 +227,17 @@ export function calculateExpFromParts(
     );
 }
 
-export function calculateTotalExpFromAnimeList(animeList) {
+export function calculateTotalXPFromAnimeList(animeList) {
     let total = 0;
     (animeList || []).forEach((a) => {
         if (a.userStatus === 'Completed') {
+            const effectiveProgress =
+                a.progress > 0 ? a.progress : (a.episodes || 0);
             total +=
                 calculateExpFromParts(
                     {
                         episodes: a.episodes || 0,
-                        progress: a.progress || 0,
+                        progress: effectiveProgress,
                         duration: a.duration || 20,
                         type: a.type,
                         score: a.score || 0,
@@ -243,7 +253,10 @@ export function calculateTotalExpFromAnimeList(animeList) {
 export function recalculateTotalExp() {
     const list = safeGet(ANIME_DATA_KEY, []) || [];
     const profile = getUserProfile();
-    const next = calculateTotalExpFromAnimeList(list);
+    const next = calculateTotalXPFromAnimeList(list);
+    console.log(
+        `[levelSystem] recalc: animeCount=${list.length}, stored=${profile.totalExp}, computed=${next}`
+    );
     if (profile.totalExp !== next) {
         profile.totalExp = next;
         saveUserProfile(profile);
@@ -494,11 +507,14 @@ export function checkForDirectlyCompletedAnime(animeList) {
         if (anime.userStatus !== 'Completed') return;
         if (history[anime.id]) return;
 
+        const effectiveProgress =
+            anime.progress > 0 ? anime.progress : (anime.episodes || 0);
+
         const earned =
             calculateExpFromParts(
                 {
                     episodes: anime.episodes || 0,
-                    progress: anime.progress || anime.episodes || 0,
+                    progress: effectiveProgress,
                     duration: anime.duration || 20,
                     type: anime.type,
                     score: anime.score || 0,
@@ -530,11 +546,14 @@ export function recomputeDailyXP() {
         if (a.userStatus !== 'Completed') return;
         if (a.actualFinishDate !== tk) return;
 
+        const effectiveProgress =
+            a.progress > 0 ? a.progress : (a.episodes || 0);
+
         total +=
             calculateExpFromParts(
                 {
                     episodes: a.episodes || 0,
-                    progress: a.progress || 0,
+                    progress: effectiveProgress,
                     duration: a.duration || 20,
                     type: a.type,
                     score: a.score || 0,
@@ -570,3 +589,10 @@ export function getTodayXP() {
     const today = new Date().toDateString();
     return parseInt(localStorage.getItem(`dailyXP_${today}`) || '0', 10);
 }
+
+export function clearAllCompletedHistory() {
+    localStorage.removeItem(COMPLETED_ANIME_KEY);
+    dispatchEvent(LEVEL_EVENTS.QUEUE_UPDATED);
+}
+
+export const calculateTotalExpFromAnimeList = calculateTotalXPFromAnimeList;

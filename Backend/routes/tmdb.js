@@ -6,11 +6,10 @@ const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const IMG_BASE = "https://image.tmdb.org/t/p/w500";
 
-// Bumped to v9 to force fresh searches
 const BACKEND_CACHE_VERSION = "v9";
 const posterCache = new Map();
 const CACHE_TTL = 1000 * 60 * 60 * 24 * 7;
-const ERROR_TTL = 1000 * 60 * 5;
+const ERROR_TTL = 1000 * 10;
 
 function normalize(s) {
     return (s || "").toLowerCase().trim().replace(/[^\w\s]/g, "").replace(/\s+/g, " ");
@@ -37,21 +36,32 @@ function titleScore(a, b) {
     return jaccard * 1.5;
 }
 
-async function fetchJson(url) {
+async function fetchJson(url, retries = 3) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 6000);
+    const timeout = setTimeout(() => controller.abort(), 8000);
     try {
         const r = await fetch(url, { signal: controller.signal });
         clearTimeout(timeout);
+
+        if (r.status === 429 && retries > 0) {
+            const retryAfter = parseInt(r.headers.get('retry-after') || '2', 10);
+            console.warn(`[TMDB] Rate limited. Retrying in ${retryAfter}s...`);
+            await new Promise(res => setTimeout(res, retryAfter * 1000));
+            return fetchJson(url, retries - 1);
+        }
+
         if (!r.ok) return null;
         return r.json();
     } catch (e) {
         clearTimeout(timeout);
+        if (retries > 0) {
+            await new Promise(res => setTimeout(res, 2000));
+            return fetchJson(url, retries - 1);
+        }
         return null;
     }
 }
 
-// HELPER: Strips "Season 2", "2nd Season", and subtitles after colons
 function getSearchVariants(title) {
     const variants = new Set();
     if (!title) return variants;
@@ -59,11 +69,9 @@ function getSearchVariants(title) {
     const t = title.trim();
     variants.add(t);
 
-    // 1. Remove subtitles (everything after a colon or dash)
     const baseTitle = t.split(/[:\-–—]/)[0].trim();
     if (baseTitle.length >= 3) variants.add(baseTitle);
 
-    // 2. Remove "Season X" or "Xnd Season" or "Part X"
     let cleanTitle = t.replace(/Season\s+\d+/gi, '')
         .replace(/\d+(st|nd|rd|th)\s+Season/gi, '')
         .replace(/Part\s+\d+/gi, '')
@@ -71,7 +79,6 @@ function getSearchVariants(title) {
         .trim();
     if (cleanTitle.length >= 3) variants.add(cleanTitle);
 
-    // 3. Combine both (e.g. "Mushoku Tensei: Jobless Reincarnation Season 2" -> "Mushoku Tensei")
     const baseClean = baseTitle.replace(/Season\s+\d+/gi, '')
         .replace(/\d+(st|nd|rd|th)\s+Season/gi, '')
         .replace(/Part\s+\d+/gi, '')
@@ -83,7 +90,6 @@ function getSearchVariants(title) {
 }
 
 async function findBestTmdb(anime) {
-    // Gather all possible titles
     const rawTitles = [
         anime.title_english, anime.title, anime.title_romaji, anime.title_native, ...(anime.synonyms || [])
     ].filter(Boolean);
@@ -103,7 +109,6 @@ async function findBestTmdb(anime) {
         let tvData = await fetchJson(`${TMDB_BASE}/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}${tvYearParam}`);
         let movieData = await fetchJson(`${TMDB_BASE}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}${movieYearParam}`);
 
-        // If nothing found with year, try again without year
         if (!tvData?.results?.length && !movieData?.results?.length && year) {
             tvData = await fetchJson(`${TMDB_BASE}/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`);
             movieData = await fetchJson(`${TMDB_BASE}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`);
@@ -129,7 +134,6 @@ async function findBestTmdb(anime) {
 
             let maxTitleScore = 0;
             const cands = [r.name || r.title, r.original_name || r.original_title].filter(Boolean);
-            // Compare the TMDB title against ALL raw AniList titles
             for (const ct of cands) {
                 for (const ut of rawTitles) {
                     const s = titleScore(ct, ut);
@@ -137,7 +141,7 @@ async function findBestTmdb(anime) {
                 }
             }
 
-            if (maxTitleScore < 1.0) continue;
+            if (maxTitleScore < 0.8) continue;
 
             score += maxTitleScore;
 
@@ -157,10 +161,10 @@ async function findBestTmdb(anime) {
             }
         }
 
-        if (bestMatch && bestMatch.score >= 2.5) break;
+        if (bestMatch && bestMatch.score >= 2.0) break;
     }
 
-    return bestMatch && bestMatch.score >= 1.2 ? bestMatch : null;
+    return bestMatch && bestMatch.score >= 1.0 ? bestMatch : null;
 }
 
 async function getBestPoster(tmdbId, mediaType) {

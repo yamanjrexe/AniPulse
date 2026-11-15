@@ -40,14 +40,52 @@ export default function About() {
                 marginBottom: "4px",
               }}
             >
-              <i className="fas fa-list-ul" style={{ marginRight: "8px" }} />
-              Two-Way AniList Sync
+              <i className="fas fa-sync-alt" style={{ marginRight: "8px" }} />
+              Instant AniList Import
             </h3>
             <p style={{ margin: 0, fontSize: "0.9rem" }}>
-              Connect your AniList account to push your edits, progress updates,
-              and completions directly to your AniList profile. Our smart
-              backend worker prevents spamming your activity feed and
-              automatically handles format mismatches.
+              Connect your AniList account and mirror your entire library in
+              seconds. Our backend worker intelligently batches your list,
+              fetches high-resolution TMDB covers in the background, and cleans
+              up ID gaps so your list stays perfectly chronological.
+            </p>
+          </div>
+
+          <div>
+            <h3
+              style={{
+                fontSize: "1rem",
+                color: "var(--brand-yellow)",
+                marginBottom: "4px",
+              }}
+            >
+              <i className="fas fa-trophy" style={{ marginRight: "8px" }} />
+              48-Tier Achievement System
+            </h3>
+            <p style={{ margin: 0, fontSize: "0.9rem" }}>
+              Level up your tracking with a massive expansion to 48
+              achievements. We track your episodes, hours, ratings, and streaks
+              fairly and accurately, rewarding you with massive XP bounties as
+              you progress from Rookie to Omnipotent.
+            </p>
+          </div>
+
+          <div>
+            <h3
+              style={{
+                fontSize: "1rem",
+                color: "var(--brand-yellow)",
+                marginBottom: "4px",
+              }}
+            >
+              <i className="fas fa-bolt" style={{ marginRight: "8px" }} />
+              Blazing Fast Performance
+            </h3>
+            <p style={{ margin: 0, fontSize: "0.9rem" }}>
+              We completely overhauled our data pipeline. By optimizing API
+              payloads, compressing heavy Base64 images, and implementing smart
+              local caching, the global leaderboard and user profiles now load
+              almost instantly.
             </p>
           </div>
 
@@ -64,47 +102,10 @@ export default function About() {
             </h3>
             <p style={{ margin: 0, fontSize: "0.9rem" }}>
               Dive into your viewing habits with a GitHub-style completion
-              heatmap, month-by-month period stats, genre distribution charts,
-              and a psychological rating analysis that tells you what kind of
-              critic you are.
-            </p>
-          </div>
-
-          <div>
-            <h3
-              style={{
-                fontSize: "1rem",
-                color: "var(--brand-yellow)",
-                marginBottom: "4px",
-              }}
-            >
-              <i className="fas fa-robot" style={{ marginRight: "8px" }} />
-              Integrated AI ChatBot
-            </h3>
-            <p style={{ margin: 0, fontSize: "0.9rem" }}>
-              Stuck on what to watch? Our built-in bot uses the AniList GraphQL
-              API to suggest shows based on your mood ("I'm sad", "I want
-              action"), look up metadata, and even add shows to your Plan to
-              Watch list with a single click.
-            </p>
-          </div>
-
-          <div>
-            <h3
-              style={{
-                fontSize: "1rem",
-                color: "var(--brand-yellow)",
-                marginBottom: "4px",
-              }}
-            >
-              <i className="fas fa-mobile-alt" style={{ marginRight: "8px" }} />
-              Installable PWA & Offline Mode
-            </h3>
-            <p style={{ margin: 0, fontSize: "0.9rem" }}>
-              AniPulse is a Progressive Web App. Install it on your phone or
-              desktop for a native app feel. Thanks to our local-first
-              architecture, you can continue editing your list while offline;
-              changes will sync automatically once you reconnect.
+              heatmap, month-by-month period stats, and a redesigned Rating
+              Analytics dashboard that breaks down your average, median, and
+              most common scores so you know exactly what kind of critic you
+              are.
             </p>
           </div>
         </div>
@@ -160,7 +161,11 @@ export default function About() {
       <div className="resources-cta">
         <h2>Ready to start?</h2>
         <p>Create a free account and see your anime journey visualized.</p>
-        <Link to="/login?register=true" className="btn btn-primary" style={{ color: "black" }}>
+        <Link
+          to="/login?register=true"
+          className="btn btn-primary"
+          style={{ color: "black" }}
+        >
           <i className="fas fa-user-plus" /> Create free account
         </Link>
       </div>

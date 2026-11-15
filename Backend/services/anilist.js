@@ -105,12 +105,8 @@ function normalizeTitle(str) {
 }
 
 function tokenOverlap(a, b) {
-    const tokensA = normalizeTitle(a)
-        .split(' ')
-        .filter((t) => t && !STOPWORDS.has(t));
-    const tokensB = normalizeTitle(b)
-        .split(' ')
-        .filter((t) => t && !STOPWORDS.has(t));
+    const tokensA = normalizeTitle(a).split(' ').filter((t) => t && !STOPWORDS.has(t));
+    const tokensB = normalizeTitle(b).split(' ').filter((t) => t && !STOPWORDS.has(t));
 
     if (!tokensA.length || !tokensB.length) return 0;
 
@@ -221,10 +217,7 @@ function searchVariants(title) {
     const out = new Set();
     out.add(t);
 
-    const stripped = t
-        .replace(/[!?.,;:'"’“”]+/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
+    const stripped = t.replace(/[!?.,;:'"’“”]+/g, ' ').replace(/\s+/g, ' ').trim();
     if (stripped.length >= 4 && stripped !== t) out.add(stripped);
 
     const beforeColon = t.split(/[:\-–—]/)[0].trim();
@@ -267,16 +260,10 @@ async function searchAnime(title, preferredFormat = null) {
 
     if (preferredFormat) {
         try {
-            const formatResults = await queryAniList(
-                variants[0],
-                preferredFormat
-            );
+            const formatResults = await queryAniList(variants[0], preferredFormat);
             if (formatResults.length > 0) return formatResults;
         } catch (err) {
-            console.warn(
-                '[AniList] Format-filtered search failed:',
-                err.message
-            );
+            console.warn('[AniList] Format-filtered search failed:', err.message);
         }
     }
 
@@ -289,10 +276,7 @@ async function searchAnime(title, preferredFormat = null) {
             results = await queryAniList(variants[i]);
             if (results.length > 0) return results;
         } catch (err) {
-            console.warn(
-                `[AniList] Variant search failed for "${variants[i]}":`,
-                err.message
-            );
+            console.warn(`[AniList] Variant search failed for "${variants[i]}":`, err.message);
         }
     }
 
@@ -386,18 +370,10 @@ async function batchSaveListEntries(accessToken, entries) {
         const parts = [`mediaId: ${e.mediaId}`];
         parts.push(`status: ${STATUS_MAP[e.status] || 'PLANNING'}`);
 
-        if (e.score != null) {
-            parts.push(`scoreRaw: ${Math.round(e.score * 10)}`);
-        }
-        if (e.progress != null) {
-            parts.push(`progress: ${Math.max(0, Math.floor(e.progress))}`);
-        }
-        if (e.startedAt) {
-            parts.push(`startedAt: ${fuzzyDateToGraphQL(e.startedAt)}`);
-        }
-        if (e.completedAt) {
-            parts.push(`completedAt: ${fuzzyDateToGraphQL(e.completedAt)}`);
-        }
+        if (e.score != null) parts.push(`scoreRaw: ${Math.round(e.score * 10)}`);
+        if (e.progress != null) parts.push(`progress: ${Math.max(0, Math.floor(e.progress))}`);
+        if (e.startedAt) parts.push(`startedAt: ${fuzzyDateToGraphQL(e.startedAt)}`);
+        if (e.completedAt) parts.push(`completedAt: ${fuzzyDateToGraphQL(e.completedAt)}`);
 
         return `m${i}: SaveMediaListEntry(${parts.join(', ')}) {
             id mediaId status progress score
@@ -455,6 +431,48 @@ async function fetchAllListEntries(accessToken, anilistUserId) {
     return entries;
 }
 
+async function fetchFullList(accessToken, anilistUserId) {
+    const query = `
+        query ($userId: Int) {
+            MediaListCollection(userId: $userId, type: ANIME) {
+                lists {
+                    entries {
+                        id
+                        status
+                        progress
+                        score
+                        startedAt { year month day }
+                        completedAt { year month day }
+                        media {
+                            id
+                            title { romaji english native }
+                            synonyms
+                            format
+                            episodes
+                            duration
+                            coverImage { extraLarge large }
+                            genres
+                            seasonYear
+                            startDate { year }
+                        }
+                    }
+                }
+            }
+        }
+    `;
+    const data = await graphql(accessToken, query, { userId: anilistUserId });
+    const entries = [];
+    const lists = data?.MediaListCollection?.lists || [];
+    for (const list of lists) {
+        for (const entry of list.entries || []) {
+            if (entry && entry.media) {
+                entries.push(entry);
+            }
+        }
+    }
+    return entries;
+}
+
 module.exports = {
     buildAuthUrl,
     exchangeCodeForToken,
@@ -469,6 +487,7 @@ module.exports = {
     deleteListEntry,
     findListEntry,
     fetchAllListEntries,
+    fetchFullList,
     normalizeTitle,
     bestTitleSimilarity,
     FORMAT_MAP,

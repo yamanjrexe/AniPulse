@@ -26,7 +26,7 @@ router.post('/register', async (req, res) => {
       createdAt: new Date().toISOString(),
       totalXP: 0,
       level: 1,
-      title: 'Newbie',
+      title: 'Rookie',
       totalAnime: 0,
       totalHours: 0,
       avatar: decoded.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(finalUsername)}&background=6a5acd&color=fff`
@@ -40,7 +40,7 @@ router.post('/register', async (req, res) => {
       success: true,
       user: {
         uid, username: finalUsername, name: finalUsername, email: finalEmail,
-        level: 1, title: 'Newbie', avatar: userProfile.avatar,
+        level: 1, title: 'Rookie', avatar: userProfile.avatar,
         createdAt: userProfile.createdAt
       }
     });
@@ -67,7 +67,7 @@ router.post('/login', async (req, res) => {
         email: decoded.email,
         avatar: decoded.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(decoded.name || 'User')}&background=6a5acd&color=fff`,
         createdAt: new Date().toISOString(),
-        totalXP: 0, level: 1, title: 'Newbie', totalAnime: 0, totalHours: 0
+        totalXP: 0, level: 1, title: 'Rookie', totalAnime: 0, totalHours: 0
       };
       await db.collection(COLLECTIONS.USERS).doc(uid).set(newUser);
       await db.collection(COLLECTIONS.ANIME_LISTS).doc(uid).set({ animeList: [], lastUpdated: new Date().toISOString() });
@@ -77,7 +77,7 @@ router.post('/login', async (req, res) => {
         success: true,
         user: {
           uid: newUser.uid, username: newUser.name, name: newUser.name,
-          email: newUser.email, level: 1, title: 'Newbie',
+          email: newUser.email, level: 1, title: 'Rookie',
           avatar: newUser.avatar, totalXP: 0, totalAnime: 0, totalHours: 0,
           createdAt: newUser.createdAt
         }
@@ -95,7 +95,7 @@ router.post('/login', async (req, res) => {
         name: userData.name || userData.username,
         email: userData.email,
         level: userData.level || 1,
-        title: userData.title || 'Newbie',
+        title: userData.title || 'Rookie',
         avatar: userData.avatar,
         totalXP: userData.totalXP || 0,
         totalAnime: userData.totalAnime || 0,
@@ -126,7 +126,7 @@ router.post('/google', async (req, res) => {
         email: decoded.email,
         avatar: decoded.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(decoded.name || 'User')}&background=6a5acd&color=fff`,
         createdAt: new Date().toISOString(),
-        totalXP: 0, level: 1, title: 'Newbie', totalAnime: 0, totalHours: 0
+        totalXP: 0, level: 1, title: 'Rookie', totalAnime: 0, totalHours: 0
       };
       await db.collection(COLLECTIONS.USERS).doc(uid).set(newUser);
       await db.collection(COLLECTIONS.ANIME_LISTS).doc(uid).set({ animeList: [], lastUpdated: new Date().toISOString() });
@@ -145,7 +145,7 @@ router.post('/google', async (req, res) => {
         name: userData.name || userData.username,
         email: userData.email,
         level: userData.level || 1,
-        title: userData.title || 'Newbie',
+        title: userData.title || 'Rookie',
         avatar: userData.avatar,
         totalXP: userData.totalXP || 0,
         totalAnime: userData.totalAnime || 0,
@@ -161,8 +161,10 @@ router.post('/google', async (req, res) => {
 
 router.get('/profile', verifyToken, async (req, res) => {
   try {
-    let userDoc = await db.collection(COLLECTIONS.USER_PROFILES).doc(req.userId).get();
-    if (!userDoc.exists) userDoc = await db.collection(COLLECTIONS.USERS).doc(req.userId).get();
+    let userDoc = await db.collection(COLLECTIONS.USERS).doc(req.userId).get();
+    if (!userDoc.exists) {
+      userDoc = await db.collection(COLLECTIONS.USER_PROFILES).doc(req.userId).get();
+    }
     if (!userDoc.exists) return res.status(404).json({ error: 'User not found' });
 
     const u = userDoc.data();
@@ -174,7 +176,7 @@ router.get('/profile', verifyToken, async (req, res) => {
         email: u.email,
         avatar: u.avatar,
         level: u.level || 1,
-        title: u.title || 'Newbie',
+        title: u.title || 'Rookie',
         totalXP: u.totalXP || 0,
         totalAnime: u.totalAnime || 0,
         totalHours: u.totalHours || 0,
@@ -221,7 +223,7 @@ router.get('/verify', verifyToken, async (req, res) => {
         name: u.name || u.username,
         email: u.email,
         level: u.level || 1,
-        title: u.title || 'Newbie',
+        title: u.title || 'Rookie',
         avatar: u.avatar,
         totalXP: u.totalXP || 0,
         createdAt: u.createdAt

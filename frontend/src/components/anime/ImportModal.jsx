@@ -3,11 +3,13 @@ import Modal from "../ui/Modal.jsx";
 import { useAnime } from "../../context/AnimeContext.jsx";
 import { useToast } from "../../context/ToastContext.jsx";
 import { useSync } from "../../context/SyncContext.jsx";
+import { useLevel } from "../../context/LevelContext.jsx";
 
 export default function ImportModal() {
   const { animeData, setAnimeData } = useAnime();
   const { showToast } = useToast();
   const { syncToCloud } = useSync();
+  const { recalc } = useLevel();
 
   const [open, setOpen] = useState(false);
   const [fileName, setFileName] = useState("");
@@ -24,14 +26,12 @@ export default function ImportModal() {
     return () => window.removeEventListener("openImportModal", onOpen);
   }, []);
 
-  // Always allowed to close — used after a successful import.
   const close = () => {
     setOpen(false);
     setFileName("");
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  // Used by Cancel / backdrop — refuses while an import is in flight.
   const closeIfIdle = () => {
     if (importing) return;
     close();
@@ -97,16 +97,17 @@ export default function ImportModal() {
       const mergedList = Array.from(existingMap.values());
 
       setAnimeData(mergedList);
+      localStorage.setItem("animeData", JSON.stringify(mergedList, null, 2));
       localStorage.setItem("localDirty", "true");
 
       window.dispatchEvent(new CustomEvent("animeUpdate"));
 
-      // Close first (so the `importing` guard doesn't block it),
-      // then clear the flag on the next tick.
       close();
       setImporting(false);
 
       setTimeout(async () => {
+        recalc();
+
         const ok = await syncToCloud();
         if (ok) {
           showToast(

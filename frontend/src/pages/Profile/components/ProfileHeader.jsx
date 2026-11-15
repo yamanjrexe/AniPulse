@@ -51,7 +51,7 @@ export default function ProfileHeader({
 }) {
   const ld = data.levelData || {
     level: 1,
-    title: "Newbie",
+    title: "Rookie",
     totalXP: 0,
     progress: 0,
     nextLevelXP: 100,

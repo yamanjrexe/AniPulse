@@ -2,8 +2,7 @@ import { firebase, API_BASE_URL } from "../firebaseClient.js";
 
 function buildUrl(endpoint) {
     if (typeof endpoint !== "string") return endpoint;
-    if (endpoint.startsWith("http://") || endpoint.startsWith("https://"))
-        return endpoint;
+    if (endpoint.startsWith("http://") || endpoint.startsWith("https://")) return endpoint;
     if (endpoint.startsWith("/api/")) return API_BASE_URL + endpoint;
     if (endpoint.startsWith("/")) return API_BASE_URL + "/api" + endpoint;
     return API_BASE_URL + "/api/" + endpoint;
@@ -46,11 +45,20 @@ async function request(endpoint, options = {}) {
         ...(options.headers || {}),
     };
 
+    const timeoutMs = options.timeout || 10000;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
     let res;
     try {
-        res = await fetch(url, { ...options, headers });
+        res = await fetch(url, { ...options, headers, signal: controller.signal });
     } catch (e) {
-        throw new Error("Failed to fetch");
+        if (e.name === "AbortError") {
+            throw new Error("Request timed out. The server is taking too long.");
+        }
+        throw new Error("Failed to fetch. Check your internet.");
+    } finally {
+        clearTimeout(timeoutId);
     }
 
     if (res.status === 401) {
@@ -74,21 +82,13 @@ async function request(endpoint, options = {}) {
 
                     if (retry.status !== 401) {
                         const errData = await retry.json().catch(() => ({}));
-                        throw new Error(
-                            errData.error ||
-                            `Request failed (${retry.status})`,
-                        );
+                        throw new Error(errData.error || `Request failed (${retry.status})`);
                     }
                 } catch (err) {
                     if (attempt === 2) {
-                        console.warn(
-                            "[api] Token refresh failed after 3 attempts:",
-                            err.message,
-                        );
+                        console.warn("[api] Token refresh failed after 3 attempts:", err.message);
                     } else {
-                        await new Promise((r) =>
-                            setTimeout(r, 400 * (attempt + 1)),
-                        );
+                        await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
                     }
                 }
             }
@@ -118,18 +118,15 @@ async function request(endpoint, options = {}) {
     }
 
     const data = await res.json().catch(() => ({}));
-    if (!res.ok)
-        throw new Error(data.error || `Request failed (${res.status})`);
+    if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
     return data;
 }
 
 export const api = {
-    get: (ep) => request(ep, { method: "GET" }),
-    post: (ep, body) =>
-        request(ep, { method: "POST", body: JSON.stringify(body) }),
-    put: (ep, body) =>
-        request(ep, { method: "PUT", body: JSON.stringify(body) }),
-    del: (ep) => request(ep, { method: "DELETE" }),
+    get: (ep, options = {}) => request(ep, { ...options, method: "GET" }),
+    post: (ep, body, options = {}) => request(ep, { ...options, method: "POST", body: JSON.stringify(body) }),
+    put: (ep, body, options = {}) => request(ep, { ...options, method: "PUT", body: JSON.stringify(body) }),
+    del: (ep, options = {}) => request(ep, { ...options, method: "DELETE" }),
 };
 
 export { API_BASE_URL };

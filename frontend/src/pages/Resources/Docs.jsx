@@ -8,9 +8,9 @@ const SECTIONS = [
     desc: "Learn the layout and how to navigate the app quickly.",
     points: [
       "FAB Menu: Click the floating yellow button (bottom-right) to Add Anime, Import, or open the ChatBot",
+      "Filters: Use the dropdowns on your Anime List or Watchlist to filter by Status, Type (TV, Movie, OVA), and Genre",
       "Keyboard Shortcuts: Press Enter in forms to jump to the next field; press Esc to close modals",
-      "Theme Toggle: Swap between light and dark mode in the top header",
-      "PWA Install: Use the download icon in the header to install AniPulse as an app",
+      "PWA Install: Use the download icon in the header to install AniPulse as a native app",
     ],
   },
   {
@@ -20,30 +20,30 @@ const SECTIONS = [
     points: [
       "Smart Progress: Selecting 'Watching' automatically bumps your progress to at least 1",
       "Date Picker: When marking as Completed, choose the exact month and year (and day, if it's in the past)",
-      "Filters: Filter your list by status, completion month, and year to find specific entries",
-      "Favorites: Feature up to 4 anime on your public profile by adding them in Settings",
+      "Top 8: Feature up to 8 anime on your public profile by adding them in Settings",
+      "Filters: Filter your list by status, type, completion month, and year to find specific entries",
     ],
   },
   {
-    icon: "fa-chart-line",
-    title: "Analytics & Visuals",
-    desc: "Understand the data behind your anime journey.",
+    icon: "fa-trophy",
+    title: "Gamification & Achievements",
+    desc: "How your XP, levels, and history logs work.",
     points: [
-      "Heatmap: A daily grid of your completion history; darker green means more anime finished that day",
-      "Period Stats: Pick any month/year combination to see exactly what you watched then",
-      "Rating Personality: Our algorithm analyzes your scores to tell you if you are a Generous, Balanced, or Harsh critic",
-      "Monthly Charts: View your completion trends over the current year",
+      "XP System: Earn XP by adding anime and marking them completed (more XP for longer shows)",
+      "Daily Limit: You can earn up to 1,500 XP per day; extra XP is queued and applied the next day",
+      "48 Achievements: Earn badges for milestones like 10K episodes, 365-day streaks, and 500+ lists",
+      "Levels: Level up from 1 to 50 (Rookie to Omnipotent) unlocking new titles and roadmap rewards",
     ],
   },
   {
-    icon: "fa-list-ul",
-    title: "AniList Two-Way Sync",
+    icon: "fa-sync-alt",
+    title: "AniList Import & Sync",
     desc: "Keep both your AniPulse and AniList accounts perfectly aligned.",
     points: [
-      "Connect via OAuth in Settings → Sync & Backup",
-      "Background Sync: We queue your edits and push them without spamming your AniList activity feed",
-      "Deep Re-sync: Fix wrong title or format matches (e.g., TV vs OVA) by forcing a fresh search",
-      "Completion Rules: Marking as 'Completed' will auto-fill the episode count on AniList without creating a 'watched ep' activity",
+      "Import Library: Go to Settings → Sync & Backup to instantly mirror your AniList profile.",
+      "TMDB Covers: Our background worker automatically fetches high-res covers for imported anime.",
+      "ID Reindexing: Imported anime are cleanly sorted by date with no ID gaps.",
+      "Background Sync: We queue your edits and push them without spamming your AniList activity feed.",
     ],
   },
   {
@@ -58,14 +58,14 @@ const SECTIONS = [
     ],
   },
   {
-    icon: "fa-history",
-    title: "Activity History & Gamification",
-    desc: "How your XP, levels, and history logs work.",
+    icon: "fa-chart-line",
+    title: "Analytics & Visuals",
+    desc: "Understand the data behind your anime journey.",
     points: [
-      "XP System: Earn XP by adding anime and marking them completed (more XP for longer shows)",
-      "Daily Limit: You can earn up to 1,500 XP per day; extra XP is queued and applied the next day",
-      "Activity History: View your recent actions; filter by Today, Last 7 Days, etc., and delete specific logs",
-      "Levels: Level up from 1 to 50, unlocking new titles (Newbie → Max)",
+      "Heatmap: A daily grid of your completion history; darker green means more anime finished that day",
+      "Period Stats: Pick any month/year combination to see exactly what you watched then",
+      "Rating Analytics: Analyze your average, median, and most common scores to see your personality",
+      "Monthly Charts: View your completion trends over the current year",
     ],
   },
   {
@@ -86,7 +86,7 @@ const SECTIONS = [
     points: [
       "Avatars & Banners: Upload images and crop them with our built-in Facebook/YouTube-style cropper",
       "Socials: Link your Twitter, Instagram, MyAnimeList, and AniList accounts",
-      "Custom Status: Write a short bio or set a custom status (e.g., 'Watching Frieren')",
+      "Public Profiles: Claim a username to get a shareable link (anipulse.app/u/username)",
       "Member Since: Your profile automatically tracks the exact date you joined",
     ],
   },
@@ -105,7 +105,119 @@ const SECTIONS = [
 
 export default function Docs() {
   return (
-    <div className="resources-page">
+    <div className="resources-page docs-page">
+      <style>{`
+        .docs-page .resources-grid {
+          gap: 24px;
+        }
+        
+        .docs-page .resources-card {
+          position: relative;
+          overflow: hidden;
+          padding: 32px;
+          background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-surface) 100%);
+          border: 1px solid var(--border-default);
+          border-radius: 16px;
+          transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+          display: flex;
+          flex-direction: column;
+        }
+
+        .docs-page .resources-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 3px;
+          background: linear-gradient(90deg, transparent, var(--brand-yellow), transparent);
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+
+        .docs-page .resources-card:hover {
+          transform: translateY(-5px);
+          border-color: rgba(252, 231, 6, 0.4);
+          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(252, 231, 6, 0.05);
+        }
+
+        .docs-page .resources-card:hover::before {
+          opacity: 1;
+        }
+
+        .docs-page .resources-card-icon {
+          width: 52px;
+          height: 52px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(252, 231, 6, 0.1);
+          border: 1px solid rgba(252, 231, 6, 0.2);
+          border-radius: 12px;
+          color: var(--brand-yellow);
+          font-size: 22px;
+          margin-bottom: 20px;
+          transition: all 0.3s ease;
+        }
+
+        .docs-page .resources-card:hover .resources-card-icon {
+          background: var(--brand-yellow);
+          color: #000;
+          transform: scale(1.1) rotate(5deg);
+        }
+
+        .docs-page .docs-title {
+          font-size: 1.15rem;
+          font-weight: 700;
+          color: var(--text-primary);
+          margin-bottom: 8px;
+          letter-spacing: -0.01em;
+        }
+
+        .docs-page .docs-desc {
+          font-size: 0.9rem;
+          color: var(--text-muted);
+          margin-bottom: 24px;
+          flex: 1;
+          line-height: 1.5;
+        }
+
+        .docs-page .docs-list {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
+
+        .docs-page .docs-list li {
+          position: relative;
+          padding-left: 28px;
+          font-size: 0.875rem;
+          color: var(--text-secondary);
+          line-height: 1.6;
+        }
+
+        .docs-page .docs-list li::before {
+          content: "\\f00c";
+          font-family: "Font Awesome 6 Free";
+          font-weight: 900;
+          position: absolute;
+          left: 0;
+          top: 4px;
+          color: var(--brand-yellow);
+          font-size: 0.75rem;
+          opacity: 0.8;
+        }
+
+        .docs-page .resources-cta {
+          background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-surface) 100%);
+          border: 1px solid var(--border-strong);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+      `}</style>
+
       <header className="resources-header">
         <span className="section-tag">Resources</span>
         <h1>Documentation & User Guide</h1>
@@ -118,48 +230,22 @@ export default function Docs() {
 
       <div className="resources-grid">
         {SECTIONS.map((s) => (
-          <section
-            key={s.title}
-            className="resources-card"
-            style={{ display: "flex", flexDirection: "column" }}
-          >
+          <section key={s.title} className="resources-card">
             <div className="resources-card-icon">
               <i className={`fas ${s.icon}`} />
             </div>
-            <h2 style={{ fontSize: "1.1rem", marginBottom: "8px" }}>
-              {s.title}
-            </h2>
-            <p
-              style={{
-                fontSize: "0.85rem",
-                color: "var(--text-muted)",
-                marginBottom: "16px",
-                flex: 1,
-              }}
-            >
-              {s.desc}
-            </p>
-            <ul
-              style={{
-                margin: 0,
-                paddingLeft: "20px",
-                display: "grid",
-                gap: "10px",
-                fontSize: "0.85rem",
-                lineHeight: "1.5",
-              }}
-            >
+            <h2 className="docs-title">{s.title}</h2>
+            <p className="docs-desc">{s.desc}</p>
+            <ul className="docs-list">
               {s.points.map((p) => (
-                <li key={p} style={{ position: "relative" }}>
-                  {p}
-                </li>
+                <li key={p}>{p}</li>
               ))}
             </ul>
           </section>
         ))}
       </div>
 
-      <div className="resources-cta" style={{ marginTop: "40px" }}>
+      <div className="resources-cta" style={{ marginTop: "48px" }}>
         <h2>Need more help?</h2>
         <p>
           If you couldn't find what you're looking for, check the Help Center or
@@ -170,11 +256,15 @@ export default function Docs() {
             display: "flex",
             gap: "12px",
             justifyContent: "center",
-            marginTop: "16px",
+            marginTop: "20px",
             flexWrap: "wrap",
           }}
         >
-          <Link to="/resources/help" className="btn btn-primary" style={{ color : "black" }}>
+          <Link
+            to="/resources/help"
+            className="btn btn-primary"
+            style={{ color: "black" }}
+          >
             <i className="fas fa-question-circle" /> Help Center
           </Link>
           <Link to="/community" className="btn btn-secondary">

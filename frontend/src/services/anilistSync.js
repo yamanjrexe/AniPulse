@@ -129,6 +129,17 @@ async function disconnect() {
     }
 }
 
+async function importFromAniList() {
+    const connected = await ensureConnected();
+    if (!connected) return { success: false, reason: "not_connected" };
+    try {
+        return await api.get("/anilist/import");
+    } catch (err) {
+        console.error("[AniList] import failed:", err);
+        return { success: false, error: err.message };
+    }
+}
+
 async function syncAnime(anime, action = "upsert") {
     try {
         const connected = await ensureConnected();
@@ -189,6 +200,7 @@ export const anilistSync = {
     invalidateStatus,
     connect,
     disconnect,
+    importFromAniList,
     syncAnime,
     syncAll,
     getQueueStatus,

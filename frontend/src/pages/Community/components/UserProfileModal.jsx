@@ -1,4 +1,11 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import React, {
+  useEffect,
+  useState,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
+import { Link } from "react-router-dom";
 import { api } from "../../../services/api.js";
 import { useToast } from "../../../context/ToastContext.jsx";
 import { useAuth } from "../../../context/AuthContext.jsx";
@@ -85,7 +92,7 @@ function sortRecentFirst(list) {
 }
 
 const _profileCache = new Map();
-const CACHE_TTL = 60 * 1000;
+const CACHE_TTL = 10 * 60 * 1000;
 
 function buildLocalProfile(user) {
   const userProfile = (() => {
@@ -158,6 +165,8 @@ function buildLocalProfile(user) {
   return {
     uid: user?.uid || "current",
     name: userProfile.name || user?.name || "You",
+    publicUsername:
+      userProfile.publicUsername || userProfile.usernameLower || null,
     avatar: userProfile.avatar || user?.avatar || null,
     cover: userProfile.cover || null,
     bio: userProfile.bio || "",
@@ -202,6 +211,7 @@ function normalizeServerProfile(data) {
   return {
     uid: data.uid,
     name: data.name || data.username || "User",
+    publicUsername: data.publicUsername || null,
     avatar: data.avatar || null,
     cover: data.cover || null,
     bio: data.bio || "",
@@ -209,7 +219,7 @@ function normalizeServerProfile(data) {
     favoriteAnime: data.favoriteAnime || [],
     social: data.social || {},
     level: Number(data.level) || 1,
-    levelTitle: data.levelTitle || data.title || "Newbie",
+    levelTitle: data.levelTitle || data.title || "Rookie",
     totalXP,
     stats: {
       totalAnime: data.stats?.totalAnime ?? data.totalAnime ?? 0,
@@ -230,11 +240,15 @@ function normalizeServerProfile(data) {
   };
 }
 
-export default function UserProfileModal({ userId, onClose }) {
+export default function UserProfileModal({ user: initialUser, onClose }) {
   const { user } = useAuth();
   const { showToast } = useToast();
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+
+  const userId = useMemo(() => {
+    if (!initialUser) return null;
+    if (typeof initialUser === "string") return initialUser;
+    return initialUser.uid === "current" ? "current" : initialUser.uid;
+  }, [initialUser]);
 
   const isSelf = useMemo(() => {
     if (!userId) return false;
@@ -257,6 +271,36 @@ export default function UserProfileModal({ userId, onClose }) {
     const myUid = uidFromContext || uidFromStorage || uidFromAuth;
     return !!(myUid && userId === myUid);
   }, [userId, user]);
+
+  const [profile, setProfile] = useState(() => {
+    if (initialUser && typeof initialUser === "object" && !isSelf) {
+      return {
+        uid: initialUser.uid,
+        name: initialUser.name || initialUser.username || "User",
+        avatar: initialUser.avatar,
+        level: initialUser.level || 1,
+        levelTitle: initialUser.title || "Rookie",
+        totalXP: initialUser.totalXP || 0,
+        stats: {
+          totalAnime: initialUser.totalAnime || 0,
+          completed: initialUser.totalAnime || 0,
+          watching: 0,
+          planToWatch: 0,
+          totalHours: initialUser.totalHours || 0,
+          totalEpisodes: 0,
+        },
+        animeList: { completed: [], watching: [], planToWatch: [] },
+        achievements: [],
+        recentActivity: [],
+        isCurrentUser: false,
+        isFriend: false,
+      };
+    }
+    return null;
+  });
+
+  const [loading, setLoading] = useState(() => !profile);
+  const hasProfileRef = useRef(!!profile);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -284,7 +328,8 @@ export default function UserProfileModal({ userId, onClose }) {
     }
 
     (async () => {
-      setLoading(true);
+      if (!hasProfileRef.current) setLoading(true);
+
       try {
         let raw = null;
         try {
@@ -300,10 +345,13 @@ export default function UserProfileModal({ userId, onClose }) {
           timestamp: Date.now(),
         });
         setProfile(normalized);
+        hasProfileRef.current = true;
       } catch (err) {
         if (cancelled) return;
-        showToast(err.message || "Failed to load profile", "error");
-        onClose?.();
+        if (!hasProfileRef.current) {
+          showToast(err.message || "Failed to load profile", "error");
+          onClose?.();
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -445,7 +493,7 @@ export default function UserProfileModal({ userId, onClose }) {
             flexDirection: "column",
           }}
         >
-          {loading ? (
+          {loading && !profile ? (
             <div
               style={{
                 display: "flex",
@@ -569,41 +617,75 @@ export default function UserProfileModal({ userId, onClose }) {
                       </span>
                     </div>
                   </div>
-                  {!profile.isCurrentUser && (
-                    <button
-                      onClick={sendFriendRequest}
-                      disabled={profile.isFriend}
-                      style={{
-                        padding: "10px 20px",
-                        background: profile.isFriend
-                          ? "var(--bg-card)"
-                          : "var(--brand-yellow)",
-                        color: profile.isFriend
-                          ? "var(--text-muted)"
-                          : "#050505",
-                        border: profile.isFriend
-                          ? "1px solid var(--border-default)"
-                          : "none",
-                        borderRadius: 8,
-                        fontWeight: 600,
-                        fontSize: "0.9rem",
-                        cursor: profile.isFriend ? "not-allowed" : "pointer",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 8,
-                        transition: "0.2s",
-                        flexShrink: 0,
-                        boxShadow: profile.isFriend
-                          ? "none"
-                          : "0 4px 12px rgba(252, 231, 6, 0.2)",
-                      }}
-                    >
-                      <i
-                        className={`fas ${profile.isFriend ? "fa-user-check" : "fa-user-plus"}`}
-                      />{" "}
-                      {profile.isFriend ? "Friend" : "Add Friend"}
-                    </button>
-                  )}
+
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    {profile.publicUsername && (
+                      <Link
+                        to={`/u/${profile.publicUsername}/profile`}
+                        onClick={onClose}
+                        style={{
+                          padding: "10px 20px",
+                          background: "var(--bg-card)",
+                          color: "var(--text-primary)",
+                          border: "1px solid var(--border-default)",
+                          borderRadius: 8,
+                          fontWeight: 600,
+                          fontSize: "0.9rem",
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 8,
+                          textDecoration: "none",
+                          transition: "0.2s",
+                        }}
+                      >
+                        <i className="fas fa-external-link-alt" /> View Profile
+                      </Link>
+                    )}
+
+                    {!profile.isCurrentUser && (
+                      <button
+                        onClick={sendFriendRequest}
+                        disabled={profile.isFriend}
+                        style={{
+                          padding: "10px 20px",
+                          background: profile.isFriend
+                            ? "var(--bg-card)"
+                            : "var(--brand-yellow)",
+                          color: profile.isFriend
+                            ? "var(--text-muted)"
+                            : "#050505",
+                          border: profile.isFriend
+                            ? "1px solid var(--border-default)"
+                            : "none",
+                          borderRadius: 8,
+                          fontWeight: 600,
+                          fontSize: "0.9rem",
+                          cursor: profile.isFriend ? "not-allowed" : "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 8,
+                          transition: "0.2s",
+                          flexShrink: 0,
+                          boxShadow: profile.isFriend
+                            ? "none"
+                            : "0 4px 12px rgba(252, 231, 6, 0.2)",
+                        }}
+                      >
+                        <i
+                          className={`fas ${profile.isFriend ? "fa-user-check" : "fa-user-plus"}`}
+                        />{" "}
+                        {profile.isFriend ? "Friend" : "Add Friend"}
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -819,7 +901,7 @@ export default function UserProfileModal({ userId, onClose }) {
                     );
                   return (
                     <div className="anime-grid">
-                      {list.slice(0, 50).map((a) => (
+                      {list.slice(0, 30).map((a) => (
                         <div
                           key={a.id}
                           style={{

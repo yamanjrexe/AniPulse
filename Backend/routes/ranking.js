@@ -168,7 +168,7 @@ router.get('/my-rank', verifyToken, async (req, res) => {
         rank: 0,
         totalUsers: 0,
         level: 1,
-        title: 'Newbie',
+        title: 'Rookie',
         totalXP: 0,
       });
     }

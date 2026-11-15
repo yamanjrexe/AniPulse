@@ -1,8 +1,4 @@
-﻿// ============================================================
-// LEVEL SYSTEM — Server-side
-// ============================================================
-
-const LEVEL_THRESHOLDS = {
+﻿const LEVEL_THRESHOLDS = {
   1: 0, 2: 100, 3: 250, 4: 500, 5: 800,
   6: 1200, 7: 1700, 8: 2300, 9: 3000, 10: 4000,
   11: 5200, 12: 6500, 13: 8000, 14: 10000, 15: 12500,
@@ -16,16 +12,16 @@ const LEVEL_THRESHOLDS = {
 };
 
 const LEVEL_TITLES = {
-  1: 'Newbie', 2: 'Scout', 3: 'Viewer', 4: 'Otaku', 5: 'Fanatic',
-  6: 'Binge', 7: 'Senpai', 8: 'Shonen', 9: 'Elite', 10: 'Legend',
-  11: 'Sage', 12: 'Keeper', 13: 'Traveler', 14: 'Master', 15: 'Grand',
-  16: 'Hokage', 17: 'Transc', 18: 'Veteran', 19: 'Watcher', 20: 'Myth',
-  21: 'Deity', 22: 'Mythic', 23: 'Ascend', 24: 'Divine', 25: 'Cosmic',
-  26: 'Eternal', 27: 'Godly', 28: 'Celest', 29: 'Potent', 30: 'Absol',
-  31: 'Supreme', 32: 'VLord', 33: 'StarE', 34: 'Galaxy', 35: 'Walker',
-  36: 'DimLord', 37: 'Weaver', 38: 'TimeM', 39: 'SpaceG', 40: 'Etern',
-  41: 'Infini', 42: 'Omni', 43: 'Creator', 44: 'Prime', 45: 'Alpha',
-  46: 'Omega', 47: 'Genesis', 48: 'Apoc', 49: 'Nirvana', 50: 'Max',
+  1: 'Rookie', 2: 'Scout', 3: 'Watcher', 4: 'Otaku', 5: 'Binger',
+  6: 'Enthusiast', 7: 'Senpai', 8: 'Shonen', 9: 'Protagonist', 10: 'Veteran',
+  11: 'Ronin', 12: 'Shinobi', 13: 'Vanguard', 14: 'Captain', 15: 'Hashira',
+  16: 'Sensei', 17: 'Sage', 18: 'Kage', 19: 'Warlord', 20: 'Champion',
+  21: 'Hero', 22: 'Legend', 23: 'Mythic', 24: 'Paragon', 25: 'Phantom',
+  26: 'Sovereign', 27: 'Overlord', 28: 'Emperor', 29: 'Awakened', 30: 'Ascendant',
+  31: 'Demigod', 32: 'Valkyrie', 33: 'Titan', 34: 'Archon', 35: 'Deity',
+  36: 'Seraph', 37: 'Celestial', 38: 'Immortal', 39: 'Transcendent', 40: 'Divine',
+  41: 'Astral', 42: 'Nebula', 43: 'Supernova', 44: 'Chronos', 45: 'Voidwalker',
+  46: 'Genesis', 47: 'Apex', 48: 'Omega', 49: 'Infinite', 50: 'Omnipotent',
 };
 
 function getLevelFromXP(xp) {
@@ -53,14 +49,10 @@ function getXPProgress(currentLevel, currentXP) {
   return ((currentXP - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100;
 }
 
-// ============================================================
-// XP CALCULATION — shared by /sync and /user routes
-// ============================================================
 function calculateExpFromParts(
   { episodes = 0, progress = 0, duration = 20, type = 'TV', score = 0, hasScore = false } = {},
   options = {}
 ) {
-  // Plausibility Caps to prevent leaderboard cheating
   const safeEpisodes = Math.min(episodes, 2000);
   const safeProgress = Math.min(progress, safeEpisodes);
   const safeDuration = Math.min(duration, 180);
@@ -91,18 +83,20 @@ function calculateTotalXPFromAnimeList(animeList) {
   let total = 0;
   animeList.forEach((a) => {
     if (a.userStatus !== 'Completed') return;
+    const effectiveProgress =
+      a.progress > 0 ? a.progress : (a.episodes || 0);
     total +=
       calculateExpFromParts(
         {
           episodes: a.episodes || 0,
-          progress: a.progress || 0,
+          progress: effectiveProgress,
           duration: a.duration || 20,
           type: a.type,
           score: a.score || 0,
           hasScore: !!a.score,
         },
         { useProgress: true }
-      ) + 10; 
+      ) + 10;
   });
   return Math.max(0, Math.floor(total));
 }

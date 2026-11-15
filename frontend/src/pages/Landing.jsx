@@ -4,40 +4,48 @@ import CountUp from "../components/ui/CountUp.jsx";
 
 const FEATURES = [
   {
-    icon: "fa-fire",
-    title: "Global Spotlight",
-    desc: "Discover what the world is watching right now with our real-time trending anime hero slider.",
-    list: ["Live AniList data", "Auto-playing slider", "Smart season badges"],
+    icon: "fa-sync-alt",
+    title: "Lightning-Fast AniList Import",
+    desc: "Mirror your entire AniList library in seconds. Our background worker fetches high-res TMDB covers, auto-sorts by date, and fills in ID gaps without breaking your list.",
+    list: [
+      "One-click mirroring",
+      "Auto TMDB cover fetching",
+      "Clean chronological sorting",
+    ],
   },
   {
-    icon: "fa-magic",
-    title: "Story-Style Recaps",
-    desc: "Experience your anime journey like never before with interactive, swipeable monthly and yearly recaps.",
-    list: ["Interactive slides", "Poster showcases", "Animated stats"],
+    icon: "fa-trophy",
+    title: "48-Tier Achievement System",
+    desc: "Level up your tracking with 48 carefully balanced achievements. From your first episode to a 365-day streak, every milestone is tracked fairly and accurately.",
+    list: [
+      "Fair metadata tracking",
+      "Massive XP rewards",
+      "Dynamic level roadmap",
+    ],
+  },
+  {
+    icon: "fa-bolt",
+    title: "Blazing Fast Performance",
+    desc: "We completely overhauled our data pipeline. The leaderboard and user profiles load instantly with optimized payloads, heavy image compression, and smart local caching.",
+    list: ["Instant profile loads", "Smart caching", "Optimized API responses"],
   },
   {
     icon: "fa-chart-pie",
     title: "Deep Analytics",
-    desc: "Dive into your viewing habits with GitHub-style heatmaps, genre distribution charts, and rating personalities.",
+    desc: "Dive into your viewing habits with GitHub-style heatmaps, genre distribution charts, and our new 9-card Rating Behavior insights that analyze your inner critic.",
     list: ["Activity heatmaps", "Rating insights", "Watch time stats"],
   },
   {
     icon: "fa-shield-alt",
     title: "Privacy & Security",
-    desc: "Your watch history is strictly yours. We enforce strict database rules and email verification to keep your data safe.",
+    desc: "Your watch history is strictly yours. We enforce strict database rules and email verification to keep your data safe from prying eyes.",
     list: ["Firebase App Check", "Strict data rules", "Private activity logs"],
-  },
-  {
-    icon: "fa-sync-alt",
-    title: "Two-Way AniList Sync",
-    desc: "Keep your AniPulse library perfectly aligned with your AniList profile using our smart background worker.",
-    list: ["Auto-sync updates", "Deep re-sync", "Format matching"],
   },
   {
     icon: "fa-mobile-alt",
     title: "Installable PWA",
-    desc: "AniPulse works beautifully as a Progressive Web App. Install it on your phone or desktop for a native experience.",
-    list: ["Offline mode", "Home screen install", "Lightning fast"],
+    desc: "AniPulse works beautifully as a Progressive Web App. Install it on your phone or desktop for a native, lightning-fast experience with offline support.",
+    list: ["Offline mode", "Home screen install", "Native feel"],
   },
 ];
 
@@ -70,12 +78,12 @@ const STEPS = [
   {
     num: "02",
     title: "Build your library",
-    desc: "Search our massive AniList database to add anime and track your progress.",
+    desc: "Search our massive AniList database or import your entire list instantly with our new sync engine.",
   },
   {
     num: "03",
     title: "Analyze & Sync",
-    desc: "Watch your stats come alive, unlock achievements, and sync to your AniList profile.",
+    desc: "Watch your stats come alive, unlock 50 tiers of achievements, and push changes back to AniList effortlessly.",
   },
 ];
 
@@ -85,8 +93,8 @@ const FAQS = [
     a: "Yes! AniPulse is a passion project and is completely free to use. There are no premium tiers, hidden fees, or ads.",
   },
   {
-    q: "Does it sync with MyAnimeList?",
-    a: "Currently, we offer deep, two-way synchronization with AniList. We are exploring MyAnimeList integration for future updates.",
+    q: "How does the AniList Import work?",
+    a: "Go to Settings → Sync & Backup and click 'Import Library'. It will mirror your AniList profile, automatically fetch high-quality TMDB covers in the background, and cleanly format your list without ID gaps.",
   },
   {
     q: "Can I use AniPulse offline?",
@@ -94,7 +102,7 @@ const FAQS = [
   },
   {
     q: "Is my watch history private?",
-    a: "Privacy is our top priority. We use strict Firebase Security Rules and App Check. Your private data is never shared with other users.",
+    a: "Privacy is our top priority. We use strict Firebase Security Rules and App Check. Your private data is never shared with other users unless you explicitly share your public profile link.",
   },
 ];
 
@@ -214,7 +222,7 @@ export default function Landing() {
         <div className="container hero-content">
           <div className="hero-text">
             <div className="hero-tag">
-              <i className="fas fa-rocket" /> Version 3.2.4 is live
+              <i className="fas fa-rocket" /> Version 3.2.6 is live
             </div>
 
             <h1 className="hero-title">
@@ -224,9 +232,9 @@ export default function Landing() {
             </h1>
 
             <p className="hero-subtitle">
-              AniPulse is more than an anime tracker. Track every episode,
-              discover global trends in our new Spotlight tab, and celebrate
-              your milestones with interactive story-style recaps.
+              AniPulse is more than an anime tracker. Instantly import your
+              AniList library, compete on lightning-fast leaderboards, and
+              celebrate your milestones with 50 tiers of achievements.
             </p>
 
             <div className="hero-features">
@@ -236,11 +244,11 @@ export default function Landing() {
               </div>
               <div className="feature-item">
                 <i className="fas fa-check-circle feature-check" />
-                <span>AniList Sync</span>
+                <span>1-Click AniList Sync</span>
               </div>
               <div className="feature-item">
                 <i className="fas fa-check-circle feature-check" />
-                <span>Installable PWA</span>
+                <span>50 Achievements</span>
               </div>
             </div>
 

@@ -22,6 +22,7 @@ export default function RatingAnalytics() {
         avg: 0,
         median: 0,
         spread: 0,
+        rated: [],
       };
 
     const buckets = [0, 0, 0, 0, 0, 0];
@@ -101,7 +102,11 @@ export default function RatingAnalytics() {
           </div>
         </div>
 
-        <RatingBehavior rated={analytics.rated || []} avg={analytics.avg} />
+        <RatingBehavior
+          rated={analytics.rated || []}
+          avg={analytics.avg}
+          median={analytics.median}
+        />
       </div>
 
       <RatingPersonality

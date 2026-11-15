@@ -44,9 +44,10 @@ export default function AnimeList() {
   const { animeData } = useAnime();
 
   const [status, setStatus] = useState("all");
+  const [type, setType] = useState("all");
   const [month, setMonth] = useState(currentMonth);
   const [year, setYear] = useState(currentYear);
-  const [genre, setGenre] = useState("all"); 
+  const [genre, setGenre] = useState("all");
 
   const [query, setQuery] = useState(
     () => localStorage.getItem(STORAGE_QUERY) || "",
@@ -93,6 +94,10 @@ export default function AnimeList() {
       list = list.filter((a) => a.userStatus === status);
     }
 
+    if (type !== "all") {
+      list = list.filter((a) => a.type === type);
+    }
+
     if (genre !== "all") {
       list = list.filter((a) => a.genres && a.genres.includes(genre));
     }
@@ -118,7 +123,7 @@ export default function AnimeList() {
     }
 
     return list;
-  }, [animeData, status, genre, month, year, query]);
+  }, [animeData, status, type, genre, month, year, query]);
 
   const onEdit = (a) =>
     window.dispatchEvent(
@@ -141,6 +146,16 @@ export default function AnimeList() {
             <option value="Watching">Watching</option>
             <option value="Plan to Watch">Plan to Watch</option>
             <option value="Dropped">Dropped</option>
+          </select>
+
+          <select value={type} onChange={(e) => setType(e.target.value)}>
+            <option value="all">All Types</option>
+            <option value="TV">TV Series</option>
+            <option value="Movie">Movie</option>
+            <option value="OVA">OVA</option>
+            <option value="ONA">ONA</option>
+            <option value="Special">Special</option>
+            <option value="TV_SHORT">TV Short</option>
           </select>
 
           <select value={genre} onChange={(e) => setGenre(e.target.value)}>

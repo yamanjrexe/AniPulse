@@ -313,7 +313,10 @@ export default function ChatBot() {
         updatedAt: nowTimestamp,
       };
 
-      setAnimeData((prev) => [...prev, newAnime]);
+      const appended = [...list, newAnime];
+      const reindexed = animeService.reindexIds(appended);
+      setAnimeData(reindexed);
+
       try {
         awardXP(newAnime, { oldAnime: null });
       } catch (_) {}
@@ -344,7 +347,9 @@ export default function ChatBot() {
     (animeId) => {
       const target = animeDataRef.current.find((a) => a.id === animeId);
       if (!target) return;
-      setAnimeData((prev) => prev.filter((a) => a.id !== animeId));
+      const filtered = animeDataRef.current.filter((a) => a.id !== animeId);
+      const reindexed = animeService.reindexIds(filtered);
+      setAnimeData(reindexed);
       logActivity("deleted", target.title);
       setMessages((m) => [
         ...m,

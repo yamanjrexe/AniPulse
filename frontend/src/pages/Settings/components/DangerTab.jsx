@@ -154,7 +154,7 @@ export default function DangerTab() {
 
     localStorage.setItem("userXP", "0");
     localStorage.setItem("userLevel", "1");
-    localStorage.setItem("userLevelTitle", "Newbie");
+    localStorage.setItem("userLevelTitle", "Rookie");
     localStorage.setItem("streak", "0");
     localStorage.setItem("lastActive", "");
     localStorage.setItem("completedAnimeHistory", "{}");
@@ -164,7 +164,7 @@ export default function DangerTab() {
       const profile = JSON.parse(localStorage.getItem("userProfile") || "{}");
       profile.totalExp = 0;
       profile.level = 1;
-      profile.title = "Newbie";
+      profile.title = "Rookie";
       localStorage.setItem("userProfile", JSON.stringify(profile));
     } catch (_) {}
 

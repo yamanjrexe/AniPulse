@@ -64,7 +64,7 @@ export default function SearchUsers({ onSendRequest }) {
                                     {u.name || u.username}
                                 </div>
                                 <div className="friend-request-level">
-                                    {u.title || "Newbie"} • Lv.{u.level || 1}
+                                    {u.title || "Rookie"} • Lv.{u.level || 1}
                                 </div>
                             </div>
                         </div>

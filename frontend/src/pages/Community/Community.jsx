@@ -15,7 +15,7 @@ export default function Community() {
   const paramTab = params.get("tab");
   const tab = VALID_TABS.includes(paramTab) ? paramTab : "friends";
 
-  const [profileUserId, setProfileUserId] = useState(null);
+  const [profileUser, setProfileUser] = useState(null);
   const [hasUnreadDiscussions, setHasUnreadDiscussions] = useState(false);
 
   const setTab = (next) => {
@@ -31,7 +31,7 @@ export default function Community() {
   };
 
   useEffect(() => {
-    window.openUserProfile = (uid) => setProfileUserId(uid);
+    window.openUserProfile = (u) => setProfileUser(u);
     return () => {
       delete window.openUserProfile;
     };
@@ -89,10 +89,10 @@ export default function Community() {
       {tab === "discussions" && <DiscussionsTab />}
       {tab === "leaderboard" && <LeaderboardTab />}
 
-      {profileUserId && (
+      {profileUser && (
         <UserProfileModal
-          userId={profileUserId}
-          onClose={() => setProfileUserId(null)}
+          user={profileUser}
+          onClose={() => setProfileUser(null)}
         />
       )}
     </div>

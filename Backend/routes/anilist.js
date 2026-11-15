@@ -34,9 +34,9 @@ const MAPPINGS_COLLECTION = 'anilistMappings';
 const QUEUE_COLLECTION = 'anilistSyncQueue';
 const FAILED_COLLECTION = 'anilistFailedMatches';
 
-const BATCH_SIZE = 15;
-const BATCH_DELAY_MS = 800;
-const SINGLE_DELAY_MS = 400;
+const BATCH_SIZE = 50;
+const BATCH_DELAY_MS = 200;
+const SINGLE_DELAY_MS = 200;
 
 const processing = new Map();
 
@@ -54,17 +54,12 @@ async function getAnilistListEntries(accessToken, anilistUserId) {
         return cached.entries;
     }
     try {
-        const entries = await anilist.fetchAllListEntries(
-            accessToken,
-            anilistUserId
-        );
+        const entries = await anilist.fetchAllListEntries(accessToken, anilistUserId);
         anilistListCache.set(anilistUserId, {
             entries,
             timestamp: Date.now(),
         });
-        console.log(
-            `[AniList] Cached ${entries.size} list entries for AniList user ${anilistUserId}`
-        );
+        console.log(`[AniList] Cached ${entries.size} list entries for AniList user ${anilistUserId}`);
         return entries;
     } catch (err) {
         console.warn('[AniList] Failed to fetch list cache:', err.message);
@@ -123,10 +118,7 @@ async function clearFailedMatchesBulk(userId, animeIds) {
             }
         }
         if (!changed) return;
-        await db
-            .collection(FAILED_COLLECTION)
-            .doc(userId)
-            .set({ items }, { merge: true });
+        await db.collection(FAILED_COLLECTION).doc(userId).set({ items }, { merge: true });
     } catch (err) {
         console.warn('[AniList] Bulk clear failed:', err.message);
     }
@@ -138,10 +130,7 @@ async function clearFailedMatch(userId, animeId) {
 
 router.get('/failed', verifyToken, async (req, res) => {
     try {
-        const doc = await db
-            .collection(FAILED_COLLECTION)
-            .doc(req.userId)
-            .get();
+        const doc = await db.collection(FAILED_COLLECTION).doc(req.userId).get();
         const items = doc.exists ? doc.data().items || {} : {};
         const mappings = await getMappings(req.userId);
 
@@ -307,9 +296,7 @@ async function enqueue(userId, jobs) {
         { merge: true }
     );
 
-    console.log(
-        `[AniList] Queued ${jobs.length} job(s) for ${shortId(userId)} — queue now ${merged.length}`
-    );
+    console.log(`[AniList] Queued ${jobs.length} job(s) for ${shortId(userId)} — queue now ${merged.length}`);
     kickWorker(userId);
 }
 
@@ -327,6 +314,22 @@ router.get('/queue', verifyToken, async (req, res) => {
     }
 });
 
+router.get('/import', verifyToken, async (req, res) => {
+    try {
+        const tokenDoc = await db.collection(TOKENS_COLLECTION).doc(req.userId).get();
+        if (!tokenDoc.exists) {
+            return res.status(400).json({ error: 'Not connected to AniList' });
+        }
+
+        const { accessToken, anilistUserId } = tokenDoc.data();
+        const fullList = await anilist.fetchFullList(accessToken, anilistUserId);
+        res.json({ success: true, list: fullList });
+    } catch (err) {
+        console.error('[AniList] Import error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 router.post('/sync', verifyToken, async (req, res) => {
     try {
         const { anime, action } = req.body;
@@ -334,10 +337,7 @@ router.post('/sync', verifyToken, async (req, res) => {
             return res.status(400).json({ error: 'Missing anime data' });
         }
 
-        const tokenDoc = await db
-            .collection(TOKENS_COLLECTION)
-            .doc(req.userId)
-            .get();
+        const tokenDoc = await db.collection(TOKENS_COLLECTION).doc(req.userId).get();
         if (!tokenDoc.exists) {
             return res.json({ queued: false, reason: 'not_connected' });
         }
@@ -366,18 +366,13 @@ router.post('/sync-all', verifyToken, async (req, res) => {
             return res.status(400).json({ error: 'Missing animeList' });
         }
 
-        const tokenDoc = await db
-            .collection(TOKENS_COLLECTION)
-            .doc(req.userId)
-            .get();
+        const tokenDoc = await db.collection(TOKENS_COLLECTION).doc(req.userId).get();
         if (!tokenDoc.exists) {
             return res.json({ queued: false, reason: 'not_connected' });
         }
 
         const { accessToken, anilistUserId } = tokenDoc.data();
-        console.log(
-            `[AniList] /sync-all user=${shortId(req.userId)} total=${animeList.length} force=${!!force}`
-        );
+        console.log(`[AniList] /sync-all user=${shortId(req.userId)} total=${animeList.length} force=${!!force}`);
 
         if (force) {
             await db.collection(MAPPINGS_COLLECTION).doc(req.userId).delete();
@@ -394,11 +389,7 @@ router.post('/sync-all', verifyToken, async (req, res) => {
         for (const anime of animeList) {
             if (!force) {
                 const mapping = mappings[String(anime.id)];
-                if (
-                    mapping &&
-                    mapping.mediaId &&
-                    listEntries.has(mapping.mediaId)
-                ) {
+                if (mapping && mapping.mediaId && listEntries.has(mapping.mediaId)) {
                     skipped++;
                     continue;
                 }
@@ -412,9 +403,7 @@ router.post('/sync-all', verifyToken, async (req, res) => {
             });
         }
 
-        console.log(
-            `[AniList] /sync-all pre-filter: ${jobs.length} to sync, ${skipped} skipped`
-        );
+        console.log(`[AniList] /sync-all pre-filter: ${jobs.length} to sync, ${skipped} skipped`);
 
         if (jobs.length === 0) {
             return res.json({
@@ -460,15 +449,12 @@ function buildListEntry(anime, mapping) {
             anilist.buildDate(anime.finishDate);
 
         if (startedAt && completedAt) {
-            const sVal =
-                startedAt.year * 10000 +
-                (startedAt.month || 0) * 100 +
-                (startedAt.day || 0);
-            const cVal =
-                completedAt.year * 10000 +
-                (completedAt.month || 0) * 100 +
-                (completedAt.day || 0);
-            if (sVal >= cVal) startedAt = null;
+            const sVal = startedAt.year * 10000 + (startedAt.month || 1) * 100 + (startedAt.day || 1);
+            const cVal = completedAt.year * 10000 + (completedAt.month || 1) * 100 + (completedAt.day || 1);
+
+            if (sVal > cVal) {
+                startedAt = null;
+            }
         }
     }
 
@@ -514,33 +500,23 @@ async function processSingleJob(userId, job, accessToken, anilistUserId) {
 
     if (mappingNeedsResearch(mapping, desiredFormat)) {
         if (mapping) {
-            console.log(
-                `[AniList] Re-search: existing mapping format=${mapping.matchedFormat || 'unknown'} needs ${desiredFormat}`
-            );
+            console.log(`[AniList] Re-search: existing mapping format=${mapping.matchedFormat || 'unknown'} needs ${desiredFormat}`);
         }
         mapping = null;
     }
 
     if (!mapping) {
-        const results = await anilist.searchAnime(
-            anime.title,
-            desiredFormat
-        );
+        const results = await anilist.searchAnime(anime.title, desiredFormat);
         const best = anilist.pickBestMatch(results, anime);
         if (!best) {
-            console.warn(
-                `[AniList] No match for "${anime.title}" — ${results.length} candidates`
-            );
+            console.warn(`[AniList] No match for "${anime.title}" — ${results.length} candidates`);
             await recordFailedMatch(userId, anime);
             return { error: 'no_match', title: anime.title };
         }
 
         mapping = {
             mediaId: best.id,
-            matchedTitle:
-                best.title?.english ||
-                best.title?.romaji ||
-                best.title?.native,
+            matchedTitle: best.title?.english || best.title?.romaji || best.title?.native,
             matchedFormat: best.format,
             anilistEpisodes: best.episodes || null,
         };
@@ -560,10 +536,7 @@ async function processSingleJob(userId, job, accessToken, anilistUserId) {
 
 async function processBulkBatch(userId, jobs, accessToken, anilistUserId) {
     const mappings = await getMappings(userId);
-    const listEntries = await getAnilistListEntries(
-        accessToken,
-        anilistUserId
-    );
+    const listEntries = await getAnilistListEntries(accessToken, anilistUserId);
 
     const needSearch = [];
     const readyToSave = [];
@@ -591,8 +564,7 @@ async function processBulkBatch(userId, jobs, accessToken, anilistUserId) {
         try {
             const results = await anilist.batchSearchAnime(
                 needSearch.map((j) => {
-                    const desiredFormat =
-                        anilist.FORMAT_MAP[j.anime.type] || 'TV';
+                    const desiredFormat = anilist.FORMAT_MAP[j.anime.type] || 'TV';
                     return {
                         key: String(j.anime.id),
                         title: j.anime.title,
@@ -620,10 +592,7 @@ async function processBulkBatch(userId, jobs, accessToken, anilistUserId) {
 
                 const mapping = {
                     mediaId: best.id,
-                    matchedTitle:
-                        best.title?.english ||
-                        best.title?.romaji ||
-                        best.title?.native,
+                    matchedTitle: best.title?.english || best.title?.romaji || best.title?.native,
                     matchedFormat: best.format,
                     anilistEpisodes: best.episodes || null,
                 };
@@ -638,34 +607,22 @@ async function processBulkBatch(userId, jobs, accessToken, anilistUserId) {
             await setMappingsBulk(userId, newMappings);
 
             if (emptyOnFirstPass.length > 0) {
-                console.log(
-                    `[AniList] Retrying ${emptyOnFirstPass.length} titles individually`
-                );
+                console.log(`[AniList] Retrying ${emptyOnFirstPass.length} titles individually`);
                 const retryMappings = {};
                 for (const job of emptyOnFirstPass) {
                     try {
                         await new Promise((r) => setTimeout(r, 350));
-                        const desiredFormat =
-                            anilist.FORMAT_MAP[job.anime.type] || 'TV';
-                        const retryResults = await anilist.searchAnime(
-                            job.anime.title,
-                            desiredFormat
-                        );
+                        const desiredFormat = anilist.FORMAT_MAP[job.anime.type] || 'TV';
+                        const retryResults = await anilist.searchAnime(job.anime.title, desiredFormat);
                         apiCalls++;
-                        const best = anilist.pickBestMatch(
-                            retryResults,
-                            job.anime
-                        );
+                        const best = anilist.pickBestMatch(retryResults, job.anime);
                         if (!best) {
                             await recordFailedMatch(userId, job.anime);
                             continue;
                         }
                         const mapping = {
                             mediaId: best.id,
-                            matchedTitle:
-                                best.title?.english ||
-                                best.title?.romaji ||
-                                best.title?.native,
+                            matchedTitle: best.title?.english || best.title?.romaji || best.title?.native,
                             matchedFormat: best.format,
                             anilistEpisodes: best.episodes || null,
                         };
@@ -675,10 +632,7 @@ async function processBulkBatch(userId, jobs, accessToken, anilistUserId) {
                             readyToSave.push({ job, mapping });
                         }
                     } catch (err) {
-                        console.warn(
-                            `[AniList] Retry failed for "${job.anime.title}":`,
-                            err.message
-                        );
+                        console.warn(`[AniList] Retry failed for "${job.anime.title}":`, err.message);
                     }
                 }
                 await setMappingsBulk(userId, retryMappings);
@@ -690,13 +644,8 @@ async function processBulkBatch(userId, jobs, accessToken, anilistUserId) {
 
     if (readyToSave.length > 0) {
         try {
-            const entries = readyToSave.map(({ job, mapping }) =>
-                buildListEntry(job.anime, mapping)
-            );
-            const saved = await anilist.batchSaveListEntries(
-                accessToken,
-                entries
-            );
+            const entries = readyToSave.map(({ job, mapping }) => buildListEntry(job.anime, mapping));
+            const saved = await anilist.batchSaveListEntries(accessToken, entries);
             apiCalls++;
             saved.forEach((s) => {
                 if (s && s.mediaId) rememberInCache(anilistUserId, s);
@@ -727,10 +676,7 @@ async function kickWorker(userId) {
             let doc = await ref.get();
             let jobs = doc.exists ? doc.data().jobs || [] : [];
 
-            const tokenDoc = await db
-                .collection(TOKENS_COLLECTION)
-                .doc(userId)
-                .get();
+            const tokenDoc = await db.collection(TOKENS_COLLECTION).doc(userId).get();
             if (!tokenDoc.exists) {
                 processing.delete(userId);
                 return;
@@ -741,9 +687,7 @@ async function kickWorker(userId) {
             const total = jobs.length;
             let done = 0;
 
-            console.log(
-                `[AniList] Worker starting ${total} job(s) for ${shortId(userId)}`
-            );
+            console.log(`[AniList] Worker starting ${total} job(s) for ${shortId(userId)}`);
 
             while (jobs.length > 0) {
                 const head = jobs[0];
@@ -755,71 +699,34 @@ async function kickWorker(userId) {
                         if (batch.length >= BATCH_SIZE) break;
                     }
 
-                    const result = await processBulkBatch(
-                        userId,
-                        batch,
-                        accessToken,
-                        anilistUserId
-                    );
+                    const result = await processBulkBatch(userId, batch, accessToken, anilistUserId);
 
-                    const batchKeys = new Set(
-                        batch.map((j) => `${j.animeId}:${j.action}`)
-                    );
-                    jobs = jobs.filter(
-                        (j) => !batchKeys.has(`${j.animeId}:${j.action}`)
-                    );
+                    const batchKeys = new Set(batch.map((j) => `${j.animeId}:${j.action}`));
+                    jobs = jobs.filter((j) => !batchKeys.has(`${j.animeId}:${j.action}`));
                     done += batch.length;
 
-                    processing.set(userId, {
-                        running: true,
-                        current: done,
-                        total,
-                    });
-                    await ref.set(
-                        { jobs, current: done, total },
-                        { merge: true }
-                    );
+                    processing.set(userId, { running: true, current: done, total });
+                    await ref.set({ jobs, current: done, total }, { merge: true });
 
                     if (result.apiCalls > 0) {
-                        await new Promise((r) =>
-                            setTimeout(r, BATCH_DELAY_MS)
-                        );
+                        await new Promise((r) => setTimeout(r, BATCH_DELAY_MS));
                     }
                 } else {
                     try {
-                        await processSingleJob(
-                            userId,
-                            head,
-                            accessToken,
-                            anilistUserId
-                        );
+                        await processSingleJob(userId, head, accessToken, anilistUserId);
                     } catch (err) {
-                        console.error(
-                            `[AniList] Single job failed:`,
-                            err.message
-                        );
+                        console.error(`[AniList] Single job failed:`, err.message);
                     }
                     jobs = jobs.slice(1);
                     done++;
-                    processing.set(userId, {
-                        running: true,
-                        current: done,
-                        total,
-                    });
-                    await ref.set(
-                        { jobs, current: done, total },
-                        { merge: true }
-                    );
-                    await new Promise((r) =>
-                        setTimeout(r, SINGLE_DELAY_MS)
-                    );
+                    processing.set(userId, { running: true, current: done, total });
+                    await ref.set({ jobs, current: done, total }, { merge: true });
+                    await new Promise((r) => setTimeout(r, SINGLE_DELAY_MS));
                 }
             }
 
             processing.delete(userId);
-            console.log(
-                `[AniList] Worker finished for ${shortId(userId)} — ${done}/${total}`
-            );
+            console.log(`[AniList] Worker finished for ${shortId(userId)} — ${done}/${total}`);
         } catch (err) {
             console.error('[AniList] Worker crashed:', err);
             processing.delete(userId);
@@ -833,9 +740,7 @@ async function resumePendingWorkers() {
         snapshot.forEach((doc) => {
             const jobs = doc.data().jobs || [];
             if (jobs.length > 0) {
-                console.log(
-                    `[AniList] Resuming queue for ${shortId(doc.id)}: ${jobs.length} jobs`
-                );
+                console.log(`[AniList] Resuming queue for ${shortId(doc.id)}: ${jobs.length} jobs`);
                 kickWorker(doc.id);
             }
         });

@@ -3,19 +3,23 @@ import { Link } from "react-router-dom";
 
 const FAQ_GROUPS = [
   {
-    category: "Basics & Navigation",
+    category: "AniList Sync & Imports",
     items: [
       {
-        q: "Why can't I change the title of an anime once it's added?",
-        a: "Titles are locked after being added to prevent accidental changes that would break the AniList sync mapping. If you added the wrong anime, delete it and re-add it using the search bar to ensure the cover, genres, and metadata match perfectly.",
+        q: "Why are there ID gaps in my anime list after importing?",
+        a: "There shouldn't be! Our new v3.2.6 update completely rewrote the import logic. When you import from AniList, we automatically reindex every anime sequentially by their `createdAt` date. If you are still seeing gaps, try clicking 'Force XP Recalc' in Settings or re-importing.",
       },
       {
-        q: "How do I quickly add multiple anime?",
-        a: "Open the Add Anime modal. Type a name, select it from the dropdown, and press 'Enter' to save. The modal will close, and you can immediately press the '+' FAB to add the next one. Our smart keyboard navigation lets you hit 'Enter' to jump through the form without clicking.",
+        q: "Why are my imported anime missing covers?",
+        a: "When importing from AniList, AniPulse uses a background worker to fetch high-quality TMDB covers. If a cover is missing, it means TMDB didn't have a match. You can manually add a cover URL by editing the anime, or wait for our next database sync.",
       },
       {
-        q: "What does the 'FAB' do?",
-        a: "The Floating Action Button (bottom-right) is your quick-action menu. It lets you open the ChatBot, Import a JSON file, or open the Add Anime modal from any page in the app.",
+        q: "Why isn't my AniList activity feed showing my completions?",
+        a: "We designed the sync to be non-spammy. When you mark an anime as 'Completed', AniPulse sends a silent status update to AniList. This updates your score and progress to 100% without generating a 'Watched Episode 12' activity post.",
+      },
+      {
+        q: "I deleted an anime, but it came back after refreshing. Why?",
+        a: "This happens if the cloud sync is interrupted or failed. The app will pull the old data from the Firebase database on refresh. Ensure you have a stable internet connection. If it persists, it means the delete request failed; try clearing your browser cache.",
       },
     ],
   },
@@ -23,8 +27,8 @@ const FAQ_GROUPS = [
     category: "XP, Levels & Achievements",
     items: [
       {
-        q: "How does the XP system work?",
-        a: "You earn XP by marking anime as 'Completed'. Longer anime (more episodes) give more XP. Your first 1,500 XP per day is applied instantly. Any extra XP goes into a queue and is automatically applied after the daily reset.",
+        q: "My XP and Level didn't update after a bulk import. How do I fix it?",
+        a: "We fixed this in v3.2.6! If you are still seeing it, go to Settings → Sync & Backup and click 'Force XP Recalc'. If your XP drops or doesn't move, an old 'Admin Override' might be stuck on your account. Our backend now automatically clears stale overrides if they drift more than 15%, but you can also ping an admin to clear it manually.",
       },
       {
         q: "Why did my XP go down after I edited an anime?",
@@ -34,22 +38,26 @@ const FAQ_GROUPS = [
         q: "Do achievements reset if I delete an anime?",
         a: "No. Achievements are permanent badges of honor. Once you unlock a milestone (e.g., 'Completed 100 Anime'), it stays unlocked on your profile forever, even if you clear your list.",
       },
+      {
+        q: "I reached 10,000 episodes but didn't get the achievement.",
+        a: "Achievements are calculated based on your **Completed** anime. Ensure that your anime are marked as 'Completed' and not 'Watching' or 'On-Hold'. If they are, try refreshing the page to force a recalculation.",
+      },
     ],
   },
   {
-    category: "AniList Sync & Backend",
+    category: "Basics, Filters & UI",
     items: [
       {
-        q: "My anime matched to the wrong version on AniList (e.g., OVA instead of TV). How do I fix it?",
-        a: "Go to Settings -> Sync & Backup. Click 'Deep Re-sync'. This will wipe your existing AniList mappings and re-search every single anime using our advanced title and format-matching algorithm. It forces the system to look for the TV version if your type is set to TV.",
+        q: "How do I filter my list for only Movies or OVAs?",
+        a: "On the Anime List or Watchlist page, use the new 'Type' dropdown filter. You can filter by TV, Movie, OVA, ONA, Special, and TV Short.",
       },
       {
-        q: "Why isn't my AniList activity feed showing my completions?",
-        a: "We designed the sync to be non-spammy. When you mark an anime as 'Completed', AniPulse sends a silent status update to AniList. This updates your score and progress to 100% without generating a 'Watched Episode 12' activity post. It will only post a 'Completed' activity.",
+        q: "Why can't I change the title of an anime once it's added?",
+        a: "Titles are locked after being added to prevent accidental changes that would break the AniList sync mapping. If you added the wrong anime, delete it and re-add it using the search bar.",
       },
       {
-        q: "I deleted an anime, but it came back after refreshing. Why?",
-        a: "This happens if the cloud sync is interrupted or failed. The app will pull the old data from the Firebase database on refresh. Ensure you have a stable internet connection. If it persists, it means the delete request failed; try clearing your browser cache or check if the backend is running.",
+        q: "What does the 'FAB' do?",
+        a: "The Floating Action Button (bottom-right) is your quick-action menu. It lets you open the ChatBot, Import a JSON file, or open the Add Anime modal from any page in the app.",
       },
     ],
   },
@@ -180,7 +188,11 @@ export default function Help() {
             flexWrap: "wrap",
           }}
         >
-          <Link to="/community?tab=discussions" className="btn btn-primary" style={{ color : "black" }}>
+          <Link
+            to="/community?tab=discussions"
+            className="btn btn-primary"
+            style={{ color: "black" }}
+          >
             <i className="fas fa-comments" /> Ask in Community
           </Link>
           <a

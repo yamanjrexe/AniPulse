@@ -2,12 +2,53 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { api } from "../../../services/api.js";
 import { useAuth } from "../../../context/AuthContext.jsx";
 import { useAnime } from "../../../context/AnimeContext.jsx";
+import { useLevel } from "../../../context/LevelContext.jsx";
 import LeaderboardFilters from "./LeaderboardFilters.jsx";
 import LeaderboardList from "./LeaderboardList.jsx";
+
+const CACHE_PREFIX = "leaderboardCache:v2:";
+const CACHE_TTL = 5 * 60 * 1000;
+
+function cacheKey(mode, stat) {
+  return `${CACHE_PREFIX}${mode}:${stat}`;
+}
+
+function readCache(mode, stat) {
+  try {
+    const raw = localStorage.getItem(cacheKey(mode, stat));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed?.rows)) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(mode, stat, rows) {
+  try {
+    localStorage.setItem(
+      cacheKey(mode, stat),
+      JSON.stringify({ rows, timestamp: Date.now() }),
+    );
+  } catch (_) {}
+}
+
+function sortRows(arr, key) {
+  const field =
+    {
+      level: "level",
+      xp: "totalXP",
+      anime: "totalAnime",
+      hours: "totalHours",
+    }[key] || "level";
+  return [...arr].sort((a, b) => (b[field] || 0) - (a[field] || 0));
+}
 
 export default function LeaderboardTab() {
   const { user } = useAuth();
   const { animeData } = useAnime();
+  const { level: myLevel, title: myTitle, totalExp: myTotalExp } = useLevel();
 
   const [mode, setMode] = useState(
     () => localStorage.getItem("leaderboardMode") || "friends",
@@ -15,8 +56,10 @@ export default function LeaderboardTab() {
   const [stat, setStat] = useState(
     () => localStorage.getItem("leaderboardStat") || "level",
   );
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(false);
+
+  const initialCache = readCache(mode, stat);
+  const [rows, setRows] = useState(initialCache?.rows || []);
+  const [loading, setLoading] = useState(!initialCache);
 
   const selfStats = useMemo(() => {
     const completed = animeData.filter((a) => a.userStatus === "Completed");
@@ -44,47 +87,67 @@ export default function LeaderboardTab() {
       uid: "current",
       name: user?.name || "You",
       avatar: user?.avatar,
-      level: user?.level || 1,
-      title: user?.title || "Newbie",
-      totalXP: user?.totalXP || 0,
+      level: myLevel || 1,
+      title: myTitle || "Rookie",
+      totalXP: myTotalExp || 0,
       totalAnime: selfStats.totalAnime,
       totalEpisodes: selfStats.totalEpisodes,
       totalHours: selfStats.totalHours,
       isCurrentUser: true,
     }),
-    [user, selfStats],
+    [user, myLevel, myTitle, myTotalExp, selfStats],
   );
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      let list = [];
-      if (mode === "friends") {
-        const friendsRes = await api.get("/friends/list").catch(() => []);
-        list = [
-          self,
-          ...(friendsRes || []).map((f) => ({
-            ...f,
-            isCurrentUser: false,
-          })),
-        ];
+  const load = useCallback(
+    async (targetMode, targetStat) => {
+      const cached = readCache(targetMode, targetStat);
+
+      if (cached?.rows?.length) {
+        const withoutSelf = cached.rows.filter((r) => !r.isCurrentUser);
+        setRows(
+          targetMode === "friends"
+            ? sortRows([self, ...withoutSelf], targetStat)
+            : withoutSelf,
+        );
+        setLoading(false);
       } else {
-        const r = await api
-          .get(`/ranking/global-paginated?limit=50&page=1&type=${stat}`)
-          .catch(() => ({ rankings: [] }));
-        list = r.rankings || [];
+        setLoading(true);
       }
-      setRows(sortRows(list, stat));
-    } catch (e) {
-      setRows([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [mode, stat, self]);
+
+      try {
+        let list = [];
+        if (targetMode === "friends") {
+          const friendsRes = await api.get("/friends/list").catch(() => []);
+          list = [
+            self,
+            ...(friendsRes || []).map((f) => ({ ...f, isCurrentUser: false })),
+          ];
+        } else {
+          const r = await api
+            .get(`/ranking/global-paginated?limit=50&page=1&type=${targetStat}`)
+            .catch(() => ({ rankings: [] }));
+          list = r.rankings || [];
+        }
+
+        const sorted = sortRows(list, targetStat);
+        setRows(sorted);
+        writeCache(
+          targetMode,
+          targetStat,
+          sorted.filter((r) => !r.isCurrentUser),
+        );
+      } catch (_) {
+        if (!cached) setRows([]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [self],
+  );
 
   useEffect(() => {
-    load();
-  }, [load]);
+    load(mode, stat);
+  }, [mode, stat, load]);
 
   useEffect(() => {
     localStorage.setItem("leaderboardMode", mode);
@@ -92,17 +155,6 @@ export default function LeaderboardTab() {
   useEffect(() => {
     localStorage.setItem("leaderboardStat", stat);
   }, [stat]);
-
-  const sortRows = (arr, key) => {
-    const field =
-      {
-        level: "level",
-        xp: "totalXP",
-        anime: "totalAnime",
-        hours: "totalHours",
-      }[key] || "level";
-    return [...arr].sort((a, b) => (b[field] || 0) - (a[field] || 0));
-  };
 
   const selfRow = useMemo(() => rows.find((r) => r.isCurrentUser), [rows]);
 
@@ -149,7 +201,7 @@ export default function LeaderboardTab() {
               <div>
                 <h4>{selfRow.name}</h4>
                 <span className="your-level">
-                  {selfRow.title || "Newbie"} • Lv.
+                  {selfRow.title || "Rookie"} • Lv.
                   {selfRow.level || 1}
                 </span>
               </div>
@@ -157,7 +209,7 @@ export default function LeaderboardTab() {
           </div>
         )}
 
-        {loading ? (
+        {loading && rows.length === 0 ? (
           <div className="loading-spinner">
             <i className="fas fa-spinner fa-spin" aria-hidden="true" /> Loading
             leaderboard...

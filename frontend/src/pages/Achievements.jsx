@@ -2,10 +2,6 @@ import React, { useMemo, useEffect, useState } from "react";
 import { useAnime } from "../context/AnimeContext.jsx";
 import { ACHIEVEMENTS } from "../services/achievements.js";
 
-// ═══════════════════════════════════════════════════════════
-// STREAK HELPERS
-// ═══════════════════════════════════════════════════════════
-
 function getMaxDayStreak(data) {
   const dateStrings = data
     .filter((a) => a.userStatus === "Completed")
@@ -76,10 +72,6 @@ function getCurrentDayStreak(data) {
   return streak;
 }
 
-// ═══════════════════════════════════════════════════════════
-// Progress computation
-// ═══════════════════════════════════════════════════════════
-
 function decadesWatched(data) {
   const d = new Set();
   data.forEach((a) => {
@@ -112,13 +104,22 @@ function computeProgress(data) {
     (a) =>
       (a.type === "OVA" || a.type === "ONA") && a.userStatus === "Completed",
   ).length;
-  const decadeCount = decadesWatched(data).length;
+  const specials = data.filter(
+    (a) => a.type === "Special" && a.userStatus === "Completed",
+  ).length;
+  const longSeries = data.filter(
+    (a) => (a.episodes || 0) >= 500 && a.userStatus === "Completed",
+  ).length;
+
   const planCount = data.filter((a) => a.userStatus === "Plan to Watch").length;
   const watchingCount = data.filter((a) => a.userStatus === "Watching").length;
   const droppedCount = data.filter((a) => a.userStatus === "Dropped").length;
   const score9plus = data.filter((a) => a.score >= 9).length;
+  const harshScores = data.filter((a) => a.score > 0 && a.score <= 5).length;
+  const generousScores = data.filter((a) => a.score === 10).length;
 
   const dayStreak = getMaxDayStreak(data);
+  const currentLevel = parseInt(localStorage.getItem("userLevel") || "1", 10);
 
   const avgRatingHigh = (() => {
     const rated = data.filter((a) => a.score && a.score > 0);
@@ -140,6 +141,7 @@ function computeProgress(data) {
     complete_250: completed,
     complete_500: completed,
     complete_1000: completed,
+    complete_2000: completed,
     ep_100: totalEps,
     ep_500: totalEps,
     ep_1000: totalEps,
@@ -149,16 +151,16 @@ function computeProgress(data) {
     hour_100: totalHours,
     hour_500: totalHours,
     hour_1000: totalHours,
-    hour_5000: totalHours,
+    hour_2500: totalHours,
     rate_10: totalRated,
     rate_50: totalRated,
-    rate_100: totalRated,
     avg_high: avgRatingHigh,
     genre_3: uniqueGenres,
     genre_6: uniqueGenres,
     genre_10: uniqueGenres,
     genre_15: uniqueGenres,
     genre_20: uniqueGenres,
+    genre_5: uniqueGenres,
     movie_10: movies,
     tv_10: tv,
     ova_5: ova,
@@ -167,20 +169,23 @@ function computeProgress(data) {
     list_50: listSize,
     list_100: listSize,
     list_250: listSize,
-    decade_3: decadeCount,
-    decade_5: decadeCount,
+    list_500: listSize,
+    decade_3: decadesWatched(data).length,
+    decade_5: decadesWatched(data).length,
     score_9plus: score9plus,
     watching_5: watchingCount,
     plan_10: planCount,
     dropped_5: droppedCount,
     streak_7: dayStreak,
     streak_30: dayStreak,
+    streak_100: dayStreak,
+    streak_365: dayStreak,
+    long_series: longSeries,
+    format_ova_20: ova,
+    format_special_10: specials,
+    level_50: currentLevel,
   };
 }
-
-// ═══════════════════════════════════════════════════════════
-// Component
-// ═══════════════════════════════════════════════════════════
 
 export default function Achievements() {
   const { animeData } = useAnime();
@@ -191,7 +196,6 @@ export default function Achievements() {
         localStorage.getItem("unlockedAchievements") || "[]",
       );
       if (!Array.isArray(stored)) return [];
-      // Legacy: numeric indexes → ids
       if (stored.length > 0 && typeof stored[0] === "number") {
         return stored.map((idx) => ACHIEVEMENTS[idx]?.id).filter(Boolean);
       }
@@ -211,7 +215,6 @@ export default function Achievements() {
 
   const progress = useMemo(() => computeProgress(animeData), [animeData]);
 
-  // Unlock detection
   useEffect(() => {
     const newlyUnlocked = [];
     const next = [...unlocked];
@@ -273,7 +276,7 @@ export default function Achievements() {
           const goal = ach.goal;
 
           let current;
-          if (ach.id === "streak_7" || ach.id === "streak_30") {
+          if (ach.id.includes("streak")) {
             const done = streaks.maxDay >= goal;
             current = done ? goal : Math.min(streaks.currentDay, goal);
           } else {

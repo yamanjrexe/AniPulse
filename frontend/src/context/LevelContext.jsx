@@ -31,6 +31,38 @@ export function LevelProvider({ children }) {
     setTodayXP(LS.getTodayXP());
   }, []);
 
+  const runRecalc = useCallback(
+    (source) => {
+      try {
+        const list = (() => {
+          try {
+            return JSON.parse(localStorage.getItem("animeData") || "[]");
+          } catch {
+            return [];
+          }
+        })();
+        if (!Array.isArray(list) || list.length === 0) {
+          console.log(`[LevelContext] Recalc (${source}): animeData empty`);
+          return;
+        }
+        const storedProfile = LS.getUserProfile();
+        const computed = LS.calculateTotalXPFromAnimeList(list);
+        if (computed > 0 && computed !== storedProfile.totalExp) {
+          storedProfile.totalExp = computed;
+          LS.saveUserProfile(storedProfile);
+          console.log(
+            `[LevelContext] Recalc (${source}): updated totalExp → ${computed}`,
+          );
+        }
+        refreshProfile();
+        refreshQueue();
+      } catch (err) {
+        console.warn(`[LevelContext] Recalc (${source}) failed:`, err);
+      }
+    },
+    [refreshProfile, refreshQueue],
+  );
+
   useEffect(() => {
     const onUpdated = () => refreshProfile();
     const onQueue = () => refreshQueue();
@@ -44,17 +76,24 @@ export function LevelProvider({ children }) {
 
   useEffect(() => {
     const handler = () => {
-      try {
-        refreshProfile();
-        refreshQueue();
-        console.log("[LevelContext] Refreshed profile + queue");
-      } catch (err) {
-        console.warn("[LevelContext] Refresh failed:", err);
-      }
+      refreshProfile();
+      refreshQueue();
     };
     window.addEventListener("uiRefresh", handler);
     return () => window.removeEventListener("uiRefresh", handler);
   }, [refreshProfile, refreshQueue]);
+
+  useEffect(() => {
+    const handler = () => runRecalc("cloudDataLoaded");
+    window.addEventListener("cloudDataLoaded", handler);
+    return () => window.removeEventListener("cloudDataLoaded", handler);
+  }, [runRecalc]);
+
+  useEffect(() => {
+    const handler = () => runRecalc("xpRecalcRequested");
+    window.addEventListener("xpRecalcRequested", handler);
+    return () => window.removeEventListener("xpRecalcRequested", handler);
+  }, [runRecalc]);
 
   useEffect(() => {
     if (window.__levelBootDone) return;
@@ -86,29 +125,7 @@ export function LevelProvider({ children }) {
       prevAnimeRef.current = curr;
       if (!initialCheckRef.current) {
         initialCheckRef.current = true;
-        setTimeout(() => {
-          try {
-            if (curr.length > 0) {
-              const currentProfile = LS.getUserProfile();
-              const computed = LS.calculateTotalExpFromAnimeList(curr);
-
-              if (computed > 0 && computed !== currentProfile.totalExp) {
-                console.log(
-                  `[LevelContext] Recalc: stored=${currentProfile.totalExp}, computed=${computed}`,
-                );
-                currentProfile.totalExp = computed;
-                LS.saveUserProfile(currentProfile);
-              }
-            }
-
-            LS.checkForDirectlyCompletedAnime(curr);
-            LS.recomputeDailyXP();
-            refreshProfile();
-            refreshQueue();
-          } catch (err) {
-            console.warn("[LevelContext] Initial check failed:", err);
-          }
-        }, 1500);
+        setTimeout(() => runRecalc("initialMount"), 1500);
       }
       return;
     }
@@ -146,14 +163,14 @@ export function LevelProvider({ children }) {
       LS.checkForDirectlyCompletedAnime(newCompleted);
     }
 
-    if (prev.length === 0 && curr.length > 0) {
-      LS.recalculateTotalExp();
+    if (prev.length !== curr.length) {
+      runRecalc("animeCountChanged");
     }
 
     prevAnimeRef.current = curr;
     refreshProfile();
     refreshQueue();
-  }, [animeData, refreshProfile, refreshQueue]);
+  }, [animeData, refreshProfile, refreshQueue, runRecalc]);
 
   const awardXP = useCallback((anime, { oldAnime } = {}) => {
     return LS.processAnimeDelta(oldAnime || null, anime);
@@ -162,8 +179,9 @@ export function LevelProvider({ children }) {
   const recalc = useCallback(() => {
     const total = LS.recalculateTotalExp();
     refreshProfile();
+    refreshQueue();
     return total;
-  }, [refreshProfile]);
+  }, [refreshProfile, refreshQueue]);
 
   const processQueue = useCallback(() => {
     const r = LS.processPendingXPQueue();

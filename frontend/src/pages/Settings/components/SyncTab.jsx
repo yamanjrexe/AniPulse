@@ -2,18 +2,31 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useSync } from "../../../context/SyncContext.jsx";
 import { useToast } from "../../../context/ToastContext.jsx";
 import { useAnime } from "../../../context/AnimeContext.jsx";
+import { useLevel } from "../../../context/LevelContext.jsx";
 import { autoBackupService } from "../../../services/autoBackupService.js";
 import { anilistSync } from "../../../services/anilistSync.js";
+import { animeService } from "../../../services/animeService.js";
+import { tmdbService } from "../../../services/tmdbService.js";
+import { clearAllCompletedHistory } from "../../../services/levelSystem.js";
+import ConfirmDialog from "../../../components/ui/ConfirmDialog.jsx";
+import Modal from "../../../components/ui/Modal.jsx";
 
 export default function SyncTab() {
   const { lastSync, syncToCloud, loadFromCloud } = useSync();
   const { showToast } = useToast();
-  const { animeData } = useAnime();
+  const { animeData, setAnimeData } = useAnime();
+  const { recalc } = useLevel();
 
   const [backup, setBackup] = useState(() => autoBackupService.getStatus());
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(false);
   const [localError, setLocalError] = useState(null);
+
+  const [importing, setImporting] = useState(false);
+
+  const [showImportConfirm, setShowImportConfirm] = useState(false);
+  const [showFailedCoversModal, setShowFailedCoversModal] = useState(false);
+  const [failedCoversList, setFailedCoversList] = useState([]);
 
   const [anilistStatus, setAnilistStatus] = useState({ connected: false });
   const [anilistBusy, setAnilistBusy] = useState(false);
@@ -228,6 +241,275 @@ export default function SyncTab() {
     }
   }, [showToast]);
 
+  const executeImport = useCallback(async () => {
+    setShowImportConfirm(false);
+    setImporting(true);
+
+    try {
+      const res = await anilistSync.importFromAniList();
+      if (!res.success) throw new Error(res.error || "Import failed");
+
+      const anilistList = res.list || [];
+      if (anilistList.length === 0) {
+        showToast("No anime found on your AniList profile.", "info");
+        setImporting(false);
+        return;
+      }
+
+      const statusMap = {
+        CURRENT: "Watching",
+        PLANNING: "Plan to Watch",
+        COMPLETED: "Completed",
+        DROPPED: "Dropped",
+        PAUSED: "On-Hold",
+        REPEATING: "Watching",
+      };
+
+      const typeMap = {
+        TV: "TV",
+        TV_SHORT: "TV_SHORT",
+        MOVIE: "Movie",
+        OVA: "OVA",
+        ONA: "ONA",
+        SPECIAL: "Special",
+      };
+
+      const formatDate = (d) => {
+        if (!d || !d.year) return null;
+        const y = d.year;
+        const m = String(d.month || 1).padStart(2, "0");
+        const day = String(d.day || 1).padStart(2, "0");
+        return `${y}-${m}-${day}`;
+      };
+
+      const normalizeStr = (str) =>
+        (str || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
+      const anilistSetIds = new Set();
+      const anilistSetTitles = new Set();
+
+      anilistList.forEach((entry) => {
+        anilistSetIds.add(String(entry.media.id));
+        const t1 = entry.media.title?.english;
+        const t2 = entry.media.title?.romaji;
+        const t3 = entry.media.title?.native;
+        [t1, t2, t3]
+          .filter(Boolean)
+          .forEach((t) => anilistSetTitles.add(normalizeStr(t)));
+      });
+
+      let deletedCount = 0;
+      let keptAnimes = animeData.filter((a) => {
+        if (a.anilistId && anilistSetIds.has(String(a.anilistId))) {
+          return true;
+        }
+        if (anilistSetTitles.has(normalizeStr(a.title))) {
+          return true;
+        }
+        deletedCount++;
+        return false;
+      });
+
+      const existingIds = new Set(
+        keptAnimes.map((a) => String(a.anilistId)).filter(Boolean),
+      );
+      const existingTitles = new Set(
+        keptAnimes.map((a) => normalizeStr(a.title)),
+      );
+
+      let newAnimes = [];
+      let currentId = animeService.getNextAvailableId(keptAnimes);
+
+      for (const entry of anilistList) {
+        const media = entry.media;
+        const title =
+          media.title?.english ||
+          media.title?.romaji ||
+          media.title?.native ||
+          "Unknown";
+
+        if (
+          existingIds.has(String(media.id)) ||
+          existingTitles.has(normalizeStr(title))
+        ) {
+          continue;
+        }
+
+        let finalScore = null;
+        if (entry.score) {
+          finalScore = entry.score > 10 ? entry.score / 10 : entry.score;
+        }
+
+        const startStr = formatDate(entry.startedAt);
+        const finishStr = formatDate(entry.completedAt);
+
+        const effectiveProgress =
+          entry.status === "COMPLETED" &&
+          (!entry.progress || entry.progress === 0)
+            ? media.episodes || 1
+            : entry.progress || 0;
+
+        newAnimes.push({
+          id: currentId++,
+          anilistId: media.id,
+          title: title,
+          type: typeMap[media.format] || "TV",
+          episodes: media.episodes || 1,
+          duration: media.duration || 20,
+          userStatus: statusMap[entry.status] || "Plan to Watch",
+          progress: effectiveProgress,
+          score: finalScore,
+          cover: "",
+          genres: (media.genres || []).filter((g) => g !== "Award Winning"),
+          finishDate: finishStr ? finishStr.substring(0, 7) : null,
+          actualFinishDate: finishStr,
+          createdAt: startStr
+            ? `${startStr} 12:00:00`
+            : new Date().toISOString().slice(0, 19).replace("T", " "),
+          updatedAt: finishStr
+            ? `${finishStr} 12:00:00`
+            : new Date().toISOString().slice(0, 19).replace("T", " "),
+        });
+      }
+
+      const merged = animeService.reindexIds([...keptAnimes, ...newAnimes]);
+      const noChanges = newAnimes.length === 0 && deletedCount === 0;
+
+      setAnimeData(merged);
+      localStorage.setItem("animeData", JSON.stringify(merged, null, 2));
+      await animeService.saveCloud(merged);
+      window.dispatchEvent(new CustomEvent("animeUpdate"));
+
+      if (!noChanges) {
+        clearAllCompletedHistory();
+        localStorage.removeItem("xpPendingQueue");
+        recalc();
+        window.dispatchEvent(new CustomEvent("uiRefresh"));
+        await syncToCloud();
+        showToast(
+          `Synced! Added ${newAnimes.length}, Deleted ${deletedCount}.`,
+          "success",
+          3000,
+        );
+      } else {
+        showToast(
+          "Library reindexed and already in sync with AniList.",
+          "info",
+          3000,
+        );
+      }
+
+      const missingCovers = merged.filter((a) => !a.cover);
+
+      if (missingCovers.length === 0) {
+        setImporting(false);
+        return;
+      }
+
+      showToast(
+        `Fetching TMDB covers for ${missingCovers.length} anime...`,
+        "info",
+        3000,
+      );
+
+      const fetchCoversAsync = async () => {
+        let totalUpdated = 0;
+        let missingTitles = [];
+        const chunkSize = 3;
+        const totalMissing = missingCovers.length;
+
+        for (let i = 0; i < totalMissing; i += chunkSize) {
+          const chunk = missingCovers.slice(i, i + chunkSize);
+          let success = false;
+          let attempts = 0;
+
+          while (!success && attempts < 3) {
+            try {
+              const posters = await tmdbService.getPostersBatch(chunk);
+
+              setAnimeData((prevList) => {
+                let hasChanges = false;
+                const updatedList = prevList.map((a) => {
+                  if (!a.cover && (posters[a.anilistId] || posters[a.title])) {
+                    hasChanges = true;
+                    totalUpdated++;
+                    return {
+                      ...a,
+                      cover: posters[a.anilistId] || posters[a.title],
+                    };
+                  } else if (
+                    !a.cover &&
+                    !(posters[a.anilistId] || posters[a.title])
+                  ) {
+                    if (!missingTitles.includes(a.title))
+                      missingTitles.push(a.title);
+                  }
+                  return a;
+                });
+
+                if (hasChanges) {
+                  localStorage.setItem(
+                    "animeData",
+                    JSON.stringify(updatedList, null, 2),
+                  );
+                  animeService.saveCloud(updatedList);
+                }
+                return updatedList;
+              });
+              success = true;
+            } catch (err) {
+              console.warn(
+                `Chunk failed, retrying... (${attempts + 1}/3)`,
+                err,
+              );
+              attempts++;
+              await new Promise((r) => setTimeout(r, 2000));
+            }
+          }
+
+          if (!success) {
+            chunk.forEach((a) => {
+              if (!missingTitles.includes(a.title)) missingTitles.push(a.title);
+            });
+          }
+          await new Promise((r) => setTimeout(r, 1000));
+        }
+
+        window.dispatchEvent(new CustomEvent("animeUpdate"));
+
+        if (missingTitles.length > 0) {
+          setFailedCoversList(missingTitles);
+          setShowFailedCoversModal(true);
+          showToast(
+            `Finished! ${missingTitles.length} covers could not be found.`,
+            "warning",
+            6000,
+          );
+        } else {
+          showToast(
+            `Finished fetching ${totalUpdated} covers successfully!`,
+            "success",
+            4000,
+          );
+        }
+      };
+
+      fetchCoversAsync();
+    } catch (err) {
+      console.error(err);
+      showToast(err.message || "Failed to import from AniList", "error");
+    } finally {
+      setImporting(false);
+    }
+  }, [
+    anilistStatus.connected,
+    animeData,
+    setAnimeData,
+    showToast,
+    recalc,
+    syncToCloud,
+  ]);
+
   const onSync = useCallback(async () => {
     const ok = await syncToCloud();
     showToast(ok ? "Synced to cloud" : "Sync failed", ok ? "success" : "error");
@@ -314,14 +596,12 @@ export default function SyncTab() {
           <i className="fas fa-cloud-upload-alt" aria-hidden="true" /> Cloud
           Sync
         </h3>
-
         <div className="settings-item">
           <div className="sync-status">
             <i className="fas fa-cloud" aria-hidden="true" />
             <span>{lastSync ? "Cloud sync active" : "Not synced yet"}</span>
           </div>
         </div>
-
         <div className="settings-item settings-actions">
           <button
             className="btn btn-primary"
@@ -338,7 +618,6 @@ export default function SyncTab() {
             <i className="fas fa-cloud-download-alt" /> Load from cloud
           </button>
         </div>
-
         <div className="settings-item">
           <small className="sync-info">
             Last sync:{" "}
@@ -357,26 +636,15 @@ export default function SyncTab() {
             <p className="settings-hint">
               Connect your AniList account to keep both libraries in sync. Every
               add, edit, or delete you make here is reflected on AniList in the
-              background — no manual button per anime.
+              background.
             </p>
-
-            <p
-              className="settings-hint"
-              style={{ fontSize: "0.7rem", opacity: 0.7 }}
-            >
-              Combined-season entries are supported — progress is capped to
-              AniList's actual episode count when the two differ.
-            </p>
-
             <button
               className="btn btn-primary"
               onClick={onConnectAnilist}
               disabled={anilistBusy}
             >
               <i
-                className={`fas ${
-                  anilistBusy ? "fa-spinner fa-spin" : "fa-link"
-                }`}
+                className={`fas ${anilistBusy ? "fa-spinner fa-spin" : "fa-link"}`}
               />{" "}
               {anilistBusy ? "Opening…" : "Connect to AniList"}
             </button>
@@ -398,16 +666,13 @@ export default function SyncTab() {
               <div className="anilist-row anilist-progress-row">
                 <div className="anilist-progress-head">
                   <span className="anilist-progress-label">
-                    <i className="fas fa-spinner fa-spin" aria-hidden="true" />
-                    Syncing library…
+                    <i className="fas fa-spinner fa-spin" aria-hidden="true" />{" "}
+                    Syncing to AniList…
                   </span>
                   <span className="anilist-progress-count">
-                    {syncCurrent}
-                    <span className="anilist-progress-sep">/</span>
-                    {syncTotal}
+                    {syncCurrent} / {syncTotal}
                   </span>
                 </div>
-
                 <div className="anilist-progress-track">
                   <div
                     className="anilist-progress-fill"
@@ -417,103 +682,67 @@ export default function SyncTab() {
               </div>
             )}
 
-            {!isSyncing && anilistQueue.jobs > 0 && (
-              <div className="anilist-row">
-                <div className="sync-status">
-                  <i className="fas fa-hourglass-half" aria-hidden="true" />
-                  <span>{anilistQueue.jobs} anime waiting in queue</span>
-                </div>
-              </div>
-            )}
-
-            {pendingRetry > 0 && (
-              <div className="anilist-row">
-                <div className="sync-status">
-                  <i className="fas fa-rotate-right" aria-hidden="true" />
-                  <span>
-                    {pendingRetry} change
-                    {pendingRetry > 1 ? "s" : ""} pending — retrying
-                    automatically
-                  </span>
-                </div>
-              </div>
-            )}
-
             <div className="anilist-row anilist-actions-row">
               <button
                 className="btn btn-secondary"
                 onClick={onSyncAnilistAll}
-                disabled={anilistBusy}
+                disabled={anilistBusy || importing}
               >
                 <i
-                  className={`fas ${
-                    anilistBusy ? "fa-spinner fa-spin" : "fa-sync-alt"
-                  }`}
+                  className={`fas ${anilistBusy ? "fa-spinner fa-spin" : "fa-sync-alt"}`}
                 />{" "}
-                {anilistBusy ? "Queueing…" : "Re-sync entire library"}
+                {anilistBusy ? "Queueing…" : "Push to AniList"}
               </button>
               <button
                 className="btn btn-ghost"
                 onClick={onDeepResync}
-                disabled={anilistBusy}
+                disabled={anilistBusy || importing}
               >
                 <i className="fas fa-broom" /> Deep re-sync
               </button>
               <button
                 className="btn btn-ghost"
                 onClick={onDisconnectAnilist}
-                disabled={anilistBusy}
+                disabled={anilistBusy || importing}
               >
                 <i className="fas fa-unlink" /> Disconnect
               </button>
             </div>
 
-            {failedMatches.length > 0 && (
-              <div className="anilist-row anilist-failed-row">
-                <div className="sync-status">
-                  <i
-                    className="fas fa-triangle-exclamation"
-                    aria-hidden="true"
-                  />
-                  <span>
-                    {failedMatches.length} anime couldn't be matched on AniList
-                  </span>
-                </div>
-
-                <details className="anilist-failed-details">
-                  <summary>Show list</summary>
-                  <ul>
-                    {failedMatches.map((f) => (
-                      <li key={f.animeId}>
-                        <span>{f.title}</span>
-                        <span className="anilist-failed-hint">
-                          Rename in AniPulse to match AniList's title, then edit
-                          it here to retry
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                  <button
-                    type="button"
-                    className="btn btn-ghost"
-                    onClick={onClearFailed}
-                  >
-                    <i className="fas fa-broom" /> Clear list
-                  </button>
-                </details>
-              </div>
-            )}
-
             <div className="anilist-row anilist-footer-row">
               <span className="anilist-footer-note">
-                <span className="anilist-dot" />
-                Auto-sync is active. New anime, edits, and deletions are pushed
-                to AniList automatically from every device you log into.
+                <span className="anilist-dot" /> Changes are pushed to AniList
+                automatically.
               </span>
             </div>
           </div>
         )}
       </div>
+
+      {anilistStatus.connected && (
+        <div className="settings-group">
+          <h3>
+            <i className="fas fa-download" aria-hidden="true" /> Import from
+            AniList
+          </h3>
+          <p className="settings-hint">
+            Download your entire AniList library into AniPulse.{" "}
+            <strong>Warning:</strong> This will also delete any anime in
+            AniPulse that are not on your AniList profile to keep them perfectly
+            mirrored.
+          </p>
+          <button
+            className="btn btn-primary"
+            onClick={() => setShowImportConfirm(true)}
+            disabled={importing}
+          >
+            <i
+              className={`fas ${importing ? "fa-spinner fa-spin" : "fa-download"}`}
+            />{" "}
+            {importing ? "Importing..." : "Import Library"}
+          </button>
+        </div>
+      )}
 
       <div className="settings-group">
         <h3>
@@ -579,7 +808,6 @@ export default function SyncTab() {
                 Backing up to <strong>{backup.handleName}</strong>
               </span>
             </div>
-
             <div className="settings-item">
               <small className="sync-info">
                 Last backup:{" "}
@@ -588,13 +816,11 @@ export default function SyncTab() {
                   : "Not saved yet"}
               </small>
             </div>
-
             {backup.error && (
               <div className="settings-item">
                 <small className="sync-error">{backup.error}</small>
               </div>
             )}
-
             <div className="settings-item settings-actions">
               <button
                 className="btn btn-primary"
@@ -617,6 +843,66 @@ export default function SyncTab() {
           </>
         )}
       </div>
+
+      <ConfirmDialog
+        open={showImportConfirm}
+        message="WARNING: This will download your AniList library into AniPulse AND DELETE any anime in AniPulse that are not on your AniList profile to keep them perfectly mirrored. Do you want to continue?"
+        confirmLabel="Yes, Import & Overwrite"
+        onConfirm={executeImport}
+        onCancel={() => setShowImportConfirm(false)}
+      />
+
+      <Modal
+        open={showFailedCoversModal}
+        onClose={() => setShowFailedCoversModal(false)}
+        title="Missing Covers"
+      >
+        <div style={{ padding: "0 4px" }}>
+          <p style={{ color: "var(--text-secondary)", marginBottom: 16 }}>
+            TMDB could not find high-quality covers for the following{" "}
+            <strong>{failedCoversList.length}</strong> anime. You can manually
+            add a cover URL for these by clicking on them in your list.
+          </p>
+          <div
+            style={{
+              maxHeight: "300px",
+              overflowY: "auto",
+              background: "var(--bg-surface)",
+              border: "1px solid var(--border-default)",
+              borderRadius: "var(--r-sm)",
+              padding: "12px 16px",
+            }}
+          >
+            <ul
+              style={{
+                margin: 0,
+                paddingLeft: 20,
+                color: "var(--text-primary)",
+                lineHeight: 1.6,
+                fontSize: "0.9rem",
+              }}
+            >
+              {failedCoversList.map((title, i) => (
+                <li key={i} style={{ marginBottom: 4 }}>
+                  {title}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div
+            className="form-actions"
+            style={{ marginTop: 24, paddingTop: 16 }}
+          >
+            <button
+              className="btn btn-primary"
+              onClick={() => setShowFailedCoversModal(false)}
+              style={{ width: "100%" }}
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

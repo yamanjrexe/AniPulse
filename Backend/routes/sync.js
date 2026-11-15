@@ -1,5 +1,5 @@
 const express = require('express');
-const { db, COLLECTIONS } = require('../services/firebase');
+const { db, COLLECTIONS, admin } = require('../services/firebase');
 const { verifyToken } = require('../middleware/auth');
 const {
   getLevelFromXP,
@@ -156,7 +156,6 @@ function sanitizeProfile(userProfile) {
     social: {}
   };
 
-  //  PRESERVE NEW FIELDS
   if (userProfile.profileVisibility) clean.profileVisibility = userProfile.profileVisibility;
   if (userProfile.publicUsername) clean.publicUsername = userProfile.publicUsername;
   if (userProfile.usernameLower) clean.usernameLower = userProfile.usernameLower;
@@ -296,9 +295,30 @@ router.post('/sync-all', verifyToken, async (req, res) => {
     const existingData = existingUser.exists ? existingUser.data() : {};
     const overrides = existingData.adminOverrides || {};
 
-    const finalXP = typeof overrides.totalXP === 'number' ? overrides.totalXP : recalculatedXP;
-    const finalLevel = typeof overrides.level === 'number' ? overrides.level : recalculatedLevel;
-    const finalTitle = overrides.title || recalculatedTitle;
+    let finalXP = recalculatedXP;
+    let finalLevel = recalculatedLevel;
+    let finalTitle = recalculatedTitle;
+    let shouldClearOverrides = false;
+
+    if (typeof overrides.totalXP === 'number') {
+      const drift = Math.abs(overrides.totalXP - recalculatedXP);
+      const pctDrift = recalculatedXP > 0 ? drift / recalculatedXP : 1;
+
+      if (pctDrift < 0.15) {
+        finalXP = overrides.totalXP;
+        finalLevel = typeof overrides.level === 'number' ? overrides.level : recalculatedLevel;
+        finalTitle = overrides.title || recalculatedTitle;
+      } else {
+        shouldClearOverrides = true;
+        console.log(
+          `[Sync] Clearing stale adminOverrides for ${userId.slice(0, 8)}: override=${overrides.totalXP}, recalculated=${recalculatedXP}`
+        );
+      }
+    }
+
+    console.log(
+      `[Sync] user=${userId.slice(0, 8)} recalculatedXP=${recalculatedXP}, finalXP=${finalXP}, clearedOverrides=${shouldClearOverrides}`
+    );
 
     const userUpdate = {
       totalXP: finalXP,
@@ -311,7 +331,10 @@ router.post('/sync-all', verifyToken, async (req, res) => {
       lastUpdated: new Date().toISOString()
     };
 
-    //  SAVE NEW FIELDS TO MAIN USER DOC
+    if (shouldClearOverrides) {
+      userUpdate.adminOverrides = admin.firestore.FieldValue.delete();
+    }
+
     if (cleanProfile?.profileVisibility) userUpdate.profileVisibility = cleanProfile.profileVisibility;
     if (cleanProfile?.publicUsername) userUpdate.publicUsername = cleanProfile.publicUsername;
     if (cleanProfile?.usernameLower) userUpdate.usernameLower = cleanProfile.usernameLower;
@@ -383,7 +406,7 @@ router.get('/load-all', verifyToken, async (req, res) => {
       data.levelData = {
         totalXP: userData.totalXP || 0,
         level: userData.level || 1,
-        title: userData.title || 'Newbie',
+        title: userData.title || 'Rookie',
         totalAnime: userData.totalAnime || 0,
         totalHours: userData.totalHours || 0
       };
@@ -399,7 +422,7 @@ router.get('/load-all', verifyToken, async (req, res) => {
         lastActive: userData.lastActive || null
       };
     } else {
-      data.levelData = { totalXP: 0, level: 1, title: 'Newbie', totalAnime: 0, totalHours: 0 };
+      data.levelData = { totalXP: 0, level: 1, title: 'Rookie', totalAnime: 0, totalHours: 0 };
       data.streakData = { streak: 0, lastActive: null };
     }
 

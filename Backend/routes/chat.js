@@ -85,16 +85,16 @@ function updateSession(userId, patch) {
 function getLevelFromXP(xp) {
     const level = Math.min(50, Math.floor(xp / 1000) + 1);
     const titles = [
-        'Newbie', 'Scout', 'Viewer', 'Otaku', 'Fanatic',
-        'Binge', 'Senpai', 'Shonen', 'Elite', 'Legend',
-        'Sage', 'Keeper', 'Traveler', 'Master', 'Grand',
-        'Hokage', 'Transc', 'Veteran', 'Watcher', 'Myth',
-        'Deity', 'Mythic', 'Ascend', 'Divine', 'Cosmic',
-        'Eternal', 'Godly', 'Celest', 'Potent', 'Absol',
-        'Supreme', 'VLord', 'StarE', 'Galaxy', 'Walker',
-        'DimLord', 'Weaver', 'TimeM', 'SpaceG', 'Etern',
-        'Infini', 'Omni', 'Creator', 'Prime', 'Alpha',
-        'Omega', 'Genesis', 'Apoc', 'Nirvana', 'Max',
+        'Rookie', 'Scout', 'Watcher', 'Otaku', 'Binger',
+        'Enthusiast', 'Senpai', 'Shonen', 'Protagonist', 'Veteran',
+        'Ronin', 'Shinobi', 'Vanguard', 'Captain', 'Hashira',
+        'Sensei', 'Sage', 'Kage', 'Warlord', 'Champion',
+        'Hero', 'Legend', 'Mythic', 'Paragon', 'Phantom',
+        'Sovereign', 'Overlord', 'Emperor', 'Awakened', 'Ascendant',
+        'Demigod', 'Valkyrie', 'Titan', 'Archon', 'Deity',
+        'Seraph', 'Celestial', 'Immortal', 'Transcendent', 'Divine',
+        'Astral', 'Nebula', 'Supernova', 'Chronos', 'Voidwalker',
+        'Genesis', 'Apex', 'Omega', 'Infinite', 'Omnipotent',
     ];
     return { level, title: titles[level - 1] || 'Max' };
 }

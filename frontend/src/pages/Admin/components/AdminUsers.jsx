@@ -68,7 +68,7 @@ function AdminUserDetail({ user, onClose, onRefresh, onUpdateLocal }) {
   const [editStats, setEditStats] = useState({
     totalXP: user.totalXP || 0,
     level: user.level || 1,
-    title: user.title || "Newbie",
+    title: user.title || "Rookie",
     role: user.role || "member",
   });
   const [savingStats, setSavingStats] = useState(false);

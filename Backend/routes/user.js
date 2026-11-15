@@ -11,6 +11,10 @@ const {
 
 const router = express.Router();
 
+const FULL_PROFILE_CACHE = new Map();
+const PROFILE_CACHE_TTL = 30 * 1000;
+const PROFILE_CACHE_MAX = 500;
+
 async function getUserAnimeList(userId) {
   try {
     const doc = await db.collection(COLLECTIONS.ANIME_LISTS).doc(userId).get();
@@ -98,7 +102,11 @@ router.get('/profile/:userId', verifyToken, async (req, res) => {
     const title = getTitleForLevel(level);
 
     res.json({
-      uid: userId, name: displayName, username: displayName, avatar: userData.avatar || null,
+      uid: userId,
+      name: displayName,
+      username: displayName,
+      publicUsername: userData.publicUsername || null,
+      avatar: userData.avatar || null,
       level, title, totalXP, totalAnime, totalEpisodes, totalHours,
     });
   } catch (error) {
@@ -214,6 +222,14 @@ router.get('/avatar/:userId', async (req, res) => {
 router.get('/full-profile/:userId', verifyToken, async (req, res) => {
   const { userId } = req.params;
   const currentUserId = req.userId;
+
+  const cacheKey = `${userId}:${currentUserId}`;
+  const cached = FULL_PROFILE_CACHE.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < PROFILE_CACHE_TTL) {
+    res.set('Cache-Control', 'private, max-age=30');
+    return res.json(cached.data);
+  }
+
   try {
     const [
       profileDoc, userDoc, animeListDoc, achievementsDoc, activityDoc, friendsDoc,
@@ -282,8 +298,11 @@ router.get('/full-profile/:userId', verifyToken, async (req, res) => {
 
     const recentActivity = currentUserId === userId && activityDoc.exists ? (activityDoc.data().activities || []).slice(0, 10) : [];
 
-    res.json({
-      uid: userId, name: displayName, avatar, cover, bio, status, favoriteAnime, social,
+    const result = {
+      uid: userId,
+      publicUsername: userData.publicUsername || null,
+      name: displayName,
+      avatar, cover, bio, status, favoriteAnime, social,
       level, levelTitle, totalXP, xpProgress: Math.min(100, Math.max(0, progress)),
       xpToNextLevel: Math.max(0, nextXP), nextLevelTitle: getTitleForLevel(level + 1),
       stats: {
@@ -291,10 +310,21 @@ router.get('/full-profile/:userId', verifyToken, async (req, res) => {
         planToWatch: plan.length, dropped: dropped.length, totalHours, totalEpisodes,
       },
       animeList: {
-        completed: completed.slice(0, 30), watching: watching.slice(0, 30), planToWatch: plan.slice(0, 30),
+        completed: completed.slice(0, 30),
+        watching: watching.slice(0, 30),
+        planToWatch: plan.slice(0, 30),
       },
       achievements: unlocked, recentActivity, isFriend, isCurrentUser: currentUserId === userId,
-    });
+    };
+
+    if (FULL_PROFILE_CACHE.size >= PROFILE_CACHE_MAX) {
+      const oldestKey = FULL_PROFILE_CACHE.keys().next().value;
+      FULL_PROFILE_CACHE.delete(oldestKey);
+    }
+    FULL_PROFILE_CACHE.set(cacheKey, { data: result, timestamp: Date.now() });
+
+    res.set('Cache-Control', 'private, max-age=30');
+    res.json(result);
   } catch (error) {
     console.error('Full profile error:', error);
     res.status(500).json({ error: error.message });

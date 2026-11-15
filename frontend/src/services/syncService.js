@@ -1,4 +1,5 @@
 import { api } from './api.js';
+import { animeService } from './animeService.js';
 
 export const syncService = {
     _timer: null,
@@ -17,7 +18,7 @@ export const syncService = {
             levelData: {
                 totalXP: parseInt(localStorage.getItem('userXP') || '0', 10),
                 level: parseInt(localStorage.getItem('userLevel') || '1', 10),
-                title: localStorage.getItem('userLevelTitle') || 'Newbie',
+                title: localStorage.getItem('userLevelTitle') || 'Rookie',
             },
             dailyXP: {
                 date: new Date().toDateString(),
@@ -72,7 +73,8 @@ export const syncService = {
             const { data } = res;
 
             if (data.animeData != null) {
-                localStorage.setItem('animeData', JSON.stringify(data.animeData));
+                const cleanList = animeService.reindexIds(data.animeData);
+                localStorage.setItem('animeData', JSON.stringify(cleanList));
             }
             if (data.activityLog != null) {
                 localStorage.setItem('activityLog', JSON.stringify(data.activityLog));

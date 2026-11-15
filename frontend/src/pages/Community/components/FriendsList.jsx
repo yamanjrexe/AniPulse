@@ -87,7 +87,7 @@ export default function FriendsList({ friends, onRemove }) {
               <div
                 key={f.uid}
                 className="friend-card"
-                onClick={() => window.openUserProfile?.(f.uid)}
+                onClick={() => window.openUserProfile?.(f)}
                 style={{ cursor: "pointer" }}
               >
                 <img
@@ -98,7 +98,7 @@ export default function FriendsList({ friends, onRemove }) {
                 <div className="friend-info">
                   <div className="friend-name">{displayName}</div>
                   <div className="friend-level">
-                    {f.title || "Newbie"} • Lv.{f.level || 1}
+                    {f.title || "Rookie"} • Lv.{f.level || 1}
                   </div>
                 </div>
                 <button

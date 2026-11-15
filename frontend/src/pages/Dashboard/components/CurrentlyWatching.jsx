@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useAnime } from "../../../context/AnimeContext.jsx";
 import { useSync } from "../../../context/SyncContext.jsx";
 import { useToast } from "../../../context/ToastContext.jsx";
+import { animeService } from "../../../services/animeService.js";
 import PosterImage from "../../../components/ui/PosterImage.jsx";
 import ConfirmDialog from "../../../components/ui/ConfirmDialog.jsx";
 
@@ -19,7 +20,8 @@ export default function CurrentlyWatching() {
   const handleDelete = async () => {
     if (!deleteTarget) return;
     try {
-      const newList = animeData.filter((a) => a.id !== deleteTarget.id);
+      const filtered = animeData.filter((a) => a.id !== deleteTarget.id);
+      const newList = animeService.reindexIds(filtered);
       setAnimeData(newList);
       logActivity("deleted", deleteTarget.title);
       await syncToCloud();
@@ -65,7 +67,6 @@ export default function CurrentlyWatching() {
                 <PosterImage anime={a} alt={a.title} />
                 <div className="watching-overlay" />
 
-                {/* DELETE BUTTON */}
                 <button
                   className="watching-delete-btn"
                   onClick={(e) => {

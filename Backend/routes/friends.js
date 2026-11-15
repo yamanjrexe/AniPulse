@@ -5,9 +5,6 @@ const { createNotification } = require('./user');
 
 const router = express.Router();
 
-// ============================================
-// SEND FRIEND REQUEST
-// ============================================
 router.post('/request/:userId', verifyToken, async (req, res) => {
   const { userId } = req.params;
   const fromUserId = req.userId;
@@ -15,20 +12,17 @@ router.post('/request/:userId', verifyToken, async (req, res) => {
     return res.status(400).json({ error: 'Cannot send request to yourself' });
   }
   try {
-    // Get sender name
-    let senderDoc = await db.collection(COLLECTIONS.USER_PROFILES).doc(fromUserId).get();
-    if (!senderDoc.exists) senderDoc = await db.collection(COLLECTIONS.USERS).doc(fromUserId).get();
-    const senderData = senderDoc.data();
+    let senderDoc = await db.collection(COLLECTIONS.USERS).doc(fromUserId).get();
+    if (!senderDoc.exists) senderDoc = await db.collection(COLLECTIONS.USER_PROFILES).doc(fromUserId).get();
+    const senderData = senderDoc.data() || {};
     const senderName = senderData.name || senderData.username || 'Someone';
 
-    // Check if already friends
     const friendsDoc = await db.collection(COLLECTIONS.FRIENDS).doc(fromUserId).get();
     const friends = friendsDoc.data()?.friends || [];
     if (friends.includes(userId)) {
       return res.status(400).json({ error: 'Already friends' });
     }
 
-    // Check for pending request
     const existingRequest = await db.collection(COLLECTIONS.FRIEND_REQUESTS)
       .where('from', '==', fromUserId)
       .where('to', '==', userId)
@@ -60,9 +54,6 @@ router.post('/request/:userId', verifyToken, async (req, res) => {
   }
 });
 
-// ============================================
-// ACCEPT FRIEND REQUEST
-// ============================================
 router.post('/accept/:requestId', verifyToken, async (req, res) => {
   const { requestId } = req.params;
   const userId = req.userId;
@@ -73,12 +64,11 @@ router.post('/accept/:requestId', verifyToken, async (req, res) => {
     const request = requestDoc.data();
     if (request.to !== userId) return res.status(403).json({ error: 'Unauthorized' });
 
-    // Get acceptor name
-    let acceptorDoc = await db.collection(COLLECTIONS.USER_PROFILES).doc(userId).get();
-    if (!acceptorDoc.exists) acceptorDoc = await db.collection(COLLECTIONS.USERS).doc(userId).get();
-    const acceptorName = acceptorDoc.data()?.name || acceptorDoc.data()?.username || 'Someone';
+    let acceptorDoc = await db.collection(COLLECTIONS.USERS).doc(userId).get();
+    if (!acceptorDoc.exists) acceptorDoc = await db.collection(COLLECTIONS.USER_PROFILES).doc(userId).get();
+    const acceptorData = acceptorDoc.data() || {};
+    const acceptorName = acceptorData.name || acceptorData.username || 'Someone';
 
-    // Use transaction for atomic updates
     await db.runTransaction(async (transaction) => {
       const fromRef = db.collection(COLLECTIONS.FRIENDS).doc(request.from);
       const toRef = db.collection(COLLECTIONS.FRIENDS).doc(request.to);
@@ -102,9 +92,6 @@ router.post('/accept/:requestId', verifyToken, async (req, res) => {
   }
 });
 
-// ============================================
-// DECLINE FRIEND REQUEST
-// ============================================
 router.post('/decline/:requestId', verifyToken, async (req, res) => {
   const { requestId } = req.params;
   const userId = req.userId;
@@ -121,34 +108,41 @@ router.post('/decline/:requestId', verifyToken, async (req, res) => {
   }
 });
 
-// ============================================
-// GET FRIENDS LIST
-// ============================================
 router.get('/list', verifyToken, async (req, res) => {
   const userId = req.userId;
   try {
     const friendsDoc = await db.collection(COLLECTIONS.FRIENDS).doc(userId).get();
     const friendIds = friendsDoc.data()?.friends || [];
-    const friends = [];
-    for (const friendId of friendIds) {
-      let userDoc = await db.collection(COLLECTIONS.USER_PROFILES).doc(friendId).get();
-      if (!userDoc.exists) userDoc = await db.collection(COLLECTIONS.USERS).doc(friendId).get();
-      if (userDoc.exists) {
-        const userData = userDoc.data();
-        const displayName = userData.name || userData.username || 'User';
-        friends.push({
-          uid: friendId,
+
+    if (friendIds.length === 0) {
+      res.set('Cache-Control', 'private, max-age=30');
+      return res.json([]);
+    }
+
+    const refs = friendIds.map((id) => db.collection(COLLECTIONS.USERS).doc(id));
+    const snaps = await db.getAll(...refs);
+
+    const friends = snaps
+      .filter((s) => s.exists)
+      .map((s) => {
+        const u = s.data();
+        const displayName = u.name || u.username || 'User';
+        return {
+          uid: s.id,
           name: displayName,
           username: displayName,
-          title: userData.title || 'Newbie',
-          level: userData.level || 1,
-          totalXP: userData.totalXP || 0,
-          totalAnime: userData.totalAnime || 0,
-          totalHours: userData.totalHours || 0,
-          avatar: userData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=6366F1&color=fff`
-        });
-      }
-    }
+          title: u.title || 'Rookie',
+          level: u.level || 1,
+          totalXP: u.totalXP || 0,
+          totalAnime: u.totalAnime || 0,
+          totalHours: u.totalHours || 0,
+          avatar:
+            u.avatar ||
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=6366F1&color=fff`,
+        };
+      });
+
+    res.set('Cache-Control', 'private, max-age=30');
     res.json(friends);
   } catch (error) {
     console.error('Get friends error:', error);
@@ -156,9 +150,6 @@ router.get('/list', verifyToken, async (req, res) => {
   }
 });
 
-// ============================================
-// GET PENDING FRIEND REQUESTS
-// ============================================
 router.get('/requests', verifyToken, async (req, res) => {
   const userId = req.userId;
   try {
@@ -166,12 +157,25 @@ router.get('/requests', verifyToken, async (req, res) => {
       .where('to', '==', userId)
       .where('status', '==', 'pending')
       .get();
+
+    if (snapshot.empty) {
+      res.set('Cache-Control', 'private, max-age=15');
+      return res.json([]);
+    }
+
+    const refs = snapshot.docs.map((doc) =>
+      db.collection(COLLECTIONS.USERS).doc(doc.data().from),
+    );
+    const userSnaps = await db.getAll(...refs);
+    const userMap = {};
+    userSnaps.forEach((s) => {
+      if (s.exists) userMap[s.id] = s.data();
+    });
+
     const requests = [];
     for (const doc of snapshot.docs) {
       const request = doc.data();
-      let userDoc = await db.collection(COLLECTIONS.USER_PROFILES).doc(request.from).get();
-      if (!userDoc.exists) userDoc = await db.collection(COLLECTIONS.USERS).doc(request.from).get();
-      const userData = userDoc.data();
+      const userData = userMap[request.from];
       if (userData) {
         const displayName = userData.name || userData.username || 'User';
         requests.push({
@@ -179,12 +183,16 @@ router.get('/requests', verifyToken, async (req, res) => {
           from: request.from,
           fromName: request.fromName || displayName,
           fromUsername: displayName,
-          fromAvatar: userData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=6366F1&color=fff`,
+          fromAvatar:
+            userData.avatar ||
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=6366F1&color=fff`,
           fromLevel: userData.level || 1,
-          createdAt: request.createdAt
+          createdAt: request.createdAt,
         });
       }
     }
+
+    res.set('Cache-Control', 'private, max-age=15');
     res.json(requests);
   } catch (error) {
     console.error('Get requests error:', error);
@@ -192,9 +200,6 @@ router.get('/requests', verifyToken, async (req, res) => {
   }
 });
 
-// ============================================
-// REMOVE FRIEND
-// ============================================
 router.delete('/remove/:friendId', verifyToken, async (req, res) => {
   const { friendId } = req.params;
   const userId = req.userId;
