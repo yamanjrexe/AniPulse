@@ -27,7 +27,7 @@ export const navigationItems = [
     icon: "fa-globe",
     title: "Public Profile - AniPulse",
     component: PublicProfile,
-    protected: true,
+    protected: false,
     isDynamic: true,
   },
   {

@@ -103,7 +103,12 @@ async function request(endpoint, options = {}) {
                 if (!secondCheck) {
                     localStorage.removeItem("authToken");
                     localStorage.removeItem("user");
-                    if (!window.location.pathname.startsWith("/login")) {
+
+                    // PREVENT BOT REDIRECTS: Don't redirect if we are on a public page
+                    const publicPaths = ["/", "/login", "/resources", "/u/", "/offline"];
+                    const isPublic = publicPaths.some(p => window.location.pathname.startsWith(p));
+
+                    if (!isPublic) {
                         window.location.href = "/login";
                     }
                 }
