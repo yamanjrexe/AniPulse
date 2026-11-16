@@ -89,55 +89,73 @@ export default function PublicProfile() {
     }
   };
 
+  const seoTitle = data?.name
+    ? `${data.name}'s Profile`
+    : `${username}'s Profile`;
+  const seoDesc =
+    data?.bio ||
+    `Check out ${username}'s anime stats, level, and achievements on AniPulse!`;
+  const seoImage =
+    data?.avatar && !data.avatar.startsWith("data:image")
+      ? data.avatar
+      : undefined;
+
+  const seoTags = (
+    <Seo
+      title={seoTitle}
+      description={seoDesc}
+      url={`/u/${username.toLowerCase()}/profile`}
+      image={seoImage}
+    />
+  );
+
+  const profileSchema = data
+    ? {
+        "@context": "https://schema.org",
+        "@type": "ProfilePage",
+        mainEntity: {
+          "@type": "Person",
+          name: data.name,
+          description: data.bio || `AniPulse Anime Profile for ${data.name}`,
+          image: seoImage || "https://ani-pulse.netlify.app/icon/Anipulse.png",
+          url: `https://ani-pulse.netlify.app/u/${username.toLowerCase()}/profile`,
+        },
+      }
+    : null;
+
   if (error)
     return (
-      <div className="publicProfileError">
-        <h2>Oops!</h2>
-        <p>{error}</p>
-        <Link to="/" className="btn btn-primary">
-          Go Home
-        </Link>
-      </div>
+      <>
+        {seoTags}
+        <div className="publicProfileError">
+          <h2>Oops!</h2>
+          <p>{error}</p>
+          <Link to="/" className="btn btn-primary">
+            Go Home
+          </Link>
+        </div>
+      </>
     );
 
-  if (!data) return <ProfileSkeleton />;
-
-  const profileSchema = {
-    "@context": "https://schema.org",
-    "@type": "ProfilePage",
-    mainEntity: {
-      "@type": "Person",
-      name: data.name,
-      description: data.bio || `AniPulse Anime Profile for ${data.name}`,
-      image:
-        data.avatar && !data.avatar.startsWith("data:image")
-          ? data.avatar
-          : "https://ani-pulse.netlify.app/icon/Anipulse.png",
-      url: `https://ani-pulse.netlify.app/u/${username.toLowerCase()}/profile`,
-    },
-  };
+  if (!data) {
+    return (
+      <>
+        {seoTags}
+        <ProfileSkeleton />
+      </>
+    );
+  }
 
   return (
     <div className="publicProfileWrapper">
-      <Seo
-        title={`${data.name}'s Profile`}
-        description={
-          data.bio ||
-          `Check out ${data.name}'s anime stats, level, and achievements on AniPulse!`
-        }
-        url={`/u/${username.toLowerCase()}/profile`}
-        image={
-          data.avatar && !data.avatar.startsWith("data:image")
-            ? data.avatar
-            : undefined
-        }
-      />
-
-      <Helmet>
-        <script type="application/ld+json">
-          {JSON.stringify(profileSchema)}
-        </script>
-      </Helmet>
+      {seoTags}
+      {profileSchema && (
+        <Helmet>
+          <script type="application/ld+json">
+            {JSON.stringify(profileSchema)}
+          </script>
+        </Helmet>
+      )}
 
       <div className="publicProfileGrid">
         <div className="publicProfileMain">
