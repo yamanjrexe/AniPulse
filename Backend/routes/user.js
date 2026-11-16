@@ -72,7 +72,7 @@ router.get('/my-stats', verifyToken, async (req, res) => {
   }
 });
 
-router.get('/profile/:userId', verifyToken, async (req, res) => {
+router.get('/profile/:userId', async (req, res) => {
   const { userId } = req.params;
   try {
     let userDoc = await db.collection(COLLECTIONS.USER_PROFILES).doc(userId).get();
