@@ -257,20 +257,16 @@ function AppContent() {
 }
 
 export default function App() {
+  if (isBot) {
+    return <AppContent />;
+  }
+
   const [firebaseReady, setFirebaseReady] = useState(false);
   const [minTimeElapsed, setMinTimeElapsed] = useState(false);
   const [progress, setProgress] = useState(0);
   const [forceHide, setForceHide] = useState(false);
 
   useEffect(() => {
-    if (isBot) {
-      setFirebaseReady(true);
-      setMinTimeElapsed(true);
-      setForceHide(true);
-      setProgress(100);
-      return;
-    }
-
     const start = performance.now();
     let frameId;
     let cancelled = false;
@@ -322,13 +318,11 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (isBot) return;
     const t = setTimeout(() => setMinTimeElapsed(true), MIN_LOADER_TIME);
     return () => clearTimeout(t);
   }, []);
 
   useEffect(() => {
-    if (isBot) return;
     const t = setTimeout(() => setForceHide(true), MAX_LOADER_TIME);
     return () => clearTimeout(t);
   }, []);
