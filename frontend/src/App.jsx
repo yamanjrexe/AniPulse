@@ -232,26 +232,32 @@ function FullScreenLoader({ progress = 30 }) {
   );
 }
 
-function AppContent() {
+function AppRouter() {
   usePageTracking();
 
   return (
+    <ThemeProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <AnimeProvider>
+            <LevelProvider>
+              <SyncProvider>
+                <RefreshProvider>
+                  <AppRoutes />
+                </RefreshProvider>
+              </SyncProvider>
+            </LevelProvider>
+          </AnimeProvider>
+        </AuthProvider>
+      </ToastProvider>
+    </ThemeProvider>
+  );
+}
+
+function AppContent() {
+  return (
     <BrowserRouter future={{ v7_relativeSplatPath: true }}>
-      <ThemeProvider>
-        <ToastProvider>
-          <AuthProvider>
-            <AnimeProvider>
-              <LevelProvider>
-                <SyncProvider>
-                  <RefreshProvider>
-                    <AppRoutes />
-                  </RefreshProvider>
-                </SyncProvider>
-              </LevelProvider>
-            </AnimeProvider>
-          </AuthProvider>
-        </ToastProvider>
-      </ThemeProvider>
+      <AppRouter />
     </BrowserRouter>
   );
 }
