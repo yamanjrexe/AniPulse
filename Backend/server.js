@@ -18,6 +18,7 @@ const tmdbRoutes = require("./routes/tmdb");
 const discussionsRoutes = require("./routes/discussions");
 const adminRoutes = require('./routes/admin');
 const profileRoutes = require('./routes/profile');
+const seoRoutes = require('./routes/seo');
 
 const app = express();
 
@@ -104,6 +105,7 @@ app.use('/api/tmdb', tmdbRoutes);
 app.use('/api/discussions', discussionsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/seo', seoRoutes);
 
 app.get('/api/health', (req, res) => {
     res.json({

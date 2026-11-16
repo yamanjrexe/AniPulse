@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Modal from "../ui/Modal.jsx";
 import { profileService } from "../../services/profileService";
+import { api } from "../../services/api.js"; 
 import { useToast } from "../../context/ToastContext.jsx";
 
 export default function ClaimUsernameModal({ open, onClose, onSuccess }) {
@@ -19,11 +20,15 @@ export default function ClaimUsernameModal({ open, onClose, onSuccess }) {
     setSubmitting(true);
     try {
       await profileService.claimUsername(username);
+
+      api
+        .post("/seo/indexnow", { urlPath: `/u/${username}/profile` })
+        .catch(() => {});
+
       showToast("Username claimed successfully!", "success");
       onSuccess(username);
       onClose();
     } catch (err) {
-      // This will now accurately display "Sorry, this username is already taken."
       showToast(err.message || "Failed to claim username.", "error");
     } finally {
       setSubmitting(false);

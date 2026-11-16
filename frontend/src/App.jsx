@@ -9,6 +9,7 @@ import { AnimeProvider } from "./context/AnimeContext.jsx";
 import { LevelProvider } from "./context/LevelContext.jsx";
 import { SyncProvider } from "./context/SyncContext.jsx";
 import { RefreshProvider } from "./context/RefreshContext.jsx";
+import usePageTracking from "./hooks/usePageTracking.js";
 import { initFirebase } from "./firebaseClient.js";
 import { applyUpdate } from "./services/pwaService.js";
 
@@ -80,11 +81,11 @@ function FullScreenLoader({ progress = 30 }) {
           src="/icon/Anipulse.png"
           alt="AniPulse"
           style={{
-            width: 200, 
-            height: 200, 
+            width: 200,
+            height: 200,
             objectFit: "contain",
             display: "block",
-            marginBottom: 12, 
+            marginBottom: 12,
           }}
         />
 
@@ -226,6 +227,36 @@ function FullScreenLoader({ progress = 30 }) {
   );
 }
 
+function AppRouterContent() {
+  usePageTracking();
+
+  return (
+    <ThemeProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <AnimeProvider>
+            <LevelProvider>
+              <SyncProvider>
+                <RefreshProvider>
+                  <AppRoutes />
+                </RefreshProvider>
+              </SyncProvider>
+            </LevelProvider>
+          </AnimeProvider>
+        </AuthProvider>
+      </ToastProvider>
+    </ThemeProvider>
+  );
+}
+
+function AppContent() {
+  return (
+    <BrowserRouter future={{ v7_relativeSplatPath: true }}>
+      <AppRouterContent />
+    </BrowserRouter>
+  );
+}
+
 export default function App() {
   const [firebaseReady, setFirebaseReady] = useState(false);
   const [minTimeElapsed, setMinTimeElapsed] = useState(false);
@@ -312,30 +343,7 @@ export default function App() {
   return (
     <>
       {showLoader && <FullScreenLoader progress={progress} />}
-
-      {!showLoader && (
-        <BrowserRouter
-          future={{
-            v7_relativeSplatPath: true,
-          }}
-        >
-          <ThemeProvider>
-            <ToastProvider>
-              <AuthProvider>
-                <AnimeProvider>
-                  <LevelProvider>
-                    <SyncProvider>
-                      <RefreshProvider>
-                        <AppRoutes />
-                      </RefreshProvider>
-                    </SyncProvider>
-                  </LevelProvider>
-                </AnimeProvider>
-              </AuthProvider>
-            </ToastProvider>
-          </ThemeProvider>
-        </BrowserRouter>
-      )}
+      {!showLoader && <AppContent />}
     </>
   );
 }

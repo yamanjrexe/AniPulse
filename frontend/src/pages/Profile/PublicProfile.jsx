@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { profileService } from "../../services/profileService";
 import { useToast } from "../../context/ToastContext.jsx";
 import ProfileHeader from "./components/ProfileHeader";
@@ -11,6 +12,7 @@ import WatchingSidebar from "./components/WatchingSidebar";
 import RecentDiscussions from "./components/RecentDiscussions";
 import LatestActivities from "./components/LatestActivities";
 import ReportProfileModal from "./components/ReportProfileModal";
+import Seo from "../../components/seo/Seo.jsx";
 import "../../styles/pages/PublicProfile.css";
 
 function ProfileSkeleton() {
@@ -58,14 +60,6 @@ export default function PublicProfile() {
   const [previewAsVisitor, setPreviewAsVisitor] = useState(false);
 
   useEffect(() => {
-    if (data) {
-      document.title = `${data.name} on AniPulse`;
-    } else {
-      document.title = `${username} on AniPulse`;
-    }
-  }, [data, username]);
-
-  useEffect(() => {
     let active = true;
     profileService
       .getPublicProfile(username, previewAsVisitor)
@@ -108,8 +102,43 @@ export default function PublicProfile() {
 
   if (!data) return <ProfileSkeleton />;
 
+  const profileSchema = {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    mainEntity: {
+      "@type": "Person",
+      name: data.name,
+      description: data.bio || `AniPulse Anime Profile for ${data.name}`,
+      image:
+        data.avatar && !data.avatar.startsWith("data:image")
+          ? data.avatar
+          : "https://ani-pulse.netlify.app/icon/Anipulse.png",
+      url: `https://ani-pulse.netlify.app/u/${username.toLowerCase()}/profile`,
+    },
+  };
+
   return (
     <div className="publicProfileWrapper">
+      <Seo
+        title={`${data.name}'s Profile`}
+        description={
+          data.bio ||
+          `Check out ${data.name}'s anime stats, level, and achievements on AniPulse!`
+        }
+        url={`/u/${username.toLowerCase()}/profile`}
+        image={
+          data.avatar && !data.avatar.startsWith("data:image")
+            ? data.avatar
+            : undefined
+        }
+      />
+
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify(profileSchema)}
+        </script>
+      </Helmet>
+
       <div className="publicProfileGrid">
         <div className="publicProfileMain">
           <ProfileHeader

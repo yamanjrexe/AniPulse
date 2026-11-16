@@ -2,16 +2,21 @@
 import React from "react";
 
 export const RELEASES = [
-  // {
-  //   version: "3.3.0",
-  //   date: "Late November 2026",
-  //   tag: "The Final Chapter",
-  //   items: [
-  //     "Final major release. AniPulse is now feature-complete.",
-  //     "Maintenance Mode: Critical bugs, security issues, and UI/UX problems will still be fixed.",
-  //     "Thank you for being part of the AniPulse journey!",
-  //   ],
-  // },
+  {
+    version: "3.3.0",
+    date: "November 16th 2026",
+    tag: "",
+    items: [
+      "SEO: Implemented comprehensive meta tags, Open Graph (OG) data, and Twitter Cards for rich social sharing.",
+      "SEO: Added JSON-LD structured data so search engines index AniPulse as a fully-featured Web Application.",
+      "SEO: Deployed dynamic sitemaps and robots.txt to ensure maximum visibility and crawling on Google and Bing.",
+      "SEO: Integrated Netlify Prerendering to serve dynamic HTML metadata to social media bots, enabling rich link previews for every user profile.",
+      "SEO: Integrated Google Analytics 4 (GA4) to track user journeys, page views, and engagement across the SPA.",
+      "SEO: Implemented IndexNow API support for instant URL submission to Bing and Yandex when new profiles are claimed.",
+      "Final Release: This is the last major version of AniPulse. The project is now feature-complete.",
+      "Maintenance Mode: Going forward, only critical bug fixes, security patches, and minor UI/UX tweaks will be pushed."
+    ],
+  },
   {
     version: "3.2.6",
     date: "November 15th 2026",
