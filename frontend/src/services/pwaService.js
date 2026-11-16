@@ -1,6 +1,12 @@
 export function registerServiceWorker() {
     if (!('serviceWorker' in navigator)) return;
 
+    const isBot = /bot|crawler|spider|prerender|netlify|discord|google/i.test(navigator.userAgent);
+    if (isBot) {
+        console.log('🤖 Bot detected. Skipping Service Worker registration for SEO.');
+        return;
+    }
+
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/service-worker.js')
             .then((reg) => {
