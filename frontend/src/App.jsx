@@ -15,6 +15,11 @@ import { applyUpdate } from "./services/pwaService.js";
 
 const MIN_LOADER_TIME = 3000;
 const MAX_LOADER_TIME = 7000;
+const isBot =
+  typeof navigator !== "undefined" &&
+  /bot|crawler|spider|prerender|netlify|discord|google/i.test(
+    navigator.userAgent,
+  );
 
 function FullScreenLoader({ progress = 30 }) {
   const phases = [
@@ -227,32 +232,26 @@ function FullScreenLoader({ progress = 30 }) {
   );
 }
 
-function AppRouterContent() {
+function AppContent() {
   usePageTracking();
 
   return (
-    <ThemeProvider>
-      <ToastProvider>
-        <AuthProvider>
-          <AnimeProvider>
-            <LevelProvider>
-              <SyncProvider>
-                <RefreshProvider>
-                  <AppRoutes />
-                </RefreshProvider>
-              </SyncProvider>
-            </LevelProvider>
-          </AnimeProvider>
-        </AuthProvider>
-      </ToastProvider>
-    </ThemeProvider>
-  );
-}
-
-function AppContent() {
-  return (
     <BrowserRouter future={{ v7_relativeSplatPath: true }}>
-      <AppRouterContent />
+      <ThemeProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <AnimeProvider>
+              <LevelProvider>
+                <SyncProvider>
+                  <RefreshProvider>
+                    <AppRoutes />
+                  </RefreshProvider>
+                </SyncProvider>
+              </LevelProvider>
+            </AnimeProvider>
+          </AuthProvider>
+        </ToastProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }
@@ -264,6 +263,14 @@ export default function App() {
   const [forceHide, setForceHide] = useState(false);
 
   useEffect(() => {
+    if (isBot) {
+      setFirebaseReady(true);
+      setMinTimeElapsed(true);
+      setForceHide(true);
+      setProgress(100);
+      return;
+    }
+
     const start = performance.now();
     let frameId;
     let cancelled = false;
@@ -315,11 +322,13 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (isBot) return;
     const t = setTimeout(() => setMinTimeElapsed(true), MIN_LOADER_TIME);
     return () => clearTimeout(t);
   }, []);
 
   useEffect(() => {
+    if (isBot) return;
     const t = setTimeout(() => setForceHide(true), MAX_LOADER_TIME);
     return () => clearTimeout(t);
   }, []);
