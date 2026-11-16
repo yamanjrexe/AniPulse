@@ -13,6 +13,7 @@ const Login = lazy(() => import("../pages/Auth/Login.jsx"));
 const Offline = lazy(() => import("../pages/Offline.jsx"));
 const NotFound = lazy(() => import("../pages/NotFound.jsx"));
 const Admin = lazy(() => import("../pages/Admin/Admin.jsx"));
+const PublicProfile = lazy(() => import("../pages/Profile/PublicProfile.jsx"));
 
 const Docs = lazy(() => import("../pages/Resources/Docs.jsx"));
 const Help = lazy(() => import("../pages/Resources/Help.jsx"));
@@ -55,6 +56,7 @@ export default function AppRoutes() {
           }
         />
         <Route path="/offline" element={<Offline />} />
+        <Route path="/u/:username/profile" element={<PublicProfile />} />
 
         <Route path="/resources" element={<PublicLayout />}>
           <Route index element={<Navigate to="/resources/docs" replace />} />
@@ -69,7 +71,10 @@ export default function AppRoutes() {
             <Route path="/app" element={<Navigate to="/dashboard" replace />} />
 
             {navigationItems.map((item) => {
-              if (item.adminOnly) return null;
+              {
+                /* Skip public-profile here because we already defined it above */
+              }
+              if (item.adminOnly || item.id === "public-profile") return null;
               const C = item.component;
               return <Route key={item.id} path={item.path} element={<C />} />;
             })}
