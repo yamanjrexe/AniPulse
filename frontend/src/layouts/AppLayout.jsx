@@ -1,5 +1,6 @@
 import React, { useEffect, useState, Suspense } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
 
 import Header from "../components/layout/Header.jsx";
 import FabMenu from "../components/layout/FabMenu.jsx";
@@ -22,9 +23,30 @@ const PAGE_TITLES = {
   "/leaderboard": "Leaderboard - AniPulse",
 };
 
+function PageFallback() {
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "60vh",
+        width: "100%",
+      }}
+    >
+      <i
+        className="fas fa-spinner fa-spin"
+        style={{ fontSize: "2rem", color: "var(--brand-yellow)" }}
+      />
+    </div>
+  );
+}
+
 export default function AppLayout() {
   const location = useLocation();
+  const { user, initialized } = useAuth();
   const [drawer, setDrawer] = useState(false);
+  const isAuthed = !!user;
 
   useScrollRestoration();
 
@@ -39,6 +61,7 @@ export default function AppLayout() {
   }, [location.pathname]);
 
   useEffect(() => {
+    if (!isAuthed) return;
     const profile = JSON.parse(localStorage.getItem("userProfile") || "{}");
     const shown = sessionStorage.getItem("nameModalShown");
     if (!profile.name && !shown) {
@@ -48,11 +71,58 @@ export default function AppLayout() {
         600,
       );
     }
-  }, []);
+  }, [isAuthed]);
 
   useEffect(() => {
+    if (!isAuthed) return;
     autoBackupService.init();
-  }, []);
+  }, [isAuthed]);
+
+  if (!initialized) {
+    return (
+      <div className="main-content">
+        <PageFallback />
+      </div>
+    );
+  }
+
+  if (!isAuthed) {
+    return (
+      <div className="main-content">
+        <header className="top-bar" role="banner">
+          <div className="header-left">
+            <Link to="/" aria-label="AniPulse Home">
+              <div className="app-logo">
+                <img src="/icon/Anipulse.png" alt="AniPulse Logo" />
+              </div>
+            </Link>
+          </div>
+          <div className="user-actions">
+            <Link
+              to="/login"
+              style={{
+                padding: "8px 16px",
+                background: "var(--brand-yellow)",
+                color: "#000",
+                borderRadius: "8px",
+                textDecoration: "none",
+                fontWeight: 600,
+                fontSize: "14px",
+              }}
+            >
+              Sign in
+            </Link>
+          </div>
+        </header>
+
+        <main className="page active" key={location.pathname}>
+          <Suspense fallback={<PageFallback />}>
+            <Outlet />
+          </Suspense>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="main-content">
@@ -61,24 +131,7 @@ export default function AppLayout() {
       <GlobalBanner />
 
       <main className="page active" key={location.pathname}>
-        <Suspense
-          fallback={
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "60vh",
-                width: "100%",
-              }}
-            >
-              <i
-                className="fas fa-spinner fa-spin"
-                style={{ fontSize: "2rem", color: "var(--brand-yellow)" }}
-              />
-            </div>
-          }
-        >
+        <Suspense fallback={<PageFallback />}>
           <Outlet />
         </Suspense>
       </main>

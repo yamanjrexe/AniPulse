@@ -56,7 +56,6 @@ export default function AppRoutes() {
           }
         />
         <Route path="/offline" element={<Offline />} />
-        <Route path="/u/:username/profile" element={<PublicProfile />} />
 
         <Route path="/resources" element={<PublicLayout />}>
           <Route index element={<Navigate to="/resources/docs" replace />} />
@@ -66,14 +65,13 @@ export default function AppRoutes() {
           <Route path="about" element={<About />} />
         </Route>
 
-        <Route element={<ProtectedRoute />}>
-          <Route element={<AppLayout />}>
+        <Route element={<AppLayout />}>
+          <Route path="/u/:username/profile" element={<PublicProfile />} />
+
+          <Route element={<ProtectedRoute />}>
             <Route path="/app" element={<Navigate to="/dashboard" replace />} />
 
             {navigationItems.map((item) => {
-              {
-                /* Skip public-profile here because we already defined it above */
-              }
               if (item.adminOnly || item.id === "public-profile") return null;
               const C = item.component;
               return <Route key={item.id} path={item.path} element={<C />} />;
