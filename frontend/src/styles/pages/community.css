@@ -697,6 +697,29 @@
     .leaderboard-stats {
         display: none;
     }
+
+    .leaderboard-mode-tabs,
+    .leaderboard-filters,
+    .time-period-buttons {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+        justify-content: flex-start;
+        padding: 4px;
+    }
+
+    .leaderboard-mode-tabs::-webkit-scrollbar,
+    .leaderboard-filters::-webkit-scrollbar,
+    .time-period-buttons::-webkit-scrollbar {
+        display: none;
+    }
+
+    .leaderboard-mode-tab,
+    .leaderboard-filter-btn,
+    .time-period-btn {
+        flex-shrink: 0;
+    }
 }
 
 @media (max-width: 480px) {

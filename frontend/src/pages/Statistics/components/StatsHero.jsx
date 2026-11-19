@@ -127,19 +127,6 @@ export default function StatsHero() {
                                 </span>
                             </div>
                         </div>
-                        <div className="hero-insight-item">
-                            <div className="hero-insight-icon">
-                                <i className="fas fa-star" />
-                            </div>
-                            <div className="hero-insight-info">
-                                <span className="hero-insight-label">
-                                    Avg Rating
-                                </span>
-                                <span className="hero-insight-text">
-                                    {stats.avg}★
-                                </span>
-                            </div>
-                        </div>
                     </div>
                 </div>
 

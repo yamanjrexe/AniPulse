@@ -129,41 +129,14 @@ export default function RatingBehavior({ rated, avg, median }) {
         </div>
         <span className="rating-card-badge">Insights</span>
       </div>
-      <div
-        className="rating-behavior-grid"
-        style={{
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gridTemplateRows: "repeat(3, 1fr)",
-          flex: 1,
-          gap: "12px",
-        }}
-      >
+
+      <div className="rating-behavior-grid">
         {cards.map((c, i) => (
-          <div
-            key={i}
-            className="behavior-card"
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              padding: "16px 8px",
-            }}
-          >
-            <span
-              className="behavior-value"
-              title={c.value}
-              style={{
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                fontSize: "1.15rem",
-              }}
-            >
+          <div key={i} className="behavior-card">
+            <span className="behavior-value" title={c.value}>
               {c.value}
             </span>
-            <span className="behavior-label" style={{ marginTop: "4px" }}>
-              {c.label}
-            </span>
+            <span className="behavior-label">{c.label}</span>
             <span className="behavior-detail">{c.detail}</span>
           </div>
         ))}

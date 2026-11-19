@@ -1,7 +1,3 @@
-/* ============================================================
-   STATISTICS — AniPulse
-   ============================================================ */
-
 #statistics-page {
     width: 100%;
 }
@@ -23,10 +19,6 @@
     color: var(--brand-yellow);
     font-size: var(--fs-16);
 }
-
-/* ============================================================
-   STATS HERO
-   ============================================================ */
 
 .stats-hero {
     padding: var(--sp-8) var(--sp-6);
@@ -103,7 +95,6 @@
     margin: 0;
 }
 
-/* Hero insights row */
 .hero-insights {
     display: flex;
     flex-wrap: wrap;
@@ -154,12 +145,11 @@
     white-space: nowrap;
 }
 
-/* Hero right — stat cards grid */
 .stats-hero-right {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: var(--sp-3);
-    flex-shrink: 0;
+    align-content: start;
 }
 
 .hero-stat-card {
@@ -170,7 +160,7 @@
     background: var(--bg-surface);
     border: 1px solid var(--border-default);
     border-radius: var(--r-md);
-    min-width: 140px;
+    min-width: 0;
 }
 
 .hero-stat-icon {
@@ -207,10 +197,6 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
-
-/* ============================================================
-   OVERVIEW METRICS
-   ============================================================ */
 
 .overview-metrics {
     margin-bottom: var(--shell-section-gap);
@@ -324,10 +310,6 @@
 .metric-change.neutral {
     color: var(--text-muted);
 }
-
-/* ============================================================
-   PERIOD STATS
-   ============================================================ */
 
 .period-stats-section {
     padding: var(--sp-5);
@@ -507,10 +489,6 @@
     letter-spacing: 0.05em;
 }
 
-/* ============================================================
-   LIBRARY ANALYTICS
-   ============================================================ */
-
 .library-analytics {
     margin-bottom: var(--shell-section-gap);
 }
@@ -615,7 +593,6 @@
     height: 320px;
 }
 
-/* Genre distribution bars (if fallback used) */
 #genreDistribution,
 #formatDistribution {
     display: flex;
@@ -680,7 +657,6 @@
     flex-shrink: 0;
 }
 
-/* Insights panel */
 .insights-panel {
     background: var(--bg-card);
     border: 1px solid var(--border-default);
@@ -781,7 +757,6 @@
     color: var(--text-muted);
 }
 
-/* Smart insights grid */
 .smart-insights,
 .advanced-insights {
     display: grid;
@@ -824,10 +799,6 @@
     color: var(--brand-yellow);
     font-weight: var(--fw-medium);
 }
-
-/* ============================================================
-   RATING ANALYTICS
-   ============================================================ */
 
 .rating-analytics {
     margin-bottom: var(--shell-section-gap);
@@ -933,7 +904,6 @@
     height: 320px;
 }
 
-/* Score distribution bars */
 #scoreDistributionChart {
     display: flex;
     flex-direction: column;
@@ -990,28 +960,36 @@
     flex-shrink: 0;
 }
 
-/* Rating behavior grid */
 .rating-behavior-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--sp-2);
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 12px;
+    flex: 1;
 }
 
 .behavior-card {
-    padding: var(--sp-3);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 16px 8px;
     background: var(--bg-surface);
     border: 1px solid var(--border-subtle);
     border-radius: var(--r-sm);
     text-align: center;
+    min-width: 0;
 }
 
 .behavior-value {
     display: block;
     font-family: var(--font-mono);
-    font-size: var(--fs-16);
+    font-size: 1.15rem;
     font-weight: var(--fw-bold);
     color: var(--text-primary);
     line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .behavior-label {
@@ -1028,7 +1006,6 @@
     color: var(--text-muted);
 }
 
-/* Rating personality */
 .rating-personality {
     margin-top: var(--sp-4);
 }
@@ -1107,10 +1084,6 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
-
-/* ============================================================
-   COMPLETION JOURNEY
-   ============================================================ */
 
 .completion-journey {
     margin-bottom: 0;
@@ -1232,7 +1205,6 @@
     height: 260px;
 }
 
-/* Journey insights grid */
 .journey-insights {
     margin-top: var(--sp-5);
 }
@@ -1323,7 +1295,6 @@
     color: var(--text-muted);
 }
 
-/* Milestones */
 .journey-milestones {
     margin-top: var(--sp-5);
 }
@@ -1409,7 +1380,6 @@
     margin-top: 2px;
 }
 
-/* Pace insights */
 .journey-pace {
     margin-top: var(--sp-5);
 }
@@ -1480,10 +1450,6 @@
     font-weight: var(--fw-medium);
 }
 
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
-
 @media (max-width: 1024px) {
     .stats-hero-content {
         flex-direction: column;
@@ -1492,6 +1458,7 @@
 
     .stats-hero-right {
         grid-template-columns: repeat(4, 1fr);
+        width: 100%;
     }
 
     .analytics-grid,
@@ -1512,6 +1479,7 @@
 
     .stats-hero-right {
         grid-template-columns: repeat(2, 1fr);
+        width: 100%;
     }
 
     .hero-title {
@@ -1549,7 +1517,12 @@
     }
 
     .rating-behavior-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: auto;
+    }
+
+    .rating-behavior-grid>*:nth-child(n+9) {
+        display: none;
     }
 
     .journey-insights-grid {
@@ -1688,6 +1661,10 @@
 
     .journey-milestones-container {
         grid-template-columns: 1fr;
+    }
+
+    .behavior-value {
+        font-size: 1rem;
     }
 }
 
