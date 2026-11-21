@@ -38,8 +38,8 @@ function SocialIcon({ platform }) {
         src="/svg/anilist.svg"
         alt="AniList"
         style={{
-          width: 22,
-          height: 22,
+          width: 20,
+          height: 20,
           objectFit: "contain",
           display: "block",
         }}
@@ -51,17 +51,17 @@ function SocialIcon({ platform }) {
         src="/svg/myanimelist.svg"
         alt="MyAnimeList"
         style={{
-          width: 22,
-          height: 22,
+          width: 20,
+          height: 20,
           objectFit: "contain",
           display: "block",
         }}
       />
     );
   if (platform === "twitter")
-    return <i className="fab fa-twitter" style={{ fontSize: "1.2rem" }} />;
+    return <i className="fab fa-twitter" style={{ fontSize: "1rem" }} />;
   if (platform === "instagram")
-    return <i className="fab fa-instagram" style={{ fontSize: "1.2rem" }} />;
+    return <i className="fab fa-instagram" style={{ fontSize: "1rem" }} />;
   return null;
 }
 
@@ -395,168 +395,40 @@ export default function UserProfileModal({ user: initialUser, onClose }) {
   if (!userId) return null;
 
   return (
-    <div
-      className="modal-overlay"
-      onClick={onClose}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 10000,
-        background: "rgba(0, 0, 0, 0.8)",
-        backdropFilter: "blur(6px)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "16px",
-      }}
-    >
-      <div
-        className="modal-content"
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: "100%",
-          maxWidth: "850px",
-          maxHeight: "92dvh",
-          background: "var(--bg-surface)",
-          borderRadius: "16px",
-          border: "1px solid var(--border-default)",
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-          boxShadow: "0 24px 60px -12px rgba(0,0,0,0.9)",
-          position: "relative",
-        }}
-      >
-        <div
-          style={{
-            padding: "16px 24px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            borderBottom: "1px solid var(--border-subtle)",
-            background: "var(--bg-surface)",
-            zIndex: 10,
-            flexShrink: 0,
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              fontSize: "1.1rem",
-              fontWeight: 600,
-            }}
-          >
-            <i
-              className="fas fa-user-circle"
-              style={{ color: "var(--brand-yellow)", fontSize: "1.2rem" }}
-            />{" "}
-            User Profile
-            {isSelf && (
-              <span
-                style={{
-                  fontSize: "0.8rem",
-                  color: "var(--text-muted)",
-                  fontWeight: 500,
-                }}
-              >
-                (You)
-              </span>
-            )}
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <div className="modal-header-title">
+            <i className="fas fa-user-circle" />
+            <span>User Profile</span>
+            {isSelf && <span className="modal-header-self-tag">(You)</span>}
           </div>
           <button
+            type="button"
+            className="modal-close-btn"
             onClick={onClose}
-            style={{
-              background: "var(--bg-card)",
-              border: "1px solid var(--border-default)",
-              borderRadius: 8,
-              width: 36,
-              height: 36,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "var(--text-secondary)",
-              cursor: "pointer",
-              transition: "0.2s",
-            }}
+            aria-label="Close"
           >
             <i className="fas fa-times" />
           </button>
         </div>
 
-        <div
-          style={{
-            overflowY: "auto",
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
+        <div className="modal-body">
           {loading && !profile ? (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                minHeight: "300px",
-                gap: 16,
-                color: "var(--text-muted)",
-              }}
-            >
-              <i
-                className="fas fa-spinner fa-spin"
-                style={{ fontSize: 32, color: "var(--brand-yellow)" }}
-              />{" "}
-              Loading profile...
+            <div className="modal-loading">
+              <i className="fas fa-spinner fa-spin" />
+              <span>Loading profile...</span>
             </div>
           ) : profile ? (
             <>
-              <div
-                className="profile-banner-container"
-                style={{ padding: "24px 24px 0" }}
-              >
-                <div
-                  className="profile-banner"
-                  style={{
-                    width: "100%",
-                    height: 200,
-                    position: "relative",
-                    borderRadius: "16px",
-                    overflow: "hidden",
-                    background: "var(--bg-card)",
-                    border: "1px solid var(--border-default)",
-                  }}
-                >
+              <div className="profile-banner-container">
+                <div className="profile-banner">
                   {profile.cover ? (
-                    <img
-                      src={profile.cover}
-                      alt="Cover"
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                      }}
-                    />
+                    <img src={profile.cover} alt="Cover" />
                   ) : (
-                    <div
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        background:
-                          "linear-gradient(135deg, var(--bg-card-hover) 0%, var(--bg-surface) 100%)",
-                      }}
-                    />
+                    <div className="profile-banner-fallback" />
                   )}
-                  <div
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      background:
-                        "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 60%)",
-                    }}
-                  />
+                  <div className="profile-banner-overlay" />
                 </div>
               </div>
 
@@ -574,206 +446,68 @@ export default function UserProfileModal({ user: initialUser, onClose }) {
                 />
                 <div className="profile-info-wrapper">
                   <div className="profile-name-col">
-                    <h2
-                      style={{
-                        margin: 0,
-                        fontSize: "1.8rem",
-                        fontWeight: 700,
-                        color: "var(--text-primary)",
-                        letterSpacing: "-0.02em",
-                        lineHeight: 1.2,
-                      }}
-                    >
-                      {profile.name}
-                    </h2>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        marginTop: 8,
-                      }}
-                    >
-                      <span
-                        style={{
-                          padding: "4px 12px",
-                          background: "var(--brand-yellow)",
-                          color: "#050505",
-                          borderRadius: 6,
-                          fontWeight: 800,
-                          fontSize: "0.8rem",
-                        }}
-                      >
-                        Lv.{profile.level}
-                      </span>
-                      <span
-                        style={{
-                          color: "var(--text-secondary)",
-                          fontWeight: 600,
-                          fontSize: "0.95rem",
-                        }}
-                      >
-                        {profile.levelTitle}
-                      </span>
+                    <h2>{profile.name}</h2>
+                    <div className="profile-level">
+                      <span className="level-badge">Lv. {profile.level}</span>
+                      <span className="level-title">{profile.levelTitle}</span>
                     </div>
                   </div>
 
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      flexWrap: "wrap",
-                    }}
-                  >
+                  <div className="profile-header-actions">
                     {profile.publicUsername && (
                       <Link
                         to={`/u/${profile.publicUsername}/profile`}
                         onClick={onClose}
-                        style={{
-                          padding: "10px 20px",
-                          background: "var(--bg-card)",
-                          color: "var(--text-primary)",
-                          border: "1px solid var(--border-default)",
-                          borderRadius: 8,
-                          fontWeight: 600,
-                          fontSize: "0.9rem",
-                          cursor: "pointer",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 8,
-                          textDecoration: "none",
-                          transition: "0.2s",
-                        }}
+                        className="profile-action-btn"
                       >
-                        <i className="fas fa-external-link-alt" /> View Profile
+                        <i className="fas fa-external-link-alt" />
+                        <span>View Profile</span>
                       </Link>
                     )}
 
                     {!profile.isCurrentUser && (
                       <button
+                        type="button"
                         onClick={sendFriendRequest}
                         disabled={profile.isFriend}
-                        style={{
-                          padding: "10px 20px",
-                          background: profile.isFriend
-                            ? "var(--bg-card)"
-                            : "var(--brand-yellow)",
-                          color: profile.isFriend
-                            ? "var(--text-muted)"
-                            : "#050505",
-                          border: profile.isFriend
-                            ? "1px solid var(--border-default)"
-                            : "none",
-                          borderRadius: 8,
-                          fontWeight: 600,
-                          fontSize: "0.9rem",
-                          cursor: profile.isFriend ? "not-allowed" : "pointer",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 8,
-                          transition: "0.2s",
-                          flexShrink: 0,
-                          boxShadow: profile.isFriend
-                            ? "none"
-                            : "0 4px 12px rgba(252, 231, 6, 0.2)",
-                        }}
+                        className={
+                          profile.isFriend
+                            ? "profile-action-btn"
+                            : "profile-action-btn primary"
+                        }
                       >
                         <i
                           className={`fas ${profile.isFriend ? "fa-user-check" : "fa-user-plus"}`}
-                        />{" "}
-                        {profile.isFriend ? "Friend" : "Add Friend"}
+                        />
+                        <span>
+                          {profile.isFriend ? "Friend" : "Add Friend"}
+                        </span>
                       </button>
                     )}
                   </div>
                 </div>
               </div>
 
-              <div
-                className="profile-bio-container"
-                style={{
-                  padding: "16px 24px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 16,
-                }}
-              >
+              <div className="profile-bio-container">
                 {profile.bio && (
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: "0.95rem",
-                      color: "var(--text-primary)",
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    {profile.bio}
-                  </p>
+                  <p className="profile-bio-text">{profile.bio}</p>
                 )}
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    flexWrap: "wrap",
-                    gap: 16,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 12,
-                    }}
-                  >
+
+                <div className="profile-bio-footer">
+                  <div className="profile-bio-left">
                     {profile.status && (
-                      <div>
-                        <span
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 6,
-                            padding: "4px 12px",
-                            background: "var(--bg-card)",
-                            border: "1px solid var(--border-default)",
-                            borderRadius: 999,
-                            fontSize: "0.8rem",
-                            color: "var(--text-secondary)",
-                          }}
-                        >
-                          <i
-                            className="fas fa-circle"
-                            style={{ color: "var(--success)", fontSize: 6 }}
-                          />{" "}
-                          {profile.status}
-                        </span>
-                      </div>
+                      <span className="profile-status-pill">
+                        <span className="profile-status-dot" />
+                        {profile.status}
+                      </span>
                     )}
+
                     {profile.favoriteAnime?.length > 0 && (
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: 8,
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontSize: "0.75rem",
-                            fontWeight: 600,
-                            color: "var(--text-muted)",
-                            textTransform: "uppercase",
-                            letterSpacing: "0.05em",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 6,
-                          }}
-                        >
-                          Favorite Anime's
+                      <div className="profile-favorites">
+                        <span className="profile-favorites-label">
+                          Favorite Anime&apos;s
                         </span>
-                        <div
-                          style={{ display: "flex", gap: 8, flexWrap: "wrap" }}
-                        >
+                        <div className="profile-favorites-list">
                           {profile.favoriteAnime.slice(0, 5).map((fav, i) => {
                             const id = typeof fav === "object" ? fav.id : fav;
                             const fallbackTitle =
@@ -783,19 +517,7 @@ export default function UserProfileModal({ user: initialUser, onClose }) {
                               animeTitleMap[id] ||
                               `Anime #${id}`;
                             return (
-                              <span
-                                key={i}
-                                style={{
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  padding: "4px 12px",
-                                  background: "var(--bg-card)",
-                                  border: "1px solid var(--border-default)",
-                                  borderRadius: 999,
-                                  fontSize: "0.8rem",
-                                  color: "var(--text-secondary)",
-                                }}
-                              >
+                              <span key={i} className="profile-fav-tag">
                                 {title}
                               </span>
                             );
@@ -804,26 +526,16 @@ export default function UserProfileModal({ user: initialUser, onClose }) {
                       </div>
                     )}
                   </div>
+
                   {socialKeys.length > 0 && (
-                    <div style={{ display: "flex", gap: 8 }}>
+                    <div className="profile-social-links">
                       {socialKeys.map((k) => (
                         <a
                           key={k}
                           href={getSocialUrl(k, profile.social[k])}
                           target="_blank"
                           rel="noopener noreferrer"
-                          style={{
-                            width: 40,
-                            height: 40,
-                            display: "inline-flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            background: "var(--bg-card)",
-                            border: "1px solid var(--border-default)",
-                            borderRadius: 10,
-                            color: "var(--text-secondary)",
-                            transition: "0.2s",
-                          }}
+                          className="profile-social-link"
                           title={`${k}: ${profile.social[k]}`}
                         >
                           <SocialIcon platform={k} />
@@ -834,18 +546,8 @@ export default function UserProfileModal({ user: initialUser, onClose }) {
                 </div>
               </div>
 
-              <div
-                className="profile-stats-container"
-                style={{ padding: "0 24px 24px" }}
-              >
-                <div
-                  className="profile-stats-grid"
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    padding: 0,
-                  }}
-                >
+              <div className="profile-stats-container">
+                <div className="profile-stats-grid">
                   <StatCard
                     icon="fa-tv"
                     value={profile.stats?.totalAnime}
@@ -869,25 +571,9 @@ export default function UserProfileModal({ user: initialUser, onClose }) {
                 </div>
               </div>
 
-              <div
-                className="profile-anime-container"
-                style={{ padding: "0 24px 24px", minHeight: "250px" }}
-              >
-                <h3
-                  style={{
-                    fontSize: "1.1rem",
-                    fontWeight: 600,
-                    color: "var(--text-primary)",
-                    marginBottom: "16px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                  }}
-                >
-                  <i
-                    className="fas fa-check-circle"
-                    style={{ color: "var(--brand-yellow)" }}
-                  />{" "}
+              <div className="profile-anime-container">
+                <h3 className="profile-anime-heading">
+                  <i className="fas fa-check-circle" />
                   Completed Anime
                 </h3>
                 {(() => {
@@ -902,52 +588,13 @@ export default function UserProfileModal({ user: initialUser, onClose }) {
                   return (
                     <div className="anime-grid">
                       {list.slice(0, 30).map((a) => (
-                        <div
-                          key={a.id}
-                          style={{
-                            background: "var(--bg-card)",
-                            borderRadius: 10,
-                            overflow: "hidden",
-                            border: "1px solid var(--border-default)",
-                            display: "flex",
-                            flexDirection: "column",
-                            transition: "transform 0.2s, border-color 0.2s",
-                          }}
-                          className="hover-card"
-                        >
+                        <div key={a.id} className="anime-card-mini">
                           <PosterImage anime={a} alt={a.title} />
-                          <div
-                            style={{
-                              padding: 10,
-                              flex: 1,
-                              display: "flex",
-                              flexDirection: "column",
-                              justifyContent: "space-between",
-                            }}
-                          >
-                            <div
-                              style={{
-                                fontSize: "0.8rem",
-                                fontWeight: 600,
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                                color: "var(--text-primary)",
-                              }}
-                              title={a.title}
-                            >
+                          <div className="anime-card-body">
+                            <div className="anime-card-title" title={a.title}>
                               {a.title}
                             </div>
-                            <div
-                              style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                                marginTop: 6,
-                                fontSize: "0.7rem",
-                                color: "var(--text-muted)",
-                              }}
-                            >
+                            <div className="anime-card-meta">
                               <span>{a.type || "TV"}</span>
                               <span>
                                 {a.episodes || 0}{" "}
@@ -965,85 +612,19 @@ export default function UserProfileModal({ user: initialUser, onClose }) {
           ) : null}
         </div>
       </div>
-      <style>{`
-        .hover-card:hover { transform: translateY(-2px); border-color: var(--border-strong) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-        .anime-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        @media (min-width: 500px) { .anime-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px; } }
-        .profile-header-row { display: flex; align-items: flex-end; padding: 0 24px; margin-top: -60px; position: relative; z-index: 2; gap: 20px; margin-bottom: 16px; flex-wrap: wrap; }
-        .profile-avatar { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid var(--bg-surface); box-shadow: 0 4px 12px rgba(0,0,0,0.3); background: var(--bg-surface); flex-shrink: 0; }
-        .profile-info-wrapper { flex: 1; min-width: 240px; padding-bottom: 8px; display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
-        .profile-name-col { display: flex; flex-direction: column; min-width: 0; }
-        .profile-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 16px; }
-        @media (max-width: 650px) {
-          .profile-banner-container { padding: 16px 16px 0 !important; }
-          .profile-bio-container { padding: 16px !important; }
-          .profile-stats-container { padding: 0 16px 16px !important; }
-          .profile-anime-container { padding: 0 16px 16px !important; }
-          .profile-header-row { flex-direction: column; align-items: center; text-align: center; gap: 12px; margin-top: -50px; padding: 0 16px !important; }
-          .profile-avatar { width: 100px; height: 100px; }
-          .profile-info-wrapper { flex-direction: column; align-items: center; justify-content: center; padding-bottom: 0; }
-          .profile-name-col { align-items: center; }
-          .profile-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
-        }
-      `}</style>
     </div>
   );
 }
 
 function StatCard({ icon, value, label }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-        padding: "12px",
-        background: "var(--bg-card)",
-        border: "1px solid var(--border-default)",
-        borderRadius: 10,
-      }}
-    >
-      <div
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: 8,
-          background: "var(--bg-surface)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "var(--brand-yellow)",
-          fontSize: "1rem",
-          flexShrink: 0,
-        }}
-      >
+    <div className="profile-stat-card">
+      <div className="profile-stat-icon">
         <i className={`fas ${icon}`} />
       </div>
-      <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-        <span
-          style={{
-            fontSize: "1.1rem",
-            fontWeight: 700,
-            color: "var(--text-primary)",
-            lineHeight: 1.2,
-          }}
-        >
-          {formatCompact(value)}
-        </span>
-        <span
-          style={{
-            fontSize: "0.65rem",
-            color: "var(--text-muted)",
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-            marginTop: 2,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {label}
-        </span>
+      <div className="profile-stat-body">
+        <span className="profile-stat-value">{formatCompact(value)}</span>
+        <span className="profile-stat-label">{label}</span>
       </div>
     </div>
   );
@@ -1051,45 +632,12 @@ function StatCard({ icon, value, label }) {
 
 function EmptyState({ icon, message }) {
   return (
-    <div
-      style={{
-        padding: "60px 20px",
-        textAlign: "center",
-        color: "var(--text-muted)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <div
-        style={{
-          width: 64,
-          height: 64,
-          borderRadius: "50%",
-          background: "var(--bg-card)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          marginBottom: 16,
-          border: "1px solid var(--border-subtle)",
-        }}
-      >
-        <i
-          className={`fas ${icon}`}
-          style={{ fontSize: 28, color: "var(--brand-yellow)", opacity: 0.8 }}
-        />
+    <div className="profile-empty-state">
+      <div className="profile-empty-icon">
+        <i className={`fas ${icon}`} />
       </div>
-      <h3
-        style={{
-          fontSize: "1.2rem",
-          marginBottom: 8,
-          color: "var(--text-primary)",
-        }}
-      >
-        {message}
-      </h3>
-      <p style={{ fontSize: "0.9rem", margin: 0 }}>Nothing to show here yet.</p>
+      <h3 className="profile-empty-title">{message}</h3>
+      <p className="profile-empty-desc">Nothing to show here yet.</p>
     </div>
   );
 }

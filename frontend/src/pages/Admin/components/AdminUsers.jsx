@@ -51,11 +51,9 @@ const parseDate = (dateStr) => {
   return isNaN(d.getTime()) ? (isNaN(fallback.getTime()) ? null : fallback) : d;
 };
 
-// Helper to get the most accurate date for filtering/sorting
 const getAnimeDate = (anime) => {
   if (anime.actualFinishDate) return parseDate(anime.actualFinishDate);
   if (anime.finishDate) return parseDate(anime.finishDate);
-  // Fallback for items not completed (Plan to Watch, Dropped, etc.)
   return parseDate(anime.createdAt || anime.updatedAt);
 };
 

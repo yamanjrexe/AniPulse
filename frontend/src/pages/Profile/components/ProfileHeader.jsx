@@ -98,9 +98,10 @@ export default function ProfileHeader({
             )}
           </div>
           <div className="profileHeaderTitle">
-            <span className="titleBadge">
-              <i className="fas fa-medal" /> Level {ld.level} - {ld.title}
-            </span>
+            <div className="profile-level">
+              <span className="level-badge">Lv. {ld.level}</span>
+              <span className="level-title">{ld.title}</span>
+            </div>
           </div>
 
           {data.createdAt && (

@@ -200,35 +200,9 @@ export default function ProfilePreviewBanner({ profile, user }) {
           >
             {name}
           </h2>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              marginTop: 8,
-            }}
-          >
-            <span
-              style={{
-                padding: "4px 12px",
-                background: "var(--brand-yellow)",
-                color: "#050505",
-                borderRadius: 6,
-                fontWeight: 800,
-                fontSize: "0.8rem",
-              }}
-            >
-              Lv.{computed.level}
-            </span>
-            <span
-              style={{
-                color: "var(--text-secondary)",
-                fontWeight: 600,
-                fontSize: "0.95rem",
-              }}
-            >
-              {computed.title}
-            </span>
+          <div className="profile-level" style={{ marginTop: 8 }}>
+            <span className="level-badge">Lv. {computed.level}</span>
+            <span className="level-title">{computed.title}</span>
           </div>
         </div>
       </div>

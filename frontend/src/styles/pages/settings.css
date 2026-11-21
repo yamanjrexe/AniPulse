@@ -131,6 +131,32 @@
     color: var(--text-muted);
 }
 
+.level-badge {
+    background: var(--brand-yellow);
+    color: var(--text-inverse);
+    padding: 2px 8px;
+    border-radius: var(--r-pill);
+    font-size: 0.6875rem;
+    font-weight: var(--fw-bold);
+}
+
+.level-title {
+    font-size: var(--fs-12);
+    color: var(--text-secondary);
+    font-weight: var(--fw-medium);
+}
+
+.settings-level {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: 4px 10px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-pill);
+    width: fit-content;
+}
+
 #profilePreviewBanner {
     background: var(--bg-card);
     border: 1px solid var(--border-default);
@@ -456,19 +482,16 @@
     flex-direction: column;
 }
 
-.level-title {
-    font-size: var(--fs-15);
-    font-weight: var(--fw-semibold);
-    color: var(--text-primary);
-}
-
 .level-subtitle {
     font-size: var(--fs-12);
     color: var(--text-muted);
 }
 
 .level-number {
-    padding: 4px 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: 4px 10px;
     background: var(--bg-surface);
     border: 1px solid var(--border-default);
     border-radius: var(--r-pill);
@@ -476,6 +499,7 @@
     font-size: var(--fs-13);
     font-weight: var(--fw-semibold);
     color: var(--brand-yellow);
+    width: fit-content;
 }
 
 .progress-track {
@@ -1390,14 +1414,12 @@
 }
 
 .roadmap-level {
-    font-family: var(--font-mono);
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: var(--brand-yellow);
-    background: var(--bg-card);
-    padding: 4px 10px;
+    background: var(--brand-yellow);
+    color: var(--text-inverse);
+    padding: 2px 8px;
     border-radius: var(--r-pill);
-    border: 1px solid var(--border-default);
+    font-size: 0.6875rem;
+    font-weight: var(--fw-bold);
 }
 
 .roadmap-info {

@@ -44,6 +44,7 @@
     gap: var(--sp-2);
 }
 
+.header-icon-btn,
 .search-trigger,
 .theme-toggle,
 .notification-bell,
@@ -53,28 +54,30 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--border-default);
-    border-radius: var(--r-sm);
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    border-radius: 50% !important;
     color: var(--text-secondary);
     cursor: pointer;
     flex-shrink: 0;
-    transition: background-color var(--dur-fast) var(--ease-standard),
-        border-color var(--dur-fast) var(--ease-standard),
-        color var(--dur-fast) var(--ease-standard);
+    padding: 0;
+    transition: color var(--dur-fast) var(--ease-standard);
 }
 
+.header-icon-btn:hover,
 .search-trigger:hover,
 .theme-toggle:hover,
 .notification-bell:hover,
 .pwa-install-btn:hover {
-    background: var(--bg-card-hover);
-    border-color: var(--border-strong);
     color: var(--text-primary);
 }
 
 .search-trigger i,
 .theme-toggle i,
-.notification-bell i {
+.notification-bell i,
+.pwa-install-btn i {
     font-size: var(--fs-14);
 }
 
@@ -150,15 +153,15 @@
 .user-avatar {
     width: 40px;
     height: 40px;
-    border-radius: var(--r-sm);
+    border-radius: 50% !important;
     object-fit: cover;
-    border: 1px solid var(--border-default);
+    border: none !important;
     background: var(--bg-card);
-    transition: border-color var(--dur-fast) var(--ease-standard);
+    transition: opacity var(--dur-fast) var(--ease-standard);
 }
 
 .user-profile:hover .user-avatar {
-    border-color: var(--brand-yellow-border);
+    opacity: 0.8;
 }
 
 .profile-dropdown {
@@ -286,9 +289,9 @@
 .profile-dropdown .sidebar-avatar {
     width: 40px;
     height: 40px;
-    border-radius: var(--r-sm);
+    border-radius: 50% !important;
     object-fit: cover;
-    border: 1px solid var(--border-default);
+    border: none !important;
     background: var(--bg-card);
 }
 
@@ -357,8 +360,8 @@
 
 .notification-badge {
     position: absolute;
-    top: -4px;
-    right: -4px;
+    top: -2px;
+    right: -2px;
     min-width: 18px;
     height: 18px;
     padding: 0 4px;
@@ -370,7 +373,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid var(--bg-surface);
+    border: 2px solid var(--bg-card);
     pointer-events: none;
 }
 
@@ -379,6 +382,7 @@
         height: 36px;
     }
 
+    .header-icon-btn,
     .search-trigger,
     .theme-toggle,
     .notification-bell,
@@ -398,6 +402,7 @@
         height: 32px;
     }
 
+    .header-icon-btn,
     .search-trigger,
     .theme-toggle,
     .notification-bell,
@@ -430,6 +435,7 @@
         height: 28px;
     }
 
+    .header-icon-btn,
     .search-trigger,
     .theme-toggle,
     .notification-bell,
@@ -445,7 +451,8 @@
 
     .search-trigger i,
     .theme-toggle i,
-    .notification-bell i {
+    .notification-bell i,
+    .pwa-install-btn i {
         font-size: var(--fs-12);
     }
 }

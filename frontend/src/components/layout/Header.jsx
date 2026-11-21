@@ -27,14 +27,13 @@ export default function Header({ onMenuClick }) {
         return () => document.removeEventListener("click", onClick);
     }, []);
 
-    const handleRefresh = () => {
+    const handleRefresh = async () => {
         if (refreshing) return;
         setRefreshing(true);
-
         refreshUI("header-button");
-        showToast("UI refreshed", "success", 1500);
-
-        setTimeout(() => setRefreshing(false), 700);
+        window.dispatchEvent(new CustomEvent("globalAppRefresh"));
+        showToast("Site data refreshed", "success", 1500);
+        setTimeout(() => setRefreshing(false), 800);
     };
 
     return (
@@ -59,20 +58,17 @@ export default function Header({ onMenuClick }) {
             <div className="user-actions">
                 <SearchDropdown />
 
-                {/* ⚡ Refresh button */}
                 <button
-                    className="theme-toggle"
+                    className="theme-toggle header-icon-btn"
                     onClick={handleRefresh}
-                    aria-label="Refresh UI"
-                    title="Refresh data"
+                    aria-label="Refresh Site Data"
+                    title="Refresh Site Data"
                     disabled={refreshing}
                 >
                     <i
                         className={`fas fa-sync-alt ${refreshing ? "fa-spin" : ""}`}
                         style={{
-                            transition: refreshing
-                                ? "none"
-                                : "transform 0.3s ease",
+                            transition: refreshing ? "none" : "transform 0.3s ease",
                         }}
                     />
                 </button>
@@ -80,7 +76,6 @@ export default function Header({ onMenuClick }) {
                 <PWAInstallButton />
                 <NotificationsDropdown />
 
-                {/* Profile dropdown trigger */}
                 <div
                     ref={wrapRef}
                     className="user-profile"
@@ -100,9 +95,7 @@ export default function Header({ onMenuClick }) {
                         className="user-avatar"
                     />
                     {profileOpen && (
-                        <ProfileDropdown
-                            onClose={() => setProfileOpen(false)}
-                        />
+                        <ProfileDropdown onClose={() => setProfileOpen(false)} />
                     )}
                 </div>
             </div>

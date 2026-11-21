@@ -1,6 +1,6 @@
 import React, { useMemo, useEffect, useState } from "react";
-import { useAnime } from "../context/AnimeContext.jsx";
-import { ACHIEVEMENTS } from "../services/achievements.js";
+import { useAnime } from "../../../context/AnimeContext.jsx";
+import { ACHIEVEMENTS } from "../../../services/achievements.js";
 
 function getMaxDayStreak(data) {
   const dateStrings = data
@@ -115,8 +115,6 @@ function computeProgress(data) {
   const watchingCount = data.filter((a) => a.userStatus === "Watching").length;
   const droppedCount = data.filter((a) => a.userStatus === "Dropped").length;
   const score9plus = data.filter((a) => a.score >= 9).length;
-  const harshScores = data.filter((a) => a.score > 0 && a.score <= 5).length;
-  const generousScores = data.filter((a) => a.score === 10).length;
 
   const dayStreak = getMaxDayStreak(data);
   const currentLevel = parseInt(localStorage.getItem("userLevel") || "1", 10);
@@ -187,7 +185,7 @@ function computeProgress(data) {
   };
 }
 
-export default function Achievements() {
+export default function AchievementList() {
   const { animeData } = useAnime();
 
   const [unlocked, setUnlocked] = useState(() => {
@@ -251,11 +249,7 @@ export default function Achievements() {
   }).length;
 
   return (
-    <div className="dashboard-section">
-      <h2 className="section-title">
-        <i className="fas fa-trophy" aria-hidden="true" /> Achievements
-      </h2>
-
+    <div className="dashboard-section fade-in">
       <div className="achievements-summary">
         <div className="summary-card">
           <span className="summary-label">Total</span>
@@ -301,7 +295,7 @@ export default function Achievements() {
           return (
             <div
               key={ach.id}
-              className={`achievement-card fade-in ${unlockedFlag ? "unlocked" : ""}`}
+              className={`achievement-card ${unlockedFlag ? "unlocked" : ""}`}
             >
               <div className="achievement-icon">
                 <i className={`fas ${ach.icon}`} />

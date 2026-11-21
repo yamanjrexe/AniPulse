@@ -4,7 +4,7 @@ const Dashboard = lazy(() => import("../pages/Dashboard/Dashboard.jsx"));
 const AnimeList = lazy(() => import("../pages/AnimeList.jsx"));
 const Watchlist = lazy(() => import("../pages/Watchlist.jsx"));
 const Statistics = lazy(() => import("../pages/Statistics/Statistics.jsx"));
-const Achievements = lazy(() => import("../pages/Achievements.jsx"));
+const Achievements = lazy(() => import("../pages/Achievements/Achievements.jsx"));
 const Community = lazy(() => import("../pages/Community/Community.jsx"));
 const Settings = lazy(() => import("../pages/Settings/Settings.jsx"));
 const Admin = lazy(() => import("../pages/Admin/Admin.jsx"));
