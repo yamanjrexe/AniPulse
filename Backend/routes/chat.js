@@ -56,6 +56,7 @@ function cacheGet(key) {
     if (hit && Date.now() - hit.at < CACHE_TTL) return hit.data;
     return null;
 }
+
 function cacheSet(key, data) {
     CACHE.set(key, { data, at: Date.now() });
 }
@@ -103,10 +104,19 @@ function getDailyLimit() {
     return 1500;
 }
 
+const ENUM_KEYS = ['type', 'sort', 'season', 'status', 'format'];
+
 async function queryMedia(args, limit = 10) {
     const params = Object.entries(args)
-        .map(([k, v]) => `${k}: ${typeof v === 'string' ? JSON.stringify(v) : v}`)
+        .map(([k, v]) => {
+            if (v === undefined || v === null) return '';
+            if (ENUM_KEYS.includes(k)) return `${k}: ${v}`;
+            if (typeof v === 'string') return `${k}: ${JSON.stringify(v)}`;
+            return `${k}: ${v}`;
+        })
+        .filter(Boolean)
         .join(', ');
+
     const data = await anilist.graphql(
         null,
         `query {
@@ -169,7 +179,7 @@ async function fetchByGenre(genre, limit = 10) {
     const c = cacheGet(key);
     if (c) return c;
     const media = await queryMedia(
-        { type: 'ANIME', genre: JSON.stringify(genre), sort: 'POPULARITY_DESC' },
+        { type: 'ANIME', genre, sort: 'POPULARITY_DESC' },
         limit
     );
     cacheSet(key, media);
@@ -193,7 +203,7 @@ async function searchByTitle(title, limit = 6) {
     const c = cacheGet(key);
     if (c) return c;
     const media = await queryMedia(
-        { type: 'ANIME', search: JSON.stringify(title), sort: 'SEARCH_MATCH' },
+        { type: 'ANIME', search: title, sort: 'SEARCH_MATCH' },
         limit
     );
     cacheSet(key, media);
@@ -244,7 +254,7 @@ async function fetchRecommendations(mediaId, limit = 6) {
 
 async function searchFiltered({ genre, year, minScore, maxEps, minEps, sort, limit = 10 }) {
     const args = { type: 'ANIME', sort: sort || 'SCORE_DESC' };
-    if (genre) args.genre = JSON.stringify(genre);
+    if (genre) args.genre = genre;
     if (year) args.seasonYear = year;
     if (maxEps) args.episodes_lesser = maxEps;
     if (minEps) args.episodes_greater = minEps;
@@ -872,7 +882,10 @@ router.post('/', verifyToken, async (req, res) => {
         res.json(reply);
     } catch (error) {
         console.error('Chat error:', error);
-        res.status(500).json({ error: 'Something went wrong' });
+        res.status(500).json({
+            error: 'Something went wrong',
+            details: error.message || String(error)
+        });
     }
 });
 
